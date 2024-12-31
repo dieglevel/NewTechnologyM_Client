@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { SafeAreaView, View } from "react-native";
 import { Stack } from "@/src/libs/navigation";
-import BottomTabScreenApp from "./BottomTabScreenApp";
+import { BottomTabScreenApp } from "./BottomTabScreenApp";
 
 export const RootScreenApp = () => {
 	return (
@@ -23,5 +23,3 @@ export const RootScreenApp = () => {
 		</NavigationContainer>
 	);
 };
-
-export default RootScreenApp;
