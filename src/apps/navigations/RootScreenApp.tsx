@@ -6,19 +6,22 @@ import { Stack } from "@/src/libs/navigation";
 import BottomTabScreenApp from "./BottomTabScreenApp";
 
 export const RootScreenApp = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="TabScreenApp"
-        screenOptions={{
-          headerShown: false,
-          animation: "fade_from_bottom",
-        }}
-      >
-        <Stack.Screen name="TabScreenApp" component={BottomTabScreenApp} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+	return (
+		<NavigationContainer>
+			<Stack.Navigator
+				initialRouteName="TabScreenApp"
+				screenOptions={{
+					headerShown: false,
+					animation: "fade_from_bottom",
+				}}
+			>
+				<Stack.Screen
+					name="TabScreenApp"
+					component={BottomTabScreenApp}
+				/>
+			</Stack.Navigator>
+		</NavigationContainer>
+	);
 };
 
 export default RootScreenApp;
