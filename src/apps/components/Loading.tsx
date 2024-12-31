@@ -7,7 +7,7 @@ interface Props {
   size?: number;
 }
 
-export const Loading = ({ size }: Props) => {
+const Loading = ({ size }: Props) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const fadeIn = () => {
@@ -49,3 +49,5 @@ export const Loading = ({ size }: Props) => {
     </View>
   );
 };
+
+export default Loading;

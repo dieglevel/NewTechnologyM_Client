@@ -1,8 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { fonts } from './src/assets/fonts';
 import { Loading } from './src/apps/components';
+import { RootScreenApp } from './src/apps/navigations/RootScreenApp';
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);
@@ -12,8 +13,6 @@ export default function App() {
 	} 
 
   return (
-    <View>
-      <Text style={{fontFamily: ""}}></Text>
-    </View>
+      <RootScreenApp/>
   );
 }

@@ -4,10 +4,10 @@ import {
 	NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 
-export const stack = createNativeStackNavigator<RootStackParamList>();
+export const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
-	// TabScreenApp: undefined;
+	TabScreenApp: undefined;
 	// Login: undefined;
 	// Register: undefined;
 	// ProductDetail: { productId: string };

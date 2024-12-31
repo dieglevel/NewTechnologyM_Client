@@ -1,9 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationProp, RouteProp } from '@react-navigation/native';
 
-export const tab = createBottomTabNavigator<RootTabParamList>();
+export const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export type RootTabParamList = {
+	HomeScreen: undefined;
+	UserScreen: undefined;
 };
 
 declare global {
