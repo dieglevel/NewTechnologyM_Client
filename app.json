@@ -1,14 +1,14 @@
 {
 	"expo": {
-		"name": "NewTechnologyM_Client",
-		"slug": "NewTechnologyM_Client",
+		"name": "Zalo",
+		"slug": "Zalo",
 		"version": "1.0.0",
 		"orientation": "portrait",
-		"icon": "./src/assets/images/icon.png",
+		"icon": "./src/assets/images/logo.png",
 		"userInterfaceStyle": "light",
 		"newArchEnabled": true,
 		"splash": {
-			"image": "./src/assets/images/icon.png",
+			"image": "./src/assets/images/logo.png",
 			"resizeMode": "contain",
 			"backgroundColor": "#ffffff"
 		},
@@ -18,12 +18,12 @@
 		},
 		"android": {
 			"adaptiveIcon": {
-				"foregroundImage": "./src/assets/images/icon.png",
+				"foregroundImage": "./src/assets/images/logo.png",
 				"backgroundColor": "#ffffff"
 			}
 		},
 		"web": {
-			"favicon": "./assets/favicon.png"
+			"favicon": "./src/assets/images/logo.png"
 		},
 		"jsEngine": "hermes"
 	}

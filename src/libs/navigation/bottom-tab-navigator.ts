@@ -1,5 +1,5 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationProp, RouteProp } from '@react-navigation/native';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationProp, RouteProp } from "@react-navigation/native";
 
 export const Tab = createBottomTabNavigator<RootTabParamList>();
 

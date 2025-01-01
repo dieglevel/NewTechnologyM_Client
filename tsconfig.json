@@ -4,7 +4,8 @@
 		"strict": true,
 		"paths": {
 			"@/*": ["./*"]
-		}
+		},
+		"types": ["nativewind/types"]
 	},
 	"include": ["**/*.ts", "**/*.tsx", "./src"],
 	"exclude": ["node_modules", "build", "**/__mocks__/*", "**/__tests__/*"]

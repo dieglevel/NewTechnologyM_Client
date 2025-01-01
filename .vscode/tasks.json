@@ -1,38 +1,38 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Start App",
-      "type": "shell",
-      "command": "npm run start",
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Run scrcpy",
-      "type": "shell",
-      "command": "scrcpy -m1920",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Run Both Tasks",
-      "dependsOn": ["Run scrcpy", "Start App"],
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start App",
+			"type": "shell",
+			"command": "npm run start",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Run scrcpy",
+			"type": "shell",
+			"command": "scrcpy -m1920",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Run Both Tasks",
+			"dependsOn": ["Run scrcpy", "Start App"],
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
 }
