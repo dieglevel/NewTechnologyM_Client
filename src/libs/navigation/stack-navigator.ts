@@ -3,8 +3,6 @@ import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-na
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
 
-
-
 export type RootStackParamList = {
 	TabScreenApp: undefined;
 	Register: undefined;
