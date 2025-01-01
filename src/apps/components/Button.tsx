@@ -1,7 +1,12 @@
 import React from "react";
 import { TouchableOpacity, Text } from "react-native";
 
-const Button = ({ title, disabled }) => {
+interface IProps {
+  title: string;
+  disabled: boolean;
+}
+
+export const Button = ({ title, disabled }: IProps) => {
   return (
     <TouchableOpacity
       className={`rounded-lg py-3 items-center ${
@@ -13,5 +18,3 @@ const Button = ({ title, disabled }) => {
     </TouchableOpacity>
   );
 };
-
-export default Button;

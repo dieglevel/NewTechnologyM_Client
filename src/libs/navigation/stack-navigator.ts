@@ -7,7 +7,7 @@ export const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
 	TabScreenApp: undefined;
-	Login: undefined;
+	Register: undefined;
 	// Register: undefined;
 	// ProductDetail: { productId: string };
 	// SubCategory: { categoryId: string };
