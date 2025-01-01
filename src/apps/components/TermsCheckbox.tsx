@@ -8,7 +8,7 @@ interface IProps {
 }
 
 
-const TermsCheckbox = ({ text, isChecked, onCheck }: IProps) => {
+export const TermsCheckbox = ({ text, isChecked, onCheck }: IProps) => {
   return (
     <TouchableOpacity
       className="flex-row items-center mb-3"
@@ -24,4 +24,3 @@ const TermsCheckbox = ({ text, isChecked, onCheck }: IProps) => {
   );
 };
 
-export default TermsCheckbox;

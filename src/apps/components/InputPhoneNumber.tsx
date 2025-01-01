@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TextInput, Text } from "react-native";
 
-const InputPhoneNumber = () => {
+export const InputPhoneNumber = () => {
   return (
     <View className="mb-4">
       <Text className="text-lg font-bold mb-2">Nhập số điện thoại</Text>

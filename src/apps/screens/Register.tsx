@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { View, StatusBar, TouchableOpacity } from "react-native";
-import InputPhoneNumber from "../components/InputPhoneNumber";
-import TermsCheckbox from "../components/TermsCheckbox";
 
-import FooterLink from "../components/FooterLink";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button } from "../components/Button";
+import { Button, FooterLink, InputPhoneNumber, TermsCheckbox } from "../components";
 
 const Register = () => {
   const [isTermsAccepted, setIsTermsAccepted] = useState(false);
