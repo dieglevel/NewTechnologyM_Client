@@ -8,7 +8,6 @@ import Register from "../screens/Register";
 
 export const RootScreenApp = () => {
 	return (
-		
 		<NavigationContainer>
 			<Stack.Navigator
 				initialRouteName="Register"
