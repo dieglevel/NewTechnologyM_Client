@@ -28,4 +28,7 @@
 		"typescript": "^5.3.3"
 	},
 	"private": true
+    "tailwindcss": "^3.3.2",
+    "react-native-safe-area-context": "^5.0.0",
+    "nativewind": "^2.0.11",
 }
