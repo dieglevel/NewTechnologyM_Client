@@ -1,12 +1,18 @@
 import React from "react";
 import { TouchableOpacity, Text } from "react-native";
 
+<<<<<<< Updated upstream
 interface IProps {
   title: string;
   disabled: boolean;
 }
 
 export const Button = ({ title, disabled }: IProps) => {
+=======
+
+
+const Button = ({ title, disabled }) => {
+>>>>>>> Stashed changes
   return (
     <TouchableOpacity
       className={`rounded-lg py-3 items-center ${

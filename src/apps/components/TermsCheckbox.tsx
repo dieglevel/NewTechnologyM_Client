@@ -12,7 +12,7 @@ const TermsCheckbox = ({ text, isChecked, onCheck }) => {
           isChecked ? "bg-blue-500" : ""
         }`}
       />
-      <Text className="ml-2 text-base">{text}</Text>
+      <Text className="ml-2">{text}</Text>
     </TouchableOpacity>
   );
 };
