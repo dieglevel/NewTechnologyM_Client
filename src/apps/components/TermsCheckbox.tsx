@@ -1,7 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 
-const TermsCheckbox = ({ text, isChecked, onCheck }) => {
+interface IProps {
+  text: string;
+  isChecked: boolean;
+  onCheck: any
+}
+
+
+const TermsCheckbox = ({ text, isChecked, onCheck }: IProps) => {
   return (
     <TouchableOpacity
       className="flex-row items-center mb-3"
@@ -12,7 +19,7 @@ const TermsCheckbox = ({ text, isChecked, onCheck }) => {
           isChecked ? "bg-blue-500" : ""
         }`}
       />
-      <Text className="ml-2">{text}</Text>
+      <Text className="ml-2 text-base text-left">{text}</Text>
     </TouchableOpacity>
   );
 };
