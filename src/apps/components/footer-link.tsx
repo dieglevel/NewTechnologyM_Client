@@ -10,4 +10,3 @@ export const FooterLink = ({ text }: IProps) => {
 	return <Text className="text-blue-500 text-center text-base mt-4">{text}</Text>;
 };
 
-export default FooterLink;

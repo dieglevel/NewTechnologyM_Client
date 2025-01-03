@@ -1,13 +1,18 @@
 import React, { useState } from "react";
-import { View, StatusBar, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, FooterLink, InputPhoneNumber, TermsCheckbox } from "../components";
+import { Button, FooterLink, InputPhoneNumber, TermsCheckBox } from "../components";
 
-const Register = () => {
+export const RegisterScreen = () => {
 	const [isTermsAccepted, setIsTermsAccepted] = useState(false);
 	const [isSocialTermsAccepted, setIsSocialTermsAccepted] = useState(false);
 	const insets = useSafeAreaInsets(); // Lấy thông tin vùng an toàn
+
+	const { t } = useTranslation();
+
+	const handlePress = () => {};
 
 	return (
 		<SafeAreaView
@@ -18,20 +23,21 @@ const Register = () => {
 			<View className="flex-1 p-4 justify-between">
 				<View>
 					<InputPhoneNumber />
-					<TermsCheckbox
+					<TermsCheckBox
 						text="Tôi đồng ý với các điều khoản sử dụng Zalo"
 						isChecked={isTermsAccepted}
 						onCheck={setIsTermsAccepted}
 					/>
-					<TermsCheckbox
+					<TermsCheckBox
 						text="Tôi đồng ý với điều khoản Mạng xã hội của Zalo"
 						isChecked={isSocialTermsAccepted}
 						onCheck={setIsSocialTermsAccepted}
 					/>
 					<Button
-						title="Tiếp tục"
+						title="Đăng ký"
 						disabled={!isTermsAccepted || !isSocialTermsAccepted}
 					/>
+					<Text>{t("welcome")}</Text>
 				</View>
 				<View>
 					<FooterLink text="Bạn đã có tài khoản? Đăng nhập ngay" />
@@ -40,5 +46,3 @@ const Register = () => {
 		</SafeAreaView>
 	);
 };
-
-export default Register;

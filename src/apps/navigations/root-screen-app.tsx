@@ -1,10 +1,8 @@
 import { NavigationContainer } from "@react-navigation/native";
-import { useEffect, useState } from "react";
 
-import { SafeAreaView, View, StatusBar } from "react-native";
 import { Stack } from "@/src/libs/navigation";
-import { BottomTabScreenApp } from "./BottomTabScreenApp";
-import Register from "../screens/Register";
+import { RegisterScreen } from "../screens";
+import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {
 	return (
@@ -17,7 +15,7 @@ export const RootScreenApp = () => {
 				}}
 			>
 				<Stack.Screen
-					name="TabScreenApp"
+					name="BottomTabScreenApp"
 					component={BottomTabScreenApp}
 				/>
 				<Stack.Screen
@@ -25,7 +23,7 @@ export const RootScreenApp = () => {
 						statusBarBackgroundColor: "gray",
 					}}
 					name="Register"
-					component={Register}
+					component={RegisterScreen}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>

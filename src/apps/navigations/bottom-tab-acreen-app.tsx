@@ -1,7 +1,5 @@
-import { Tab } from "@/src/libs/navigation";
-import { NavigationContainer } from "@react-navigation/native";
-import { SafeAreaView } from "react-native";
 import { HomeScreen, UserScreen } from "@/src/apps/screens";
+import { Tab } from "@/src/libs/navigation";
 
 export const BottomTabScreenApp = () => {
 	return (

@@ -1,10 +1,9 @@
-import { RouteProp } from "@react-navigation/native";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
-	TabScreenApp: undefined;
+	BottomTabScreenApp: undefined;
 	Register: undefined;
 	// Register: undefined;
 	// ProductDetail: { productId: string };
