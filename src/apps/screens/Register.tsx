@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, StatusBar, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, FooterLink, InputPhoneNumber, TermsCheckBox } from "../components";
 
@@ -8,6 +9,10 @@ export const RegisterScreen = () => {
 	const [isTermsAccepted, setIsTermsAccepted] = useState(false);
 	const [isSocialTermsAccepted, setIsSocialTermsAccepted] = useState(false);
 	const insets = useSafeAreaInsets(); // Lấy thông tin vùng an toàn
+
+	const { t } = useTranslation();
+
+	const handlePress = () => {};
 
 	return (
 		<SafeAreaView
@@ -29,9 +34,10 @@ export const RegisterScreen = () => {
 						onCheck={setIsSocialTermsAccepted}
 					/>
 					<Button
-						title="Tiếp tục"
+						title="Đăng ký"
 						disabled={!isTermsAccepted || !isSocialTermsAccepted}
 					/>
+					<Text>{t("welcome")}</Text>
 				</View>
 				<View>
 					<FooterLink text="Bạn đã có tài khoản? Đăng nhập ngay" />

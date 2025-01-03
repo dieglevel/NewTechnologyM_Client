@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, Modal, TouchableWithoutFeedback, PanResponder } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Image, Modal, PanResponder, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 
 export const LoginScreen = () => {
 	const [language, setLanguage] = useState<string>("vi");

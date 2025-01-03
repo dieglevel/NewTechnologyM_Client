@@ -1,16 +1,25 @@
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useFonts } from "expo-font";
-import { fonts } from "./src/assets/fonts";
+import { useEffect } from "react";
+import { I18nextProvider } from "react-i18next";
 import { Loading } from "./src/apps/components";
 import { RootScreenApp } from "./src/apps/navigations/root-screen-app";
+import { fonts } from "./src/assets/fonts";
+import i18n from "./src/libs/language/i8next.config";
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);
+
+	useEffect(() => {
+		i18n.changeLanguage("vi");
+	},[]);
 
 	if (!fontsLoaded) {
 		return <Loading size={300} />;
 	}
 
-	return <RootScreenApp />;
+	return (
+		<I18nextProvider i18n={i18n}>
+			<RootScreenApp />
+		</I18nextProvider>
+	);
 }

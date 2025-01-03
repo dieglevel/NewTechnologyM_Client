@@ -1,11 +1,8 @@
 import { NavigationContainer } from "@react-navigation/native";
-import { useEffect, useState } from "react";
 
-import { SafeAreaView, View, StatusBar } from "react-native";
 import { Stack } from "@/src/libs/navigation";
-import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 import { RegisterScreen } from "../screens";
-
+import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {
 	return (
@@ -18,7 +15,7 @@ export const RootScreenApp = () => {
 				}}
 			>
 				<Stack.Screen
-					name="TabScreenApp"
+					name="BottomTabScreenApp"
 					component={BottomTabScreenApp}
 				/>
 				<Stack.Screen
