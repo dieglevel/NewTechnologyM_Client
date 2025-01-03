@@ -3,7 +3,7 @@ import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useFonts } from "expo-font";
 import { fonts } from "./src/assets/fonts";
 import { Loading } from "./src/apps/components";
-import { RootScreenApp } from "./src/apps/navigations/RootScreenApp";
+import { RootScreenApp } from "./src/apps/navigations/root-screen-app";
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);

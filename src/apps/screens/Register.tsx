@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, StatusBar, TouchableOpacity } from "react-native";
 
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, FooterLink, InputPhoneNumber, TermsCheckbox } from "../components";
+import { Button, FooterLink, InputPhoneNumber, TermsCheckBox } from "../components";
 
-const Register = () => {
+export const RegisterScreen = () => {
 	const [isTermsAccepted, setIsTermsAccepted] = useState(false);
 	const [isSocialTermsAccepted, setIsSocialTermsAccepted] = useState(false);
 	const insets = useSafeAreaInsets(); // Lấy thông tin vùng an toàn
@@ -18,12 +18,12 @@ const Register = () => {
 			<View className="flex-1 p-4 justify-between">
 				<View>
 					<InputPhoneNumber />
-					<TermsCheckbox
+					<TermsCheckBox
 						text="Tôi đồng ý với các điều khoản sử dụng Zalo"
 						isChecked={isTermsAccepted}
 						onCheck={setIsTermsAccepted}
 					/>
-					<TermsCheckbox
+					<TermsCheckBox
 						text="Tôi đồng ý với điều khoản Mạng xã hội của Zalo"
 						isChecked={isSocialTermsAccepted}
 						onCheck={setIsSocialTermsAccepted}
@@ -40,5 +40,3 @@ const Register = () => {
 		</SafeAreaView>
 	);
 };
-
-export default Register;

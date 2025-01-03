@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 
 import { SafeAreaView, View, StatusBar } from "react-native";
 import { Stack } from "@/src/libs/navigation";
-import { BottomTabScreenApp } from "./BottomTabScreenApp";
-import Register from "../screens/Register";
+import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
+import { RegisterScreen } from "../screens";
+
 
 export const RootScreenApp = () => {
 	return (
@@ -25,7 +26,7 @@ export const RootScreenApp = () => {
 						statusBarBackgroundColor: "gray",
 					}}
 					name="Register"
-					component={Register}
+					component={RegisterScreen}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>

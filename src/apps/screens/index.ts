@@ -1,2 +1,3 @@
-export * from "./HomeScreen";
-export * from "./UserScreen";
+export * from "./home";
+export * from "./user";
+export * from "./register";
