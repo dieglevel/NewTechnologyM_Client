@@ -22,25 +22,27 @@ export const RegisterScreen = () => {
 			{/* Cấu hình StatusBar */}
 			<View className="flex-1 p-4 justify-between">
 				<View>
-					<InputPhoneNumber />
+					<InputPhoneNumber/>
 					<TermsCheckBox
-						text="Tôi đồng ý với các điều khoản sử dụng Zalo"
+						text="Tôi đồng ý với các "
+						textLink="điều khoản sử dụng Zalo"
 						isChecked={isTermsAccepted}
 						onCheck={setIsTermsAccepted}
 					/>
 					<TermsCheckBox
-						text="Tôi đồng ý với điều khoản Mạng xã hội của Zalo"
+						text="Tôi đồng ý với "
+						textLink="điều khoản Mạng xã hội của Zalo"
 						isChecked={isSocialTermsAccepted}
 						onCheck={setIsSocialTermsAccepted}
 					/>
 					<Button
-						title="Đăng ký"
+						title="Tiếp tục"
 						disabled={!isTermsAccepted || !isSocialTermsAccepted}
 					/>
 					<Text>{t("welcome")}</Text>
 				</View>
 				<View>
-					<FooterLink text="Bạn đã có tài khoản? Đăng nhập ngay" />
+					<FooterLink text="Bạn đã có tài khoản? " textLink="Đăng nhập ngay" />
 				</View>
 			</View>
 		</SafeAreaView>

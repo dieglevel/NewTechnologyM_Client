@@ -1,4 +1,4 @@
-export * from "./button";
+export * from "./button-register";
 export * from "./loading";
 export * from "./terms-check-box";
 export * from "./input-phone-number";

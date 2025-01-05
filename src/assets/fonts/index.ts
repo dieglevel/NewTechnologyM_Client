@@ -15,8 +15,8 @@ export const fonts = {
 
 
 export const images = {
-	logo: require("./logo.png"),
-	logo1: require("./logo1.png"),
-	logo2: require("./logo2.png"),
-	logo3: require("./logo3.png"),
+	// logo: require("./logo.png"),
+	// logo1: require("./logo1.png"),
+	// logo2: require("./logo2.png"),
+	// logo3: require("./logo3.png"),
 }
