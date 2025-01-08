@@ -1,5 +1,5 @@
-import { HomeScreen, UserScreen } from "@/src/apps/screens";
-import { Tab } from "@/src/libs/navigation";
+import { HomeScreen, UserScreen } from "@/apps/screens";
+import { Tab } from "@/libs/navigation";
 
 export const BottomTabScreenApp = () => {
 	return (

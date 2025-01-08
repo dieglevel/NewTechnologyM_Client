@@ -1,10 +1,13 @@
 import { NavigationContainer } from "@react-navigation/native";
 
-import { Stack } from "@/src/libs/navigation";
-import { RegisterScreen, LoginScreen } from "../screens";
+import { LoginScreen, RegisterScreen } from "@/apps/screens";
+import { Stack } from "@/libs/navigation";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {
+	const insets = useSafeAreaInsets();
+
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
