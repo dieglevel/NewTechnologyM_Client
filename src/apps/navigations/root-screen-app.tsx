@@ -1,14 +1,14 @@
 import { NavigationContainer } from "@react-navigation/native";
 
 import { Stack } from "@/src/libs/navigation";
-import { RegisterScreen, LoginScreen } from "../screens";
+import { RegisterScreen, OTPScreen } from "../screens";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
-				initialRouteName="Login"
+				initialRouteName="OTP"
 				screenOptions={{
 					headerShown: false,
 					animation: "fade_from_bottom",
@@ -24,6 +24,13 @@ export const RootScreenApp = () => {
 					}}
 					name="Register"
 					component={RegisterScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="OTP"
+					component={OTPScreen}
 				/>
 				<Stack.Screen
 					options={{
