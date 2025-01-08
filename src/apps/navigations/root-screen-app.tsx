@@ -1,7 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 
 import { Stack } from "@/src/libs/navigation";
-import { LoginScreen, RegisterScreen } from "../screens";
+import { RegisterScreen, LoginScreen } from "../screens";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {

@@ -4,16 +4,14 @@ import {
 	Modal,
 	PanResponder,
 	PanResponderInstance,
-	PanResponderStatic,
 	Pressable,
-	SafeAreaViewBase,
 	Text,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
-	View,
+	View
 } from "react-native";
-import { texts } from "./handle";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { texts } from "./handle";
 
 export const LoginScreen = () => {
 	const [language, setLanguage] = useState<string>("vi");
@@ -46,6 +44,15 @@ export const LoginScreen = () => {
 		onPanResponderRelease: () => {},
 	});
 
+	const handlePressLanguage = (language: string) => {
+		setLanguage(language);
+		setIsModalVisible(false);
+	}
+
+	const handlePressCloseModal = () => {
+		setIsModalVisible(false);
+	}
+
 	return (
 		<SafeAreaView className="flex-1 bg-white items-center justify-between">
 			<TouchableOpacity
@@ -62,17 +69,17 @@ export const LoginScreen = () => {
 					visible={isModalVisible}
 					transparent={true}
 					animationType="fade"
-					onRequestClose={() => setIsModalVisible(false)}
+					onRequestClose={handlePressCloseModal}
 				>
 					<TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
 						<View className="flex-1 bg-black bg-opacity-50 items-center justify-center">
 							<View className="bg-white p-6 rounded-lg shadow">
-								<TouchableOpacity onPress={() => setLanguage("vi")}>
+								<TouchableOpacity onPress={() => handlePressLanguage("vi")}>
 									<Text className="text-lg p-2">
 										{language === "vi" ? "✓ Tiếng Việt" : "Tiếng Việt"}
 									</Text>
 								</TouchableOpacity>
-								<TouchableOpacity onPress={() => setLanguage("en")}>
+								<TouchableOpacity onPress={() => handlePressLanguage("en")}>
 									<Text className="text-lg p-2">
 										{language === "en" ? "✓ English" : "English"}
 									</Text>
