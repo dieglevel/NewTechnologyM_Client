@@ -1,14 +1,14 @@
 import { NavigationContainer } from "@react-navigation/native";
 
 import { Stack } from "@/src/libs/navigation";
-import { RegisterScreen, OTPScreen } from "../screens";
+import { RegisterScreen, OTPScreen, LoginScreen } from "../screens";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
-				initialRouteName="OTP"
+				initialRouteName="Register"
 				screenOptions={{
 					headerShown: false,
 					animation: "fade_from_bottom",

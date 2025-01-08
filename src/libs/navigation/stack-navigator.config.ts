@@ -1,4 +1,4 @@
-import { OTPScreen } from './../../apps/screens/otp';
+import { OTPScreen } from '../../apps/screens/register/otp';
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -7,7 +7,7 @@ export type RootStackParamList = {
 	BottomTabScreenApp: undefined;
 	Register: undefined;
 	Login: undefined;
-	OTP:undefined
+	OTP:{phone: string};
 	// Register: undefined;
 	// ProductDetail: { productId: string };
 	// SubCategory: { categoryId: string };

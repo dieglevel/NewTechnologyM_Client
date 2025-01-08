@@ -1,7 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
-export function Header() {
+interface HeaderProps {
+  textPhone: string;
+}
+
+export function Header({ textPhone }: HeaderProps) {
   return (
     <View className="mb-8">
       <TouchableOpacity className="mb-8">
@@ -11,11 +15,11 @@ export function Header() {
         Nhập mã xác thực
       </Text>
 
-      <Text className="text-gray-500 text-center mb-2">
+      <Text className="text-gray-500 text-center text-base">
         Nhập dãy 6 số được gửi đến số điện thoại
       </Text>
-      <Text className="text-black text-center font-medium">
-        0522 206 965
+      <Text className="text-black text-center font-medium text-base">
+        {textPhone}
       </Text>
     </View>
   );
