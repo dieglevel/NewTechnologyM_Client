@@ -1,3 +1,4 @@
+import { SafeAreaView } from "@/apps/components";
 import React, { useState } from "react";
 import {
 	Image,
@@ -8,9 +9,9 @@ import {
 	Text,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
-	View
+	View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { texts } from "./handle";
 
 export const LoginScreen = () => {
@@ -47,14 +48,14 @@ export const LoginScreen = () => {
 	const handlePressLanguage = (language: string) => {
 		setLanguage(language);
 		setIsModalVisible(false);
-	}
+	};
 
 	const handlePressCloseModal = () => {
 		setIsModalVisible(false);
-	}
+	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white items-center justify-between">
+		<SafeAreaView>
 			<TouchableOpacity
 				onPress={() => setIsModalVisible(true)}
 				className="p-4 rounded-full flex-row items-center"

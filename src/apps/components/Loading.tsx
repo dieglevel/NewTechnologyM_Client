@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 
 import { Animated, Text, View } from "react-native";
 
-import { Brand } from "@/src/assets/svgs";
-import { colors } from "@/src/constants";
+import { Brand } from "@/assets/svgs";
+import { colors } from "@/constants";
 
 interface Props {
 	size?: number;
