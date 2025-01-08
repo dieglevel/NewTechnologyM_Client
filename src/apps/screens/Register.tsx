@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 
 import { useTranslation } from "react-i18next";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, FooterLink, InputPhoneNumber, TermsCheckBox } from "../components";
+import { Button, FooterLink, InputPhoneNumber, TermsCheckBox } from "@/apps/components";
 
 export const RegisterScreen = () => {
 	const [isTermsAccepted, setIsTermsAccepted] = useState(false);

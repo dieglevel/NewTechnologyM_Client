@@ -1,4 +1,4 @@
-import { images } from "@/src/assets/images";
+import { images } from "@/assets/images";
 
 interface Language {
    [key: string]: {

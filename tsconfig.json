@@ -3,9 +3,17 @@
 	"compilerOptions": {
 		"strict": true,
 		"paths": {
-			"@/*": ["./*"]
+			"@/*": ["src/*"]
 		},
-		"types": ["nativewind/types"]
+		"types": ["nativewind/types"],
+		"baseUrl": ".",
+		"module": "ESNext",
+		"target": "ESNext",
+		"lib": ["ESNext", "DOM"],
+		"moduleResolution": "Node",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true
 	},
 	"include": ["**/*.ts", "**/*.tsx", "./src"],
 	"exclude": ["node_modules", "build", "**/__mocks__/*", "**/__tests__/*"]
