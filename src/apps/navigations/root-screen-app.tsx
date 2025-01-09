@@ -1,7 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 
-import { Stack } from "@/src/libs/navigation";
-import { RegisterScreen, OTPScreen, LoginScreen } from "../screens";
+import { LoginScreen, OTPScreen, RegisterScreen } from "@/apps/screens";
+import { Stack } from "@/libs/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
@@ -34,6 +34,7 @@ export const RootScreenApp = () => {
 					}}
 					name="OTP"
 					component={OTPScreen}
+					initialParams={{ phone: "" }}
 				/>
 				<Stack.Screen
 					options={{

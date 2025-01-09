@@ -18,7 +18,7 @@
 		{
 			"label": "Run scrcpy",
 			"type": "shell",
-			"command": "scrcpy -m1920",
+			"command": "scrcpy -m1920 -",
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",

@@ -1,13 +1,13 @@
+import { Button, FooterLink, Header, InfoBox, OTPInput, SafeAreaView } from "@/apps/components";
+import { ArrowBack } from "@/assets/svgs";
+import { OTPRouteProp, StackScreenNavigationProp } from "@/libs/navigation";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
-import { View, SafeAreaView, TouchableOpacity } from "react-native";
-import { ActionButtons, Button, FooterLink, Header, InfoBox, OTPInput } from "../../components";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { StackScreenNavigationProp } from "@/src/libs/navigation";
-import { ArrowBack } from "@/src/assets/svgs";
+import { TouchableOpacity, View } from "react-native";
 
 export const OTPScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
-	const route = useRoute<RouteProp<{ phoneNumber: { phone: string } }, "phoneNumber">>();
+	const route = useRoute<OTPRouteProp>();
 
 	const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 	const inputRefs = Array(6)
@@ -31,7 +31,7 @@ export const OTPScreen = () => {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white justify-between">
+		<SafeAreaView>
 			<TouchableOpacity
 				onPress={() => navigation.goBack()}
 				className="p-4 mt-8"

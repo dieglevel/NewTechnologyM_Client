@@ -1,4 +1,5 @@
-import { OTPScreen } from '../../apps/screens/register/otp';
+
+import { RouteProp } from "@react-navigation/native";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,6 +28,8 @@ declare global {
 }
 
 export type StackScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+export type OTPRouteProp = RouteProp<RootStackParamList, 'OTP'>;
 
 // export type ProductDetailRouteProp = RouteProp<
 // 	RootStackParamList,
