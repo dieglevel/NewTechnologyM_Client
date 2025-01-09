@@ -1,8 +1,7 @@
-import { colors } from "@/src/constants";
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
 
-export const ArrowBack = ({ color = colors.brand, size = 25, outline = "#7C87FF" }) => (
+export const ArrowBack = ({ color = "#7C87FF", size = 25, outline = "#7C87FF" }) => (
 	<Svg
 		width={size}
 		height={size}

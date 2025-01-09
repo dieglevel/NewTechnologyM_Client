@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, SafeAreaView, TouchableOpacity } from "react-native";
 import { ActionButtons, Button, FooterLink, Header, InfoBox, OTPInput } from "../../components";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { StackScreenNavigationProp } from "@/src/libs/navigation";
-import { ArrowBack } from "@/src/assets/svgs";
+import { StackScreenNavigationProp } from "@/libs/navigation";
+import { ArrowBack } from "@/assets/svgs";
 
 export const OTPScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();

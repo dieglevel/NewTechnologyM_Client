@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { Button, FooterLink, InputPhoneNumber, TermsCheckBox, VerificationModal } from "../../components";
-import { StackScreenNavigationProp } from "@/src/libs/navigation";
-import { ArrowBack } from "@/src/assets/svgs";
+import { StackScreenNavigationProp } from "@/libs/navigation";
+import { ArrowBack } from "@/assets/svgs";
+
 
 export const RegisterScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
