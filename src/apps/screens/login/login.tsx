@@ -11,7 +11,6 @@ import {
 	TouchableWithoutFeedback,
 	View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { texts } from "./handle";
 
 export const LoginScreen = () => {

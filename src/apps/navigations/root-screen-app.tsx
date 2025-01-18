@@ -1,6 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 
-import { LoginScreen, RegisterScreen } from "@/apps/screens";
+import { LoginScreen, OTPScreen, RegisterScreen } from "@/apps/screens";
 import { Stack } from "@/libs/navigation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
@@ -11,7 +11,7 @@ export const RootScreenApp = () => {
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
-				initialRouteName="Login"
+				initialRouteName="Register"
 				screenOptions={{
 					headerShown: false,
 					animation: "fade_from_bottom",
@@ -27,6 +27,14 @@ export const RootScreenApp = () => {
 					}}
 					name="Register"
 					component={RegisterScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="OTP"
+					component={OTPScreen}
+					initialParams={{ phone: "" }}
 				/>
 				<Stack.Screen
 					options={{

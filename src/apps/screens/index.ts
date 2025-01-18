@@ -1,4 +1,5 @@
 export * from "./home";
 export * from "./user";
-export * from "./register";
-export * from "./login";
+export * from "./register/register";
+export * from "./register/otp"
+export * from "./login/login";
