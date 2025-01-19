@@ -9,7 +9,11 @@ export type RootStackParamList = {
 	Register: undefined;
 	Login: undefined;
 	OTP:{phone: string};
-	UserDetail: undefined;
+	UserDetail: {user: {
+		name: string;
+		mainAvatar: string;
+		coverAvatar: string;
+	}};
 	// Register: undefined;
 	// ProductDetail: { productId: string };
 	// SubCategory: { categoryId: string };
@@ -31,6 +35,8 @@ declare global {
 export type StackScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export type OTPRouteProp = RouteProp<RootStackParamList, 'OTP'>;
+export type UserDetailRouteProp = RouteProp<RootStackParamList, 'UserDetail'>;
+
 
 // export type ProductDetailRouteProp = RouteProp<
 // 	RootStackParamList,
