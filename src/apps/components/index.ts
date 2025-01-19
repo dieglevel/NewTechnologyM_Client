@@ -15,3 +15,6 @@ export * from './detail-user/main-photo'
 export * from './detail-user/new-section'
 export * from './user-tab/search'
 export * from './user-tab/user-info'
+
+export * from './safe-area-view';
+

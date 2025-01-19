@@ -6,7 +6,7 @@ import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 import { Stack } from "@/libs/navigation";
 
 export const RootScreenApp = () => {
-	const insets = useSafeAreaInsets();
+
 
 	return (
 		<NavigationContainer>
