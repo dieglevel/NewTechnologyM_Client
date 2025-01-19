@@ -1,4 +1,7 @@
-import { Button, FooterLink, Header, InfoBox, OTPInput, SafeAreaView } from "@/apps/components";
+
+import { SafeAreaView } from "@/apps/components";
+import { Header, InfoBox, OTPInput } from "@/apps/components/otp";
+import { Button, FooterLink } from "@/apps/components/register";
 import { ArrowBack } from "@/assets/svgs";
 import { OTPRouteProp, StackScreenNavigationProp } from "@/libs/navigation";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -9,7 +12,7 @@ export const OTPScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
 	const route = useRoute<OTPRouteProp>();
 
-	const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+	const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
 	const inputRefs = Array(6)
 		.fill(0)
 		.map(() => React.createRef<HTMLInputElement>());

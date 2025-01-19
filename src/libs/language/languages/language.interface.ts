@@ -1,7 +1,9 @@
 export type LanguageResource = {
    translation:{
-      welcome: string;
-      hello: string;
+      "Tôi đồng ý với các": string;
+      "điều khoản sử dụng Zalo": string;
+      "điều khoản Mạng xã hội của Zalo": string;
+      "Tôi đồng ý với": string;
    }
 
 }
