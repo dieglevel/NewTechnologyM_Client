@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
-interface phoneProps {
+interface Props {
   onChangePhone: (value: string) => void; 
   numPhone: string;
 }
 
-export const InputPhoneNumber = ({ numPhone, onChangePhone }: phoneProps) => {
+export const InputPhoneNumber = ({ numPhone, onChangePhone }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (

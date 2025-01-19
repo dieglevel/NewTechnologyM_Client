@@ -1,18 +1,23 @@
-import React, { useState } from "react";
-import { View, SafeAreaView, TouchableOpacity } from "react-native";
-import { ActionButtons, Button, FooterLink, Header, InfoBox, OTPInput } from "../../components";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { StackScreenNavigationProp } from "@/libs/navigation";
+import { Button, FooterLink, Header, InfoBox, OTPInput, SafeAreaView } from "@/apps/components";
 import { ArrowBack } from "@/assets/svgs";
+import { OTPRouteProp, StackScreenNavigationProp } from "@/libs/navigation";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import React, { useState } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { fetchdata } from "../register/handle";
 
 export const OTPScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
-	const route = useRoute<RouteProp<{ phoneNumber: { phone: string } }, "phoneNumber">>();
+	const route = useRoute<OTPRouteProp>();
 
-	const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+	const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
 	const inputRefs = Array(6)
 		.fill(0)
 		.map(() => React.createRef<HTMLInputElement>());
+
+	const handleLogin = () => {
+		fetchdata(setOtp);
+	}
 
 	const handleOtpChange = (value: string, index: number) => {
 		if (value.length > 1) {
@@ -31,10 +36,10 @@ export const OTPScreen = () => {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white justify-between">
+		<SafeAreaView>
 			<TouchableOpacity
 				onPress={() => navigation.goBack()}
-				className="p-4 mt-8"
+				className="p-4"
 			>
 				<ArrowBack
 					color="#292d32"

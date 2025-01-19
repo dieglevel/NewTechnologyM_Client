@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { Text, View, TouchableOpacity } from "react-native";
-import { useTranslation } from "react-i18next";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { Button, FooterLink, InputPhoneNumber, TermsCheckBox, VerificationModal } from "../../components";
-import { StackScreenNavigationProp } from "@/libs/navigation";
 import { ArrowBack } from "@/assets/svgs";
+import { StackScreenNavigationProp } from "@/libs/navigation";
+import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Text, TouchableOpacity, View } from "react-native";
 
+import { Button, FooterLink, InputPhoneNumber, SafeAreaView, TermsCheckBox, VerificationModal } from "@/apps/components";
 
 export const RegisterScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -15,7 +14,6 @@ export const RegisterScreen = () => {
 	const [isSocialTermsAccepted, setIsSocialTermsAccepted] = useState(false);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [phone, setPhone] = useState("");
-	const insets = useSafeAreaInsets();
 
 	const { t } = useTranslation();
 
@@ -25,8 +23,6 @@ export const RegisterScreen = () => {
 
 	return (
 		<SafeAreaView
-			style={{ paddingTop: insets.top }}
-			className="flex-1 bg-white"
 		>
 			<TouchableOpacity
 				onPress={() => navigation.goBack()}
