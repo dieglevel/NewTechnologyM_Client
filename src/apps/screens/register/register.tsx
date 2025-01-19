@@ -5,7 +5,8 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
-import { Button, FooterLink, InputPhoneNumber, SafeAreaView, TermsCheckBox, VerificationModal } from "@/apps/components";
+import { Button, FooterLink, InputPhoneNumber, TermsCheckBox, VerificationModal } from "@/apps/components/register";
+import { SafeAreaView } from "@/apps/components";
 
 export const RegisterScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();

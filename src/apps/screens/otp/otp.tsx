@@ -1,10 +1,13 @@
-import { Button, FooterLink, Header, InfoBox, OTPInput, SafeAreaView } from "@/apps/components";
+import { Header, InfoBox, OTPInput,  } from "@/apps/components/otp";
 import { ArrowBack } from "@/assets/svgs";
 import { OTPRouteProp, StackScreenNavigationProp } from "@/libs/navigation";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { fetchdata } from "../register/handle";
+import { } from "@/apps/components/otp";
+import { SafeAreaView } from "@/apps/components";
+import { Button, FooterLink } from "@/apps/components/register";
 
 export const OTPScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();

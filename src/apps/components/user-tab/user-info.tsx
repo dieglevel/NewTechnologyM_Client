@@ -2,9 +2,10 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import React from "react";
 import { ChangeAccount } from "@/assets/svgs";
 import { t } from "i18next";
+import { useNavigation } from "@react-navigation/native";
+import { StackScreenNavigationProp } from "@/libs/navigation";
 
-interface UserInfoProps {
-    navigation: any;
+interface Props {
 	user:{
 		name:string,
 		mainAvatar:string,
@@ -12,7 +13,9 @@ interface UserInfoProps {
 	};
 }
 
-export const UserInfo = ({navigation, user}:UserInfoProps) => {
+export const UserInfo = ({user}:Props) => {
+	const navigation = useNavigation<StackScreenNavigationProp>();
+
 	return (
 		<TouchableOpacity
 			className="flex-row items-center justify-between px-4 py-4 bg-white"

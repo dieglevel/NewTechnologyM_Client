@@ -1,9 +1,10 @@
 import React, {useState} from "react";
 import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { SafeAreaView, SearchHeader, UserInfo } from "@/apps/components";
+import { SearchHeader, UserInfo } from "@/apps/components/user-tab";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { fetchUser } from "./handle";
+import { SafeAreaView } from "@/apps/components";
 
 export const UserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -24,7 +25,7 @@ export const UserScreen = () => {
 		<SafeAreaView>
 			<View className="w-full">
 				<SearchHeader/>
-				<UserInfo navigation={navigation} user={user} />
+				<UserInfo user={user} />
 			</View>
 		</SafeAreaView>
 	);

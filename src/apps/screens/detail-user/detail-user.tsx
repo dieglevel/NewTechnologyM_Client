@@ -1,10 +1,8 @@
-import { CoverPhoto, HeaderDetailUser, MainPhoto, NewSection } from "@/apps/components";
-import { ArrowBack } from "@/assets/svgs";
-import { More } from "@/assets/svgs/more";
+import { CoverPhoto, HeaderDetailUser, MainPhoto, NewSection } from "@/apps/components/detail-user";
 import { StackScreenNavigationProp, UserDetailRouteProp } from "@/libs/navigation";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React from "react";
-import { View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from "react-native";
+import {SafeAreaView, ScrollView } from "react-native";
 
 export const UserDetailScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
