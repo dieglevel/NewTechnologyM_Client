@@ -14,6 +14,7 @@ export type RootStackParamList = {
 		mainAvatar: string;
 		coverAvatar: string;
 	}};
+	Chat: undefined;
 	// Register: undefined;
 	// ProductDetail: { productId: string };
 	// SubCategory: { categoryId: string };
