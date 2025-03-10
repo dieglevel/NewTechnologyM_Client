@@ -5,3 +5,4 @@ export * from "./login/login";
 export * from "./otp/otp";
 export * from "./register/register";
 export * from "./user/user";
+// export * from "./chat/chat-detail";
