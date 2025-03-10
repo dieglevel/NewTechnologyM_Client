@@ -1,4 +1,4 @@
-import { colors } from "@/src/constants";
+import { colors } from "@/constants";
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
 

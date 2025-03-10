@@ -15,8 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { texts } from "./handle";
 
 export const LoginScreen = () => {
-	const navigation = useNavigation(); // Lấy navigation từ React Navigation
-
+	const navigation = useNavigation();
 	const [language, setLanguage] = useState<string>("vi");
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<number>(0);
@@ -56,6 +55,10 @@ export const LoginScreen = () => {
 		setIsModalVisible(false);
 	};
 
+	const handleLoginPress = () => {
+		navigation.navigate("Chat");
+	};
+
 	return (
 		<SafeAreaView>
 			<TouchableOpacity
@@ -93,7 +96,10 @@ export const LoginScreen = () => {
 				</Modal>
 			)}
 
-			<Pressable onPress={handleImagePress} className="">
+			<Pressable
+				onPress={handleImagePress}
+				className=""
+			>
 				<Image
 					{...panResponder.panHandlers}
 					source={imageSource}
@@ -109,7 +115,9 @@ export const LoginScreen = () => {
 				{texts[language].pages.map((_, index) => (
 					<View
 						key={index}
-						className={`w-2 h-2 rounded-full bg-gray-400 ${currentPage === index ? "bg-blue-500" : ""}`}
+						className={`w-2 h-2 rounded-full bg-gray-400 ${
+							currentPage === index ? "bg-blue-500" : ""
+						}`}
 					/>
 				))}
 			</View>
@@ -117,15 +125,11 @@ export const LoginScreen = () => {
 			<View className="flex-col w-full items-center mb-6">
 				<TouchableOpacity
 					className="bg-blue-500 p-4 rounded-full w-4/5 items-center"
-					onPress={() => navigation.navigate("BottomTabScreenApp")} 
+					onPress={handleLoginPress}
 				>
 					<Text className="text-white text-center font-medium">{texts[language].login}</Text>
 				</TouchableOpacity>
-
-				<TouchableOpacity
-					className="bg-gray-200 p-4 rounded-full w-4/5 items-center mt-4"
-					onPress={() => navigation.navigate("Register")} 
-				>
+				<TouchableOpacity className="bg-gray-200 p-4 rounded-full w-4/5 items-center mt-4">
 					<Text className="text-gray-800 text-center font-medium">{texts[language].createAccount}</Text>
 				</TouchableOpacity>
 			</View>

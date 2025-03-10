@@ -63,7 +63,6 @@ export const RegisterScreen = () => {
 					<FooterLink
 						text="Bạn đã có tài khoản? "
 						textLink="Đăng nhập ngay"
-						onPress={() => navigation.navigate("LoginUserScreen")}
 					/>
 				</View>
 

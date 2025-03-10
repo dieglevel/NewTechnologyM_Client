@@ -1,3 +1,5 @@
+
+import { RouteProp } from "@react-navigation/native";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -5,6 +7,14 @@ export const Stack = createNativeStackNavigator<RootStackParamList>();
 export type RootStackParamList = {
 	BottomTabScreenApp: undefined;
 	Register: undefined;
+	Login: undefined;
+	OTP:{phone: string};
+	UserDetail: {user: {
+		name: string;
+		mainAvatar: string;
+		coverAvatar: string;
+	}};
+	Chat: undefined;
 	// Register: undefined;
 	// ProductDetail: { productId: string };
 	// SubCategory: { categoryId: string };
@@ -24,6 +34,10 @@ declare global {
 }
 
 export type StackScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+export type OTPRouteProp = RouteProp<RootStackParamList, 'OTP'>;
+export type UserDetailRouteProp = RouteProp<RootStackParamList, 'UserDetail'>;
+
 
 // export type ProductDetailRouteProp = RouteProp<
 // 	RootStackParamList,
