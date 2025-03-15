@@ -1,3 +1,3 @@
-export * from "./Loading";
+export * from "./loading";
 export * from './safe-area-view';
 

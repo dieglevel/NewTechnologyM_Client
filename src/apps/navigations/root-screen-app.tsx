@@ -1,13 +1,13 @@
-import { NavigationContainer } from "@react-navigation/native";
-import { Chat, LoginScreen, OTPScreen, RegisterScreen, UserDetailScreen,ChatScreen } from "@/apps/screens";
+import { Chat, ChatScreen, LoginScreen, OTPScreen, RegisterScreen, UserDetailScreen } from "@/apps/screens";
 import { Stack } from "@/libs/navigation";
+import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
 
 export const RootScreenApp = () => {
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
-				initialRouteName="Login"
+				initialRouteName="Chat"
 				screenOptions={{
 					headerShown: false,
 					animation: "fade_from_bottom",
@@ -53,15 +53,14 @@ export const RootScreenApp = () => {
 					name="Chat"
 					component={Chat}
 				/>
-        <Stack.Screen
-          options={{
-            statusBarBackgroundColor: "gray",
-          }}
-          name="ChatScreen"
-          component={ChatScreen}
-        />
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="ChatScreen"
+					component={ChatScreen}
+				/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
 };
-

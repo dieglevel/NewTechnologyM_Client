@@ -1,6 +1,6 @@
-import React from "react";
-import { TextInput, View, TouchableOpacity, Text,FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 const chatData = Array(10).fill({
   id: "1",
@@ -8,6 +8,8 @@ const chatData = Array(10).fill({
   message: "Tài Nguyên: Đang thoi",
   time: "T5",
 });
+
+
 const ChatItem = ({ item }) => (
   <TouchableOpacity className="flex-row items-center p-3 border-b border-gray-200">
     <View className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
