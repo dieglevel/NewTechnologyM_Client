@@ -1,4 +1,4 @@
-
+import { ChatScreen } from './../../apps/screens/chatDetail/chatScreen';
 import { RouteProp } from "@react-navigation/native";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -15,6 +15,8 @@ export type RootStackParamList = {
 		coverAvatar: string;
 	}};
 	Chat: undefined;
+	ChatDetail: { chatId: string };
+	ChatScreen: undefined;
 	// Register: undefined;
 	// ProductDetail: { productId: string };
 	// SubCategory: { categoryId: string };
