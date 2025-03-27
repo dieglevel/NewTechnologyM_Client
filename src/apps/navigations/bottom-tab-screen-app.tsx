@@ -1,7 +1,8 @@
-import { HomeScreen, UserScreen } from "@/apps/screens";
+import { HomeScreen, ListChatScreen, UserScreen } from "@/apps/screens";
 import { Message, Profile } from "@/assets/svgs";
 import { Tab } from "@/libs/navigation";
 import { Text } from "react-native";
+import ContactsScreen from "../screens/contacts/contacts";
 
 export const BottomTabScreenApp = () => {
 	return (
@@ -11,7 +12,7 @@ export const BottomTabScreenApp = () => {
 				headerShown: false,
 				tabBarLabel: ({ focused, color }) => {
 					const labels = {
-						HomeScreen: "Tin nhắn",
+						ListChatScreen: "Tin nhắn",
 						UserScreen: "Cá nhân",
 						ContactScreen: "Liên lạc",
 					};
@@ -23,7 +24,7 @@ export const BottomTabScreenApp = () => {
 				},
 				tabBarIcon: ({ focused, color, size }) => {
 					let iconName;
-					if (route.name === "HomeScreen")
+					if (route.name === "ListChatScreen")
 						return focused ? (
 							<Message
 								outline="white"
@@ -51,19 +52,36 @@ export const BottomTabScreenApp = () => {
 								size={25}
 							/>
 						);
+					else if (route.name === "ContactScreen")
+						return focused ? (
+							<Profile
+								color="#1d91fa"
+								size={25}
+								outline="#1d91fa"
+							/>
+						) : (
+							<Profile
+								outline="gray"
+								color="white"
+								size={25}
+							/>
+						);
 				},
 			})}
 		>
 			<Tab.Screen
-				name="HomeScreen"
-				component={HomeScreen}
+				name="ListChatScreen"
+				component={ListChatScreen}
 			/>
 
+			<Tab.Screen
+				name="ContactScreen"
+				component={ContactsScreen}
+			/>
 			<Tab.Screen
 				name="UserScreen"
 				component={UserScreen}
 			/>
-
 		</Tab.Navigator>
 	);
 };

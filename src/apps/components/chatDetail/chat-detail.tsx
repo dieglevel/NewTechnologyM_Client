@@ -5,7 +5,7 @@ import { useRoute } from "@react-navigation/native";
 
 const ChatDetail = () => {
   const route = useRoute();
-  const { name } = route.params || { name: "Người dùng" }; 
+  const { name }: any = route.params || { name: "Người dùng" }; 
   const [messages, setMessages] = useState([
     { id: "1", text: "Xin chào!", sender: "me" },
     { id: "2", text: "Chào bạn!", sender: "other" },

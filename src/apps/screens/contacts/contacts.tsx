@@ -12,7 +12,7 @@ const contacts = [
   { id: "5", name: "Bảo" },
 ];
 
-const ContactItem = ({ item }) => (
+const ContactItem = ({ item }: any) => (
   <TouchableOpacity className="flex-row items-center p-3 border-b border-gray-200">
     <View className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
       <Text className="text-white font-bold text-lg">{item.name.charAt(0)}</Text>
@@ -38,21 +38,4 @@ const ContactsScreen = () => {
   );
 };
 
-const Tab = createBottomTabNavigator();
-
-const App = () => {
-  return (
-    <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Messages" component={ContactsScreen} options={{
-          tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={24} color={color} />,
-        }} />
-        <Tab.Screen name="Contacts" component={ContactsScreen} options={{
-          tabBarIcon: ({ color }) => <Ionicons name="book" size={24} color={color} />,
-        }} />
-      </Tab.Navigator>
-    </NavigationContainer>
-  );
-};
-
-export default App;
+export default ContactsScreen

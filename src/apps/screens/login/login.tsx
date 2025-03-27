@@ -56,7 +56,7 @@ export const LoginScreen = () => {
 	};
 
 	const handleLoginPress = () => {
-		navigation.navigate("Chat");
+		navigation.navigate("LoginUser");
 	};
 
 	return (

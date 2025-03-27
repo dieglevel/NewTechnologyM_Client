@@ -1,4 +1,4 @@
-export * from "./chat/chat";
+export * from "./list-chat/list-chat";
 export * from "./detail-user/detail-user";
 export * from "./home";
 export * from "./login/login";

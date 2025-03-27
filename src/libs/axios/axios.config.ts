@@ -1,54 +1,53 @@
+import { ExpoSecureStoreKeys, getSecure, removeSecure, setSecure } from "../expo-secure-store/expo-secure-store";
 import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
+// import { eventEmitter } from "../eventemitter3";
+import { BaseResponse } from "@/types";
+import { getIpDeviceApi } from "@/services/other-api/ip-device";
 
 export const api = axios.create({
 	baseURL: process.env.EXPO_PUBLIC_BACKEND_URL,
+	timeout: 5000,
+	headers: { "Content-Type": "application/json" },
 });
 
-export const setAccessToken = (token: string | null) => {
-	api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-};
-
+// Interceptor trước khi gửi request
 api.interceptors.request.use(
-	(config) => {
-		const token = api.defaults.headers.common["Authorization"];
-		if (token) {
-			config.headers["Authorization"] = token;
+	async (config) => {
+		const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
+		let idDevice = await getSecure(ExpoSecureStoreKeys.IpDevice);
+
+		if (config.headers["Authorization"] && config.headers["ip-device"]) {
+			return config;
 		}
+
+		if (!idDevice) {
+			idDevice = await getIpDeviceApi();
+			await setSecure(ExpoSecureStoreKeys.IpDevice, idDevice ?? "");
+		}
+
+		if (token) {
+			config.headers["Authorization"] = `Bearer ${token}`;
+		}
+
+		config.headers["ip-device"] = idDevice;
+
 		return config;
 	},
-	(error) => {
-		if (error.response.status === 401) {
-			console.log("\x1b[41m Axios\x1b[0m \x1b[31m \x1b[0m");
-		}
-		if (axios.isAxiosError(error)) {
-		}
-		console.log("Error in request interceptor", error);
-		console.error("Error URL:", error.config?.url);
-		console.log("Request Method:", error.config?.method);
-		return Promise.reject(error);
-	},
+	(error) => Promise.reject(error),
 );
 
+// Interceptor xử lý lỗi
 api.interceptors.response.use(
-	(response) => response, // Trả về response nếu thành công
+	(response) => response,
 	(error) => {
-		if (axios.isAxiosError(error)) {
-			console.log("\x1b[41m Axios \x1b[0m \x1b[31m \x1b[0m", error.config?.url);
+		const errorResponse = error.response.data as BaseResponse<null>;
+		if (errorResponse.statusCode === 401) {
+			removeSecure(ExpoSecureStoreKeys.AccessToken); // Xóa token
+			// eventEmitter.emit("logout"); // Gửi sự kiện logout
 		} else {
-			console.log("Unknown Error:", error);
+			console.error("⛔ Axios: ", error.status + " - " + error.config?.url);
 		}
-		return Promise.reject(error); // Trả về lỗi để xử lý thêm nếu cần
-	},
-);
-
-axios.interceptors.response.use(
-	(response) => response, // Trả về response nếu thành công
-	(error) => {
-		if (axios.isAxiosError(error)) {
-			console.log("\x1b[41m Axios \x1b[0m \x1b[31m \x1b[0m", error.config?.url);
-		} else {
-			console.log("Unknown Error:", error);
-		}
-		return Promise.reject(error); // Trả về lỗi để xử lý thêm nếu cần
+		return Promise.reject(error);
 	},
 );

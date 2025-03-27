@@ -1,5 +1,5 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import ChatDetail from "@/apps/components/chatDetail/chat-screen";
+import ChatDetail from "@/apps/components/chatDetail/chat-detail";
 
 export const ChatScreen = () => {
   return (

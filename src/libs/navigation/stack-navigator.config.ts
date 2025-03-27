@@ -17,16 +17,8 @@ export type RootStackParamList = {
 	Chat: undefined;
 	ChatDetail: { chatId: string };
 	ChatScreen: undefined;
-	// Register: undefined;
-	// ProductDetail: { productId: string };
-	// SubCategory: { categoryId: string };
-	// PaymentOption: { selectedItems: CartItem[]; totalPrice: number };
-	// Order: undefined;
-	// OrderDetail: { order: Order };
-	// Feedback: undefined;
-	// PaymentResult: undefined;
-	// Cart: { productId: string; callback: () => void };
-	// ChatAdmin: { userId: string };
+	LoginUser: undefined;
+
 };
 
 declare global {
