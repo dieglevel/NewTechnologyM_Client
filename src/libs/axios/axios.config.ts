@@ -41,6 +41,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
+		console.log("error", error);
 		const errorResponse = error.response.data as BaseResponse<null>;
 		if (errorResponse.statusCode === 401) {
 			removeSecure(ExpoSecureStoreKeys.AccessToken); // Xóa token
