@@ -1,16 +1,14 @@
-import { NavigationContainer } from "@react-navigation/native";
-
-import { Chat, LoginScreen, OTPScreen, RegisterScreen, UserDetailScreen } from "@/apps/screens";
+import {  ChatScreen, LoginScreen, OTPScreen, RegisterScreen, UserDetailScreen } from "@/apps/screens";
 import { Stack } from "@/libs/navigation";
-import { BottomTabScreenApp } from "./bottom-tab-acreen-app";
+import { NavigationContainer } from "@react-navigation/native";
+import { BottomTabScreenApp } from "./bottom-tab-screen-app";
+import { LoginUserScreen } from "../screens/login-user/login-user";
 
 export const RootScreenApp = () => {
-
-
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
-				initialRouteName="Chat"
+				initialRouteName="Login"
 				screenOptions={{
 					headerShown: false,
 					animation: "fade_from_bottom",
@@ -19,6 +17,20 @@ export const RootScreenApp = () => {
 				<Stack.Screen
 					name="BottomTabScreenApp"
 					component={BottomTabScreenApp}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="Login"
+					component={LoginScreen}
+				/>
+								<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="LoginUser"
+					component={LoginUserScreen}
 				/>
 				<Stack.Screen
 					options={{
@@ -39,24 +51,16 @@ export const RootScreenApp = () => {
 					options={{
 						statusBarBackgroundColor: "gray",
 					}}
-					name="Login"
-					component={LoginScreen}
+					name="UserDetail"
+					component={UserDetailScreen}
 				/>
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
 					}}
-					name="UserDetail"
-					component={UserDetailScreen}
+					name="ChatScreen"
+					component={ChatScreen}
 				/>
-								<Stack.Screen
-					options={{
-						statusBarBackgroundColor: "gray",
-					}}
-					name="Chat"
-					component={Chat}
-				/>
-				
 			</Stack.Navigator>
 		</NavigationContainer>
 	);

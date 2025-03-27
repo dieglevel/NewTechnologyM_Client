@@ -11,9 +11,11 @@ import {
 	TouchableWithoutFeedback,
 	View,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { texts } from "./handle";
 
 export const LoginScreen = () => {
+	const navigation = useNavigation();
 	const [language, setLanguage] = useState<string>("vi");
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<number>(0);
@@ -51,6 +53,10 @@ export const LoginScreen = () => {
 
 	const handlePressCloseModal = () => {
 		setIsModalVisible(false);
+	};
+
+	const handleLoginPress = () => {
+		navigation.navigate("LoginUser");
 	};
 
 	return (
@@ -117,7 +123,10 @@ export const LoginScreen = () => {
 			</View>
 
 			<View className="flex-col w-full items-center mb-6">
-				<TouchableOpacity className="bg-blue-500 p-4 rounded-full w-4/5 items-center">
+				<TouchableOpacity
+					className="bg-blue-500 p-4 rounded-full w-4/5 items-center"
+					onPress={handleLoginPress}
+				>
 					<Text className="text-white text-center font-medium">{texts[language].login}</Text>
 				</TouchableOpacity>
 				<TouchableOpacity className="bg-gray-200 p-4 rounded-full w-4/5 items-center mt-4">

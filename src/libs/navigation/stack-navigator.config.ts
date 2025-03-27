@@ -1,4 +1,4 @@
-
+import { ChatScreen } from './../../apps/screens/chatDetail/chatScreen';
 import { RouteProp } from "@react-navigation/native";
 import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -15,16 +15,10 @@ export type RootStackParamList = {
 		coverAvatar: string;
 	}};
 	Chat: undefined;
-	// Register: undefined;
-	// ProductDetail: { productId: string };
-	// SubCategory: { categoryId: string };
-	// PaymentOption: { selectedItems: CartItem[]; totalPrice: number };
-	// Order: undefined;
-	// OrderDetail: { order: Order };
-	// Feedback: undefined;
-	// PaymentResult: undefined;
-	// Cart: { productId: string; callback: () => void };
-	// ChatAdmin: { userId: string };
+	ChatDetail: { chatId: string };
+	ChatScreen: undefined;
+	LoginUser: undefined;
+
 };
 
 declare global {

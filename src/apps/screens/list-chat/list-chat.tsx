@@ -1,10 +1,10 @@
 import { SafeAreaView } from "@/apps/components";
-import { ChatHeader } from "@/apps/components/chat";
+import { ListChat } from "@/apps/components/list-chat";
 
-export const Chat = () => {
+export const ListChatScreen = () => {
       return (
          <SafeAreaView>
-            <ChatHeader />
+            <ListChat></ListChat>
          </SafeAreaView>
       );
    }
