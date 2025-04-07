@@ -1,4 +1,12 @@
-import {  ChatScreen, LoginScreen, OTPScreen, RegisterScreen, UserDetailScreen } from "@/apps/screens";
+import { 
+	ChatScreen, 
+	LoginScreen, 
+	OTPScreen, 
+	RegisterScreen, 
+	UserDetailScreen, 
+	ForgotPasswordScreen
+  } from "@/apps/screens";
+  
 import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
@@ -61,6 +69,14 @@ export const RootScreenApp = () => {
 					name="ChatScreen"
 					component={ChatScreen}
 				/>
+				<Stack.Screen
+ 				 options={{
+   						 statusBarBackgroundColor: "gray",
+ 					 }}
+  				name="ForgotPasswordScreen"
+ 				 component={ForgotPasswordScreen}
+/>
+
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
