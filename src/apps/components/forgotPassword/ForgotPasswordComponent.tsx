@@ -1,4 +1,3 @@
-// ForgotPasswordComponent.tsx
 import { useNavigation } from "@react-navigation/native";
 import React, { useRef, useState } from "react";
 import {
@@ -44,6 +43,17 @@ export const ForgotPasswordComponent = () => {
     }
     if (!text && index > 0) {
       inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleContinueOTP = () => {
+    const otpValue = otp.join("");
+    if (otpValue.length === 6) {
+      console.log("OTP hợp lệ:", otpValue);
+      setShowOTPModal(false);
+      navigation.navigate("UpdatePasswordScreen", { phone });
+    } else {
+      alert("Vui lòng nhập đầy đủ mã OTP.");
     }
   };
 
@@ -149,7 +159,7 @@ export const ForgotPasswordComponent = () => {
 
             <TouchableOpacity
               className="bg-blue-500 py-2 rounded-lg items-center"
-              onPress={() => console.log("OTP nhập vào: ", otp.join(""))}
+              onPress={handleContinueOTP}
             >
               <Text className="text-white font-medium">Tiếp tục</Text>
             </TouchableOpacity>
