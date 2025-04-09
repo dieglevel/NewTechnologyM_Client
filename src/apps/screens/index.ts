@@ -7,4 +7,4 @@ export * from "./register/register";
 export * from "./user/user";
 export * from "./chatDetail/chatScreen";
 export * from "./forgotPassword/forgotPasswordScreen";
-export * from "./updatePassword/UpdatePasswordScreen"
+export * from "./updatePassword/updatePasswordScreen";
