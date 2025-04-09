@@ -6,3 +6,5 @@ export * from "./otp/otp";
 export * from "./register/register";
 export * from "./user/user";
 export * from "./chatDetail/chatScreen";
+export * from "./forgotPassword/forgotPasswordScreen";
+

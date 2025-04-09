@@ -59,10 +59,10 @@ export const LoginUserScreen = () => {
 						<Text className="text-blue-500 font-medium">{isPasswordVisible ? "ẨN" : "HIỆN"}</Text>
 					</TouchableOpacity>
 				</View>
+				<TouchableOpacity onPress={() => navigation.navigate("ForgotPasswordScreen")}>
+  <Text className="text-blue-500 text-center font-medium">Lấy lại mật khẩu</Text>
+</TouchableOpacity>
 
-				<TouchableOpacity>
-					<Text className="text-blue-500 text-center font-medium">Lấy lại mật khẩu</Text>
-				</TouchableOpacity>
 			</ScrollView>
 		</SafeAreaView>
 	);
