@@ -1,6 +1,7 @@
-import { ForgotPasswordScreen as ForgotPasswordComponent } from "./forgotPasswordScreen";
+// forgotPasswordScreen.tsx
 import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
+import { ForgotPasswordComponent } from "./../../components/forgotPassword/ForgotPasswordComponent";
 
 export const ForgotPasswordScreen = () => {
   return (
