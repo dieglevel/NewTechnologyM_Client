@@ -11,9 +11,12 @@ import {
 	TouchableWithoutFeedback,
 	View,
 	StyleSheet,
+	FlatList,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { texts } from "./handle";
+import { useQuery, useRealm } from "@realm/react";
+import { UserSchema } from "@/database/schema/user";
 
 export const LoginScreen = () => {
 	const navigation = useNavigation();
@@ -28,6 +31,29 @@ export const LoginScreen = () => {
 			setImageSource(texts[language].pages[currentPage + 1].image);
 		}
 	};
+
+
+	const users = useQuery(UserSchema); // Reactive! UI tự update khi dữ liệu thay đổi
+	const realm = useRealm();
+ 
+	const addUser = () => {
+	  realm.write(() => {
+		 realm.create('User', {
+			_id: new Realm.BSON.ObjectId(),
+			name: 'Minh',
+			age: 25,
+		 });
+	  });
+	};
+
+
+
+
+
+
+
+
+
 
 	const panResponder: PanResponderInstance = PanResponder.create({
 		onStartShouldSetPanResponder: () => true,
@@ -64,6 +90,8 @@ export const LoginScreen = () => {
 		navigation.navigate("Register");
 	};
 
+	
+
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -72,6 +100,13 @@ export const LoginScreen = () => {
 					style={styles.languageButton}
 				>
 					<Text style={styles.languageText}>{language === "vi" ? "Tiếng Việt" : "English"}</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity onPress={addUser}>
+					<Text style={styles.languageText}>Add User</Text>
+				</TouchableOpacity>
+				<TouchableOpacity onPress={() => console.log(users)}>
+					<Text style={styles.languageText}>Get User</Text>
 				</TouchableOpacity>
 
 				<Text style={styles.title}>Zalo</Text>

@@ -7,10 +7,11 @@ import { RootScreenApp } from "./src/apps/navigations/root-screen-app";
 import { fonts } from "./src/assets/fonts";
 import i18n from "./src/libs/language/i8next.config";
 import Toast from "react-native-toast-message";
+import { RealmProvider } from "@realm/react";
+import { UserSchema } from "@/database/schema/user";
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);
-
 
 	useEffect(() => {
 		i18n.changeLanguage("vi");
@@ -21,11 +22,13 @@ export default function App() {
 	}
 
 	return (
-		<I18nextProvider i18n={i18n}>
-			<SafeAreaProvider>
-				<RootScreenApp />
-				<Toast position="top"/>
-			</SafeAreaProvider>
-		</I18nextProvider>
+		<RealmProvider schema={[UserSchema]}>
+			<I18nextProvider i18n={i18n}>
+				<SafeAreaProvider>
+					<RootScreenApp />
+					<Toast position="top" />
+				</SafeAreaProvider>
+			</I18nextProvider>
+		</RealmProvider>
 	);
 }
