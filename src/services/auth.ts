@@ -7,11 +7,11 @@ export const loginApi = async (username: string, password: string) => {
 	try {
 		const response = await api.post<BaseResponse<Auth>>(`auth/login`, { identifier: username, password });
 
-      console.log(response.data);
+		console.log(response.data);
 
 		const { data, statusCode } = response.data;
 		if (statusCode === 200) {
-         setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
+			setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
 		}
 		return response.data;
 	} catch (e) {

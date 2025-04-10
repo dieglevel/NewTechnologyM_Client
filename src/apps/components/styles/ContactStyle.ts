@@ -273,12 +273,7 @@ export const ContactStyles = StyleSheet.create({
 		flexDirection: "row",
 		marginTop: 5,
 	},
-	noDataText: {
-		color: "#666",
-		fontSize: 16,
-		textAlign: "center",
-		marginTop: 20,
-	},
+
 	ButtonText: {
 		color: "#FFF",
 		fontSize: 14,
@@ -297,19 +292,5 @@ export const ContactStyles = StyleSheet.create({
 		paddingVertical: 8,
 		paddingHorizontal: 12,
 	},
-	tabSwitchContainer: {
-		flexDirection: "row",
-		justifyContent: "space-around",
-		paddingVertical: 10,
-		borderBottomWidth: 1,
-		borderBottomColor: "#ccc",
-	},
-	tabText: {
-		fontSize: 16,
-		color: "#666",
-	},
-	tabActive: {
-		color: "#007AFF",
-		fontWeight: "bold",
-	},
+
 });

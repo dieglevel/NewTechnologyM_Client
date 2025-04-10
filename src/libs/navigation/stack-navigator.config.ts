@@ -1,5 +1,5 @@
-import { ChatScreen } from './../../apps/screens/chatDetail/chatScreen';
-import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgotPasswordScreen";
+import { ChatScreen } from '../../apps/screens/chatDetail/chat-screen';
+import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgot-password-screen";
 import { RouteProp } from "@react-navigation/native";
 import {
   createNativeStackNavigator,

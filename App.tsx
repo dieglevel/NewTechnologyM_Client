@@ -6,6 +6,7 @@ import { Loading } from "./src/apps/components";
 import { RootScreenApp } from "./src/apps/navigations/root-screen-app";
 import { fonts } from "./src/assets/fonts";
 import i18n from "./src/libs/language/i8next.config";
+import Toast from "react-native-toast-message";
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);
@@ -23,6 +24,7 @@ export default function App() {
 		<I18nextProvider i18n={i18n}>
 			<SafeAreaProvider>
 				<RootScreenApp />
+				<Toast position="top"/>
 			</SafeAreaProvider>
 		</I18nextProvider>
 	);

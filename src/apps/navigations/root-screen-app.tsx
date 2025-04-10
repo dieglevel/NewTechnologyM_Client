@@ -10,7 +10,7 @@ import {
 import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
-import { LoginUserScreen } from "../screens/login-user/login-user";
+import { LoginUserScreen } from "../screens/login-user/login-user-screen";
 
 export const RootScreenApp = () => {
 	return (

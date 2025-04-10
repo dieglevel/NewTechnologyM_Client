@@ -1,8 +1,7 @@
-import { HomeScreen, ListChatScreen, UserScreen } from "@/apps/screens";
+import { ContactsScreen, HomeScreen, ListChatScreen, UserScreen } from "@/apps/screens";
 import { Message, Profile } from "@/assets/svgs";
 import { Tab } from "@/libs/navigation";
 import { Text } from "react-native";
-import ContactsScreen from "../screens/contacts/contacts";
 
 export const BottomTabScreenApp = () => {
 	return (
@@ -16,11 +15,7 @@ export const BottomTabScreenApp = () => {
 						UserScreen: "Cá nhân",
 						ContactScreen: "Liên lạc",
 					};
-					return focused ? (
-						<Text style={{ color: focused ? "#1d91fa" : "gray" }}>{labels[route.name]}</Text>
-					) : (
-						<Text style={{ color: focused ? "#1d91fa" : "gray" }}></Text>
-					);
+					return <Text style={{ color: focused ? "#1d91fa" : "black" }}>{labels[route.name]}</Text>;
 				},
 				tabBarIcon: ({ focused, color, size }) => {
 					let iconName;

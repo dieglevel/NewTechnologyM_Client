@@ -1,8 +1,10 @@
+import { ErrorResponse } from "@/libs/axios/axios.config";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { loginApi } from "@/services/auth";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export const LoginUserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -15,17 +17,20 @@ export const LoginUserScreen = () => {
 	};
 
 	const handleLogin = async () => {
-
-    console.log("abc")
 		try {
-    const response = await loginApi(phone, password);
+			const response = await loginApi(phone, password);
 
-    if (response.statusCode === 200) {
-      navigation.navigate("BottomTabScreenApp");
-    }
+			if (response.statusCode === 200) {
+				navigation.navigate("BottomTabScreenApp");
+			}
 		} catch (error) {
-      console.error(error)
-    }
+			const err = error as ErrorResponse;
+			Toast.show({
+				type: "error",
+				text1: "Đăng nhập thất bại",
+				text2: err.message,
+			})
+		}
 	};
 
 	return (
@@ -53,16 +58,15 @@ export const LoginUserScreen = () => {
 						secureTextEntry={!isPasswordVisible}
 						value={password}
 						onChangeText={setPassword}
-            onSubmitEditing={handleLogin}
+						onSubmitEditing={handleLogin}
 					/>
 					<TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
 						<Text className="text-blue-500 font-medium">{isPasswordVisible ? "ẨN" : "HIỆN"}</Text>
 					</TouchableOpacity>
 				</View>
 				<TouchableOpacity onPress={() => navigation.navigate("ForgotPasswordScreen")}>
-  <Text className="text-blue-500 text-center font-medium">Lấy lại mật khẩu</Text>
-</TouchableOpacity>
-
+					<Text className="text-blue-500 text-center font-medium">Lấy lại mật khẩu</Text>
+				</TouchableOpacity>
 			</ScrollView>
 		</SafeAreaView>
 	);

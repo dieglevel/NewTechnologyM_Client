@@ -36,7 +36,7 @@ const ContactItem = ({ item }: any) => (
 	</TouchableOpacity>
 );
 
-const ContactsScreen = () => {
+export const ContactsScreen = () => {
 	return (
 		<SafeAreaView style={{ width: "100%", flex: 1 }}>
 			<View className="flex-1 w-full">
@@ -69,4 +69,4 @@ const ContactsScreen = () => {
 	);
 };
 
-export default ContactsScreen;
+

@@ -5,6 +5,14 @@ import { useNavigation } from "@react-navigation/native";
 import { BaseResponse } from "@/types";
 import { getIpDeviceApi } from "@/services/other-api/ip-device";
 
+export interface ErrorResponse {
+	error: string;
+	message: string;
+	statusCode: number;
+	timestamp: Date;
+	path: string;
+}
+
 export const api = axios.create({
 	baseURL: process.env.EXPO_PUBLIC_BACKEND_URL,
 	timeout: 5000,
@@ -41,14 +49,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		console.log("error", error);
-		const errorResponse = error.response.data as BaseResponse<null>;
+		console.log(error)
+
+
+		const errorResponse: ErrorResponse = error.response.data;
+
 		if (errorResponse.statusCode === 401) {
 			removeSecure(ExpoSecureStoreKeys.AccessToken); // Xóa token
 			// eventEmitter.emit("logout"); // Gửi sự kiện logout
 		} else {
 			console.error("⛔ Axios: ", error.status + " - " + error.config?.url);
 		}
-		return Promise.reject(error);
+
+		return Promise.reject(errorResponse);
 	},
 );
