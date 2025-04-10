@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TextInput } from 'react-native';
+import React from "react";
+import { View, TextInput, StyleSheet } from "react-native";
 
 interface OTPInputProps {
   otp: string[];
@@ -9,13 +9,15 @@ interface OTPInputProps {
 
 export function OTPInput({ otp, inputRefs, handleOtpChange }: OTPInputProps) {
   return (
-    <View className="flex-row justify-center space-x-2 mb-5">
+    <View style={styles.container}>
       {otp.map((digit, index) => (
         <TextInput
           key={index}
           ref={inputRefs[index]}
-          className={`w-12 h-14 border-2 rounded-lg text-center text-lg
-            ${digit ? 'border-blue-500' : 'border-gray-300'}`}
+          style={[
+            styles.input,
+            digit ? styles.inputActive : styles.inputInactive,
+          ]}
           maxLength={1}
           keyboardType="number-pad"
           value={digit}
@@ -26,3 +28,26 @@ export function OTPInput({ otp, inputRefs, handleOtpChange }: OTPInputProps) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20, // mb-5
+  },
+  input: {
+    width: 48, // w-12
+    height: 56, // h-14
+    borderWidth: 2, // border-2
+    borderRadius: 8, // rounded-lg
+    textAlign: "center", // text-center
+    fontSize: 18, // text-lg
+    marginHorizontal: 4, // space-x-2
+  },
+  inputActive: {
+    borderColor: "#3b82f6", // border-blue-500
+  },
+  inputInactive: {
+    borderColor: "#d1d5db", // border-gray-300
+  },
+});

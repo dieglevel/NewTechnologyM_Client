@@ -3,7 +3,7 @@ import { StackScreenNavigationProp } from "@/libs/navigation";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "@/apps/components";
 import i18n from "@/libs/language/i8next.config";
 import { Button, FooterLink, InputPhoneNumber, TermsCheckBox, VerificationModal } from "@/apps/components/register";
@@ -27,18 +27,18 @@ export const RegisterScreen = ({ route }: any) => {
 
   return (
     <SafeAreaView>
-      <View className="flex-1 w-full">
+      <View style={styles.container}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="p-4"
+          style={styles.backButton}
         >
           <ArrowBack
             color="#292d32"
             outline="#292d32"
           />
         </TouchableOpacity>
-        <View className="flex-1 p-4 justify-between">
-          <View className="flex-1">
+        <View style={styles.content}>
+          <View style={styles.form}>
             <InputPhoneNumber
               numPhone={phone || ""}
               onChangePhone={() => {}}
@@ -91,3 +91,21 @@ export const RegisterScreen = ({ route }: any) => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: "100%",
+  },
+  backButton: {
+    padding: 16, // p-4
+  },
+  content: {
+    flex: 1,
+    padding: 16, // p-4
+    justifyContent: "space-between",
+  },
+  form: {
+    flex: 1,
+  },
+});

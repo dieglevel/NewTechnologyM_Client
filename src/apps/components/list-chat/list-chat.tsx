@@ -2,165 +2,146 @@ import { StackScreenNavigationProp } from "@/libs/navigation";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
 
 interface IChatItem {
-	item: {
-    id: string;
-    name: string;
-    message: string;
-    time: string
-  }
-	navigation: StackScreenNavigationProp;
+    item: {
+        id: string;
+        name: string;
+        message: string;
+        time: string;
+    };
+    navigation: StackScreenNavigationProp;
 }
 
 const ChatItem = ({ item, navigation }: IChatItem) => {
-	return (
-		<TouchableOpacity
-			className="flex-row items-center p-3 border-b border-gray-200"
-			onPress={() => navigation.navigate("ChatScreen")}
-		>
-			<View className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
-				<Text className="text-white font-bold text-lg">{item.name}</Text>
-			</View>
+    return (
+        <TouchableOpacity
+            style={styles.chatItemContainer}
+            onPress={() => navigation.navigate("ChatScreen")}
+        >
+            <View style={styles.avatarContainer}>
+                <Text style={styles.avatarText}>{item.name}</Text>
+            </View>
 
-			<View className="ml-3 flex-1">
-				<Text className="font-semibold text-black">{item.name}</Text>
-				<Text className="text-gray-500 text-sm">{item.message}</Text>
-			</View>
-			<Text className="text-gray-400 text-xs">{item.time}</Text>
-		</TouchableOpacity>
-	);
+            <View style={styles.chatContent}>
+                <Text style={styles.chatName}>{item.name}</Text>
+                <Text style={styles.chatMessage}>{item.message}</Text>
+            </View>
+            <Text style={styles.chatTime}>{item.time}</Text>
+        </TouchableOpacity>
+    );
 };
 
 export const ListChat = () => {
-	const navigation = useNavigation<StackScreenNavigationProp>();
+    const navigation = useNavigation<StackScreenNavigationProp>();
 
-	const chatData: IChatItem[] = [
-		{
-			item: {
-				id: "1",
-				name: "Nhóm 2 - QLDA",
-				message: "Tài Nguyên: Đang thoi",
-				time: "T5",
-			},
-			navigation: navigation,
-		},
-    {
-			item: {
-				id: "1",
-				name: "Nhóm 2 - QLDA",
-				message: "Tài Nguyên: Đang thoi",
-				time: "T5",
-			},
-			navigation: navigation,
-		},
-	];
+    const chatData: IChatItem[] = [
+        {
+            item: {
+                id: "1",
+                name: "Nhóm 2 - QLDA",
+                message: "Tài Nguyên: Đang thoi",
+                time: "T5",
+            },
+            navigation: navigation,
+        },
+        {
+            item: {
+                id: "2",
+                name: "Nhóm 3 - QLDA",
+                message: "Huy: Đã gửi tài liệu",
+                time: "T4",
+            },
+            navigation: navigation,
+        },
+    ];
 
-  const temp = {
-    item: {
-      id: "1",
-      name: "Nhóm 2 - QLDA",
-      message: "Tài Nguyên: Đang thoi",
-      time: "T5",
-    },
-    navigation: navigation,
-  }
+    return (
+        <View style={styles.container}>
+            <View style={styles.searchBar}>
+                <Ionicons name="search" size={20} color="black" style={styles.icon} />
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Tìm kiếm"
+                    placeholderTextColor="black"
+                />
+                <Ionicons name="qr-code" size={20} color="black" style={styles.icon} />
+                <Ionicons name="add" size={24} color="black" style={styles.icon} />
+            </View>
 
-	return (
-		<View className="w-full h-screen">
-			<View className="flex-row items-center bg-gradient-to-r from-blue-500 to-blue-900 p-2 rounded-lg w-full">
-				<Ionicons
-					name="search"
-					size={20}
-					color="black"
-					className="mx-2"
-				/>
-				<TextInput
-					className="flex-1 text-black text-base"
-					placeholder="Tìm kiếm"
-					placeholderTextColor="black"
-				/>
-				<Ionicons
-					name="qr-code"
-					size={20}
-					color="black"
-					className="mx-2"
-				/>
-				<Ionicons
-					name="add"
-					size={24}
-					color="black"
-					className="mx-2"
-				/>
-			</View>
-
-			{/* <View className="flex-1 bg-gray-100 w-full"></View> */}
-			{/* Danh sách hội thoại */}
-			<FlatList
-				data={chatData}
-				keyExtractor={(item, index) => index.toString()}
-				renderItem={({ item }) => <ChatItem item={item.item} navigation={item.navigation} />}
-				className="flex-1 bg-gray-100 w-full"
-			/>
-
-			{/* <View className="absolute bottom-0 w-full bg-white p-3 border-t border-gray-300 flex-row justify-around items-center">
-				<TouchableOpacity className="items-center">
-					<View className="relative">
-						<Ionicons
-							name="chatbubbles"
-							size={24}
-							color="blue"
-						/>
-						<View className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1">
-							<Text className="text-white text-xs">5</Text>
-						</View>
-					</View>
-					<Text className="text-blue-500 text-xs">Tin nhắn</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity className="items-center">
-					<Ionicons
-						name="book"
-						size={24}
-						color="gray"
-					/>
-				</TouchableOpacity>
-
-				<TouchableOpacity className="items-center">
-					<View className="relative">
-						<Ionicons
-							name="grid"
-							size={24}
-							color="gray"
-						/>
-						<View className="absolute -top-1 -right-2 bg-red-500 rounded-full w-2 h-2"></View>
-					</View>
-				</TouchableOpacity>
-
-				<TouchableOpacity className="items-center">
-					<View className="relative">
-						<Ionicons
-							name="time-outline"
-							size={24}
-							color="gray"
-						/>
-						<View className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1">
-							<Text className="text-white text-xs">N</Text>
-						</View>
-					</View>
-				</TouchableOpacity>
-
-				<TouchableOpacity className="items-center">
-					<Ionicons
-						name="person-outline"
-						size={24}
-						color="gray"
-					/>
-				</TouchableOpacity>
-			</View> */}
-		</View>
-	);
+            <FlatList
+                data={chatData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => <ChatItem item={item.item} navigation={item.navigation} />}
+                style={styles.chatList}
+            />
+        </View>
+    );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        width: "100%",
+        height: "100%",
+    },
+    searchBar: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#3b82f6",
+        padding: 8,
+        borderRadius: 8,
+        width: "100%",
+    },
+    icon: {
+        marginHorizontal: 8,
+    },
+    searchInput: {
+        flex: 1,
+        color: "black",
+        fontSize: 16,
+    },
+    chatList: {
+        flex: 1,
+        backgroundColor: "#f3f4f6",
+        width: "100%",
+    },
+    chatItemContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#e5e7eb",
+    },
+    avatarContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: "#ef4444",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    avatarText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    chatContent: {
+        marginLeft: 12,
+        flex: 1,
+    },
+    chatName: {
+        fontWeight: "600",
+        color: "black",
+    },
+    chatMessage: {
+        color: "#6b7280",
+        fontSize: 14,
+    },
+    chatTime: {
+        color: "#9ca3af",
+        fontSize: 12,
+    },
+});
 
 export default ListChat;

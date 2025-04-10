@@ -21,6 +21,7 @@ export const SafeAreaView = ({ children, style }: Props) => {
                paddingBottom: insets.bottom,
                paddingLeft: insets.left,
                paddingRight: insets.right,
+					width: "100%",
 				},
 				style, // Override hoặc thêm style từ props
 			]}

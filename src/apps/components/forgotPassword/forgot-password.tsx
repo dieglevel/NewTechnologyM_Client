@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -20,27 +21,25 @@ export const ForgotPasswordComponent = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
+        style={styles.flex1}
       >
-        <View className="flex-row items-center p-4 bg-blue-500">
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-white text-lg font-semibold ml-4">
-            Lấy lại mật khẩu
-          </Text>
+          <Text style={styles.headerText}>Lấy lại mật khẩu</Text>
         </View>
 
-        <View className="p-4">
-          <Text className="text-gray-600 mb-2">
+        <View style={styles.content}>
+          <Text style={styles.description}>
             Nhập số điện thoại để lấy lại mật khẩu
           </Text>
-          <View className="border-b border-cyan-500 flex-row items-center">
+          <View style={styles.inputContainer}>
             <TextInput
-              className="flex-1 text-base py-2"
+              style={styles.textInput}
               placeholder="Nhập số điện thoại"
               keyboardType="phone-pad"
               value={phone}
@@ -54,10 +53,10 @@ export const ForgotPasswordComponent = () => {
           </View>
         </View>
 
-        <View className="flex-1 justify-end items-end p-4">
+        <View style={styles.footer}>
           <TouchableOpacity
             onPress={handleSubmit}
-            className="w-12 h-12 bg-blue-500 rounded-full items-center justify-center"
+            style={styles.submitButton}
           >
             <Ionicons name="arrow-forward" size={24} color="white" />
           </TouchableOpacity>
@@ -66,3 +65,57 @@ export const ForgotPasswordComponent = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  flex1: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16, // p-4
+    backgroundColor: "#3b82f6", // bg-blue-500
+  },
+  headerText: {
+    color: "white", // text-white
+    fontSize: 18, // text-lg
+    fontWeight: "600", // font-semibold
+    marginLeft: 16, // ml-4
+  },
+  content: {
+    padding: 16, // p-4
+  },
+  description: {
+    color: "#6B7280", // text-gray-600
+    marginBottom: 8, // mb-2
+  },
+  inputContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#06b6d4", // border-cyan-500
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 16, // text-base
+    paddingVertical: 8, // py-2
+  },
+  footer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    padding: 16, // p-4
+  },
+  submitButton: {
+    width: 48, // w-12
+    height: 48, // h-12
+    backgroundColor: "#3b82f6", // bg-blue-500
+    borderRadius: 24, // rounded-full
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

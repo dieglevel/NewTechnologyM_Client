@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "@/apps/components";
 import { ArrowBack } from "@/assets/svgs";
@@ -19,42 +19,41 @@ export const UserProfileScreen = () => {
 
   return (
     <SafeAreaView>
-      <View className="flex-1 bg-white">
+      <View style={styles.container}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="p-4 flex-row items-center"
+          style={styles.header}
         >
           <ArrowBack color="#292d32" outline="#292d32" />
-          <Text className="ml-2 text-lg font-semibold">Cá nhân</Text>
+          <Text style={styles.headerText}>Cá nhân</Text>
         </TouchableOpacity>
 
         {/* Profile Info */}
-        <View className="p-4 flex-row items-center bg-gray-100">
-          <View className="w-12 h-12 rounded-full bg-gray-300"></View>
-          <View className="ml-4">
-          {/*  thay thành tên người dùng đăng nhập sau */}
-            <Text className="text-lg font-bold">Nguyễn Thanh Định</Text>  
-            <Text className="text-sm text-blue-500">Xem trang cá nhân</Text>
+        <View style={styles.profileInfo}>
+          <View style={styles.avatar} />
+          <View style={styles.profileTextContainer}>
+            <Text style={styles.profileName}>Nguyễn Thanh Định</Text>
+            <Text style={styles.profileLink}>Xem trang cá nhân</Text>
           </View>
         </View>
 
-        <ScrollView className="flex-1">
+        <ScrollView style={styles.menuContainer}>
           {menuItems.map((item) => (
             <TouchableOpacity
               key={item.id}
-              className="flex-row justify-between items-center p-4 border-b border-gray-200"
+              style={styles.menuItem}
               onPress={() => console.log(`Navigating to ${item.label}`)}
             >
-              <View className="flex-row items-center">
-                <Text className="text-2xl">{item.icon}</Text>
-                <View className="ml-4">
-                  <Text className="text-base font-medium">{item.label}</Text>
+              <View style={styles.menuItemContent}>
+                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <View style={styles.menuTextContainer}>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
                   {item.description && (
-                    <Text className="text-sm text-gray-500">{item.description}</Text>
+                    <Text style={styles.menuDescription}>{item.description}</Text>
                   )}
                 </View>
               </View>
-              <Text className="text-gray-400 text-xl">›</Text>
+              <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -62,3 +61,76 @@ export const UserProfileScreen = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white", // bg-white
+  },
+  header: {
+    padding: 16, // p-4
+    flexDirection: "row", // flex-row
+    alignItems: "center", // items-center
+  },
+  headerText: {
+    marginLeft: 8, // ml-2
+    fontSize: 18, // text-lg
+    fontWeight: "600", // font-semibold
+  },
+  profileInfo: {
+    padding: 16, // p-4
+    flexDirection: "row", // flex-row
+    alignItems: "center", // items-center
+    backgroundColor: "#f3f4f6", // bg-gray-100
+  },
+  avatar: {
+    width: 48, // w-12
+    height: 48, // h-12
+    borderRadius: 24, // rounded-full
+    backgroundColor: "#d1d5db", // bg-gray-300
+  },
+  profileTextContainer: {
+    marginLeft: 16, // ml-4
+  },
+  profileName: {
+    fontSize: 18, // text-lg
+    fontWeight: "bold", // font-bold
+  },
+  profileLink: {
+    fontSize: 14, // text-sm
+    color: "#3b82f6", // text-blue-500
+  },
+  menuContainer: {
+    flex: 1,
+  },
+  menuItem: {
+    flexDirection: "row", // flex-row
+    justifyContent: "space-between", // justify-between
+    alignItems: "center", // items-center
+    padding: 16, // p-4
+    borderBottomWidth: 1, // border-b
+    borderBottomColor: "#e5e7eb", // border-gray-200
+  },
+  menuItemContent: {
+    flexDirection: "row", // flex-row
+    alignItems: "center", // items-center
+  },
+  menuIcon: {
+    fontSize: 24, // text-2xl
+  },
+  menuTextContainer: {
+    marginLeft: 16, // ml-4
+  },
+  menuLabel: {
+    fontSize: 16, // text-base
+    fontWeight: "500", // font-medium
+  },
+  menuDescription: {
+    fontSize: 14, // text-sm
+    color: "#6b7280", // text-gray-500
+  },
+  menuArrow: {
+    fontSize: 18, // text-xl
+    color: "#9ca3af", // text-gray-400
+  },
+});

@@ -43,6 +43,8 @@ export const RootScreenApp = () => {
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
+						headerShown: true,
+						headerTitle: "Đăng ký"
 					}}
 					name="Register"
 					component={RegisterScreen}

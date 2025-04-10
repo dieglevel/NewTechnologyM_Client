@@ -14,7 +14,7 @@ export const UserDetailScreen = () => {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white">
+		<SafeAreaView style={{ flex: 1 }}>
 			<HeaderDetailUser onPress={handleBack}/>
 			<ScrollView>
 				<CoverPhoto mainAvatar={route.params.user.mainAvatar}/>

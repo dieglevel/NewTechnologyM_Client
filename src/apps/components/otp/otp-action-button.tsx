@@ -1,20 +1,45 @@
-import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import React from "react";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 
 export function ActionButtons() {
   return (
-    <View className="flex-row justify-between border-t-2 border-[#eaeff5] pt-2">
-      <TouchableOpacity className="flex-1 mr-2">
-        <Text className="text-blue-500 text-center font-bold text-base">
-          Gửi tin nhắn
-        </Text>
+    <View style={styles.container}>
+      <TouchableOpacity style={[styles.button, styles.marginRight]}>
+        <Text style={styles.text}>Gửi tin nhắn</Text>
       </TouchableOpacity>
-      <View className='bg-[#eaeff5] w-[2]'></View>
-      <TouchableOpacity className="flex-1 ml-2">
-        <Text className="text-blue-500 text-center font-bold text-base">
-          Gọi tổng đài
-        </Text>
+      <View style={styles.divider}></View>
+      <TouchableOpacity style={[styles.button, styles.marginLeft]}>
+        <Text style={styles.text}>Gọi tổng đài</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderTopWidth: 2,
+    borderTopColor: "#eaeff5",
+    paddingTop: 8, // pt-2
+  },
+  button: {
+    flex: 1,
+  },
+  marginRight: {
+    marginRight: 8, // mr-2
+  },
+  marginLeft: {
+    marginLeft: 8, // ml-2
+  },
+  text: {
+    color: "#3b82f6", // text-blue-500
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 16, // text-base
+  },
+  divider: {
+    backgroundColor: "#eaeff5",
+    width: 2, // w-[2]
+  },
+});

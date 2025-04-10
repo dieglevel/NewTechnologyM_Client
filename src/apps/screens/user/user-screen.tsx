@@ -22,8 +22,8 @@ export const UserScreen = () => {
 	fetchdata();
 
 	return (
-		<SafeAreaView>
-			<View className="w-full">
+		<SafeAreaView style={{ flex: 1 }}>
+			<View style={{ flex: 1, width: "100%" }}>
 				<SearchHeader/>
 				<UserInfo user={user} />
 			</View>

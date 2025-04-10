@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 interface HeaderProps {
   textPhone: string;
@@ -7,20 +7,41 @@ interface HeaderProps {
 
 export function Header({ textPhone }: HeaderProps) {
   return (
-    <View className="mb-8">
-      <TouchableOpacity className="mb-8">
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.touchable}></TouchableOpacity>
 
-      <Text className="text-3xl font-bold text-center mb-4">
-        Nhập mã xác thực
-      </Text>
+      <Text style={styles.title}>Nhập mã xác thực</Text>
 
-      <Text className="text-gray-500 text-center text-base">
+      <Text style={styles.description}>
         Nhập dãy 6 số được gửi đến số điện thoại
       </Text>
-      <Text className="text-black text-center font-medium text-base">
-        {textPhone}
-      </Text>
+      <Text style={styles.phoneNumber}>{textPhone}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 32, // mb-8
+  },
+  touchable: {
+    marginBottom: 32, // mb-8
+  },
+  title: {
+    fontSize: 24, // text-3xl
+    fontWeight: "bold", // font-bold
+    textAlign: "center",
+    marginBottom: 16, // mb-4
+  },
+  description: {
+    color: "#6B7280", // text-gray-500
+    textAlign: "center",
+    fontSize: 16, // text-base
+  },
+  phoneNumber: {
+    color: "black", // text-black
+    textAlign: "center",
+    fontWeight: "500", // font-medium
+    fontSize: 16, // text-base
+  },
+});
