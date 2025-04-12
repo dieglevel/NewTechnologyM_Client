@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { useSelector } from "react-redux";
 import { useAppSelector } from "@/libs/redux/redux.config";
+import { images } from "@/assets/images";
 
 interface Props {}
 
@@ -21,9 +22,7 @@ export const UserInfo = () => {
 		>
 			<View style={styles.row}>
 				<Image
-					source={{
-						uri: detailInformation?.avatarUrl || "https://example.com/default-avatar.png",
-					}}
+					source={detailInformation?.avatarUrl ? { uri: detailInformation?.avatarUrl } : images.avatarDefault}
 					style={styles.avatar}
 				/>
 				<View style={styles.infoContainer}>

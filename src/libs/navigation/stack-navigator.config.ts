@@ -19,6 +19,7 @@ export type RootStackParamList = {
   ChatScreen: undefined;
   LoginUser: undefined;
   ForgotPasswordScreen: undefined; 
+  Qr: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

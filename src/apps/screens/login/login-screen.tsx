@@ -33,7 +33,7 @@ export const LoginScreen = () => {
 
 	useEffect(() => {
 
-
+		detailInformationStorage.clearAll()
 		const checkToken = async () => {
 		const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 

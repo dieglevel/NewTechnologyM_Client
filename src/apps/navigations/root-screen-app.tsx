@@ -1,12 +1,13 @@
-import { 
-	ChatScreen, 
-	LoginScreen, 
-	OTPScreen, 
-	RegisterScreen, 
-	UserDetailScreen, 
-	ForgotPasswordScreen
-  } from "@/apps/screens";
-  
+import {
+	ChatScreen,
+	LoginScreen,
+	OTPScreen,
+	RegisterScreen,
+	UserDetailScreen,
+	ForgotPasswordScreen,
+	QrScreen,
+} from "@/apps/screens";
+
 import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
@@ -33,7 +34,7 @@ export const RootScreenApp = () => {
 					name="Login"
 					component={LoginScreen}
 				/>
-								<Stack.Screen
+				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
 						headerShown: true,
@@ -46,7 +47,7 @@ export const RootScreenApp = () => {
 					options={{
 						statusBarBackgroundColor: "gray",
 						headerShown: true,
-						headerTitle: "Đăng ký"
+						headerTitle: "Đăng ký",
 					}}
 					name="Register"
 					component={RegisterScreen}
@@ -59,7 +60,6 @@ export const RootScreenApp = () => {
 					}}
 					name="OTP"
 					component={OTPScreen}
-					
 					initialParams={{ identifier: "", type: "phone" }}
 				/>
 				<Stack.Screen
@@ -77,13 +77,20 @@ export const RootScreenApp = () => {
 					component={ChatScreen}
 				/>
 				<Stack.Screen
- 				 options={{
-   						 statusBarBackgroundColor: "gray",
- 					 }}
-  				name="ForgotPasswordScreen"
- 				 component={ForgotPasswordScreen}
-/>
-
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="ForgotPasswordScreen"
+					component={ForgotPasswordScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="Qr"
+					component={QrScreen}
+				/>
+				
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
