@@ -7,5 +7,6 @@ export * from "./register/register-screen";
 export * from "./user/user-screen";
 export * from "./chat-detail/chat-screen";
 export * from "./forgotPassword/forgot-password-screen";
-export * from "./contacts/contacts-screen";
+export * from "./contacts/contacts-screen"
+export * from "./updateProfile/updateProfileScreen";
 export * from "./qr/qr-screen";
