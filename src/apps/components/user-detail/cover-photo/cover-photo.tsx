@@ -11,14 +11,6 @@ export const CoverPhoto = ({}: HeaderDetailUserProps) => {
 	const { detailInformation, status } = useAppSelector((state) => state.detailInformation);
 	return (
 		<>
-			{status === "loading" ? (
-				<ActivityIndicator
-					size="large"
-					color={colors.brand}
-					style={styles.touchable}
-				></ActivityIndicator>
-			) : (
-				<>
 					<Image
 						source={
 							detailInformation?.thumbnailUrl
@@ -27,8 +19,6 @@ export const CoverPhoto = ({}: HeaderDetailUserProps) => {
 						}
 						style={styles.image}
 					/>
-				</>
-			)}
 		</>
 	);
 };

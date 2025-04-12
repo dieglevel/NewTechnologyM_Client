@@ -11,7 +11,7 @@ export const MainPhoto = ({}: HeaderDetailUserProps) => {
 
 	return (
 		<View style={styles.container}>
-			<TouchableOpacity style={styles.avatarContainer}>
+			<View style={styles.avatarContainer}>
 				<Image
 					source={
 						detailInformation?.avatarUrl
@@ -20,7 +20,7 @@ export const MainPhoto = ({}: HeaderDetailUserProps) => {
 					}
 					style={styles.avatar}
 				/>
-			</TouchableOpacity>
+			</View>
 
 			<Text style={styles.userName}>{detailInformation?.fullName || "-"}</Text>
 			{/* <TouchableOpacity style={styles.updateButton}>

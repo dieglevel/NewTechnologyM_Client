@@ -1,4 +1,4 @@
-import { UpdateProfileScreen } from './../../apps/screens/updateProfile/updateProfileScreen';
+import { UpdateProfileScreen } from '../../apps/screens/update-profile/update-profile-screen';
 import { ChatScreen } from '../../apps/screens/chat-detail/chat-screen';
 import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgot-password-screen";
 import { RouteProp } from "@react-navigation/native";
