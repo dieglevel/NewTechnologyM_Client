@@ -11,19 +11,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 interface UpdateProfileComponentProps {
-  user: {
-    name: string;
-    dob: string;
-    gender: "Nam" | "Nữ";
-    mainAvatar: string;
-  };
-  onSave?: (data: any) => void;
+ 
 }
 
-export const UpdateProfileComponent = ({ user, onSave }: UpdateProfileComponentProps) => {
-  const [name, setName] = useState(user.name);
-  const [dob, setDob] = useState(user.dob);
-  const [gender, setGender] = useState<"Nam" | "Nữ">(user.gender);
+export const UpdateProfileComponent = () => {
+  const [name, setName] = useState();
+  const [dob, setDob] = useState();
+  const [gender, setGender] = useState<boolean>(false);
 
   return (
     <View style={styles.container}>
@@ -36,7 +30,7 @@ export const UpdateProfileComponent = ({ user, onSave }: UpdateProfileComponentP
 
       <View style={styles.avatarContainer}>
         <TouchableOpacity style={styles.avatarWrapper}>
-          <Image source={{ uri: user.mainAvatar }} style={styles.avatar} />
+          {/* <Image source={{ uri: user.mainAvatar }} style={styles.avatar} /> */}
           <View style={styles.cameraIcon}>
             <Ionicons name="camera" size={18} color="#000" />
           </View>
@@ -47,7 +41,6 @@ export const UpdateProfileComponent = ({ user, onSave }: UpdateProfileComponentP
         <View style={styles.inputGroup}>
           <TextInput
             value={name}
-            onChangeText={setName}
             style={styles.input}
             placeholder="Nhập họ tên"
           />
@@ -57,7 +50,6 @@ export const UpdateProfileComponent = ({ user, onSave }: UpdateProfileComponentP
         <View style={styles.inputGroup}>
           <TextInput
             value={dob}
-            onChangeText={setDob}
             style={styles.input}
             placeholder="DD/MM/YYYY"
           />
@@ -65,21 +57,21 @@ export const UpdateProfileComponent = ({ user, onSave }: UpdateProfileComponentP
         </View>
 
         <View style={styles.genderContainer}>
-          <Pressable style={styles.genderOption} onPress={() => setGender("Nam")}>
+          <Pressable style={styles.genderOption} onPress={() => setGender(true)}>
             <View
               style={[
                 styles.genderCircle,
-                gender === "Nam" ? styles.genderSelected : styles.genderUnselected,
+                gender === true ? styles.genderSelected : styles.genderUnselected,
               ]}
             />
             <Text style={styles.genderLabel}>Nam</Text>
           </Pressable>
 
-          <Pressable style={styles.genderOption} onPress={() => setGender("Nữ")}>
+          <Pressable style={styles.genderOption} onPress={() => setGender(false)}>
             <View
               style={[
                 styles.genderCircle,
-                gender === "Nữ" ? styles.genderSelected : styles.genderUnselected,
+                gender === false ? styles.genderSelected : styles.genderUnselected,
               ]}
             />
             <Text style={styles.genderLabel}>Nữ</Text>
@@ -88,7 +80,6 @@ export const UpdateProfileComponent = ({ user, onSave }: UpdateProfileComponentP
 
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={() => onSave?.({ name, dob, gender })}
         >
           <Text style={styles.saveButtonText}>LƯU</Text>
         </TouchableOpacity>
