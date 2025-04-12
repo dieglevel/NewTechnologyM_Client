@@ -1,4 +1,4 @@
-import { ChatScreen } from '../../apps/screens/chatDetail/chat-screen';
+import { ChatScreen } from '../../apps/screens/chat-detail/chat-screen';
 import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgot-password-screen";
 import { RouteProp } from "@react-navigation/native";
 import {
@@ -10,7 +10,7 @@ export type RootStackParamList = {
   BottomTabScreenApp: undefined;
   Register: undefined;
   Login: undefined;
-  OTP: { phone: string };
+  OTP: { identifier: string; type: "phone" | "email" };
   UserDetail: {
     user: {
       name: string;

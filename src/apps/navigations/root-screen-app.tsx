@@ -36,6 +36,8 @@ export const RootScreenApp = () => {
 								<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
+						headerShown: true,
+						headerTitle: "Đăng nhập",
 					}}
 					name="LoginUser"
 					component={LoginUserScreen}
@@ -52,10 +54,13 @@ export const RootScreenApp = () => {
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
+						headerShown: true,
+						headerTitle: "Xác thực tài khoản",
 					}}
 					name="OTP"
 					component={OTPScreen}
-					initialParams={{ phone: "" }}
+					
+					initialParams={{ identifier: "", type: "phone" }}
 				/>
 				<Stack.Screen
 					options={{

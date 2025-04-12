@@ -3,9 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 interface HeaderProps {
   textPhone: string;
+
+
 }
 
-export function Header({ textPhone }: HeaderProps) {
+export function OtpHeader({ textPhone }: HeaderProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.touchable}></TouchableOpacity>
@@ -13,7 +15,7 @@ export function Header({ textPhone }: HeaderProps) {
       <Text style={styles.title}>Nhập mã xác thực</Text>
 
       <Text style={styles.description}>
-        Nhập dãy 6 số được gửi đến số điện thoại
+        Nhập dãy 6 số được gửi đến {textPhone} của bạn
       </Text>
       <Text style={styles.phoneNumber}>{textPhone}</Text>
     </View>

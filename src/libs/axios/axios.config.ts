@@ -58,7 +58,7 @@ api.interceptors.response.use(
 			removeSecure(ExpoSecureStoreKeys.AccessToken); // Xóa token
 			// eventEmitter.emit("logout"); // Gửi sự kiện logout
 		} else {
-			console.error("⛔ Axios: ", error.status + " - " + error.config?.url);
+			console.error("⛔ Axios: ", error.status + " - " + error.config?.url + " - " + errorResponse.message);
 		}
 
 		return Promise.reject(errorResponse);
