@@ -4,13 +4,21 @@ import { StackScreenNavigationProp, UserDetailRouteProp } from "@/libs/navigatio
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React from "react";
 import { SafeAreaView, ScrollView, Text, TouchableOpacity } from "react-native";
+import { useAppSelector } from "@/libs/redux/redux.config";
+import { changeDateToString } from "@/utils/change-date-to-string";
 
 export const UserDetailScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
 	const route = useRoute<UserDetailRouteProp>();
 
+	const { detailInformation } = useAppSelector((state) => state.detailInformation);
+
 	const handleBack = () => {
 		navigation.goBack();
+	};
+
+	const handleEditProfile = () => {
+		navigation.navigate("UpdateProfileScreen");
 	};
 
 	return (
@@ -19,8 +27,8 @@ export const UserDetailScreen = () => {
 			<ScrollView>
 				<CoverPhoto />
 				<MainPhoto />
-
 				<NewSection />
+
 				<TouchableOpacity
 					style={{
 						marginTop: 32,
@@ -30,10 +38,19 @@ export const UserDetailScreen = () => {
 						marginHorizontal: 24,
 						borderRadius: 8,
 						minWidth: 100,
-					}} // w-24
-					// onPress={() => navigation.navigate("EditUserScreen", { userId: route.params.userId })}
+					}}
+					onPress={handleEditProfile}
 				>
-					<Text style={{ fontSize: 16, color: "white", fontWeight: "600", textAlign:"center" }}>Chỉnh sửa thông tin</Text>
+					<Text
+						style={{
+							fontSize: 16,
+							color: "white",
+							fontWeight: "600",
+							textAlign: "center",
+						}}
+					>
+						Chỉnh sửa thông tin
+					</Text>
 				</TouchableOpacity>
 			</ScrollView>
 		</SafeAreaView>

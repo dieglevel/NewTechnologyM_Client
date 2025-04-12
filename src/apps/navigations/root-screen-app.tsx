@@ -4,7 +4,8 @@ import {
 	OTPScreen, 
 	RegisterScreen, 
 	UserDetailScreen, 
-	ForgotPasswordScreen
+	ForgotPasswordScreen,
+	UpdateProfileScreen
   } from "@/apps/screens";
   
 import { Stack } from "@/libs/navigation";
@@ -82,7 +83,15 @@ export const RootScreenApp = () => {
  					 }}
   				name="ForgotPasswordScreen"
  				 component={ForgotPasswordScreen}
-/>
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="UpdateProfileScreen"
+					component={UpdateProfileScreen}
+				/>
+
 
 			</Stack.Navigator>
 		</NavigationContainer>

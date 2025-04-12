@@ -1,3 +1,4 @@
+import { UpdateProfileScreen } from './../../apps/screens/updateProfile/updateProfileScreen';
 import { ChatScreen } from '../../apps/screens/chat-detail/chat-screen';
 import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgot-password-screen";
 import { RouteProp } from "@react-navigation/native";
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   ChatScreen: undefined;
   LoginUser: undefined;
   ForgotPasswordScreen: undefined; 
+  UpdateProfileScreen: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
