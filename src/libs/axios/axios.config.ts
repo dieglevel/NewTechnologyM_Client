@@ -49,7 +49,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		console.log(error)
+		console.error("⛔ Axios: ", error.message);
+
 
 
 		const errorResponse: ErrorResponse = error.response.data;
@@ -58,7 +59,7 @@ api.interceptors.response.use(
 			removeSecure(ExpoSecureStoreKeys.AccessToken); // Xóa token
 			// eventEmitter.emit("logout"); // Gửi sự kiện logout
 		} else {
-			console.error("⛔ Axios: ", error.status + " - " + error.config?.url);
+			console.error("⛔ Axios: ", error.status + " - " + error.config?.url + " - " + errorResponse.message);
 		}
 
 		return Promise.reject(errorResponse);

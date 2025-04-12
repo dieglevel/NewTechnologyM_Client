@@ -29,8 +29,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         padding: 16,
-        paddingTop: 56, // 14 * 4 (converted from pt-14)
-        backgroundColor: "rgba(0, 0, 0, 0.05)", // bg-black/5
+        paddingTop: 8, // 14 * 4 (converted from pt-14)
+        backgroundColor: "rgba(0, 0, 0, 0.3)", // bg-black/5
     },
     button: {
         width: 40, // 10 * 4 (converted from w-10)

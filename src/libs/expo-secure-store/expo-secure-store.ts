@@ -1,10 +1,10 @@
 import * as SecureStore from "expo-secure-store";
 
-export enum ExpoSecureStoreKeys {
-	AccessToken = "accessToken",
-	IpDevice = "ipDevice"
-}
 
+export class ExpoSecureStoreKeys {
+	public static readonly AccessToken = "accessToken";
+	public static readonly IpDevice = "ipDevice";
+}
 
 const setSecure = async (key: string, value: string) => {
 	await SecureStore.setItemAsync(key, value);
