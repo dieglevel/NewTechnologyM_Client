@@ -1,83 +1,90 @@
-// import { io, Socket } from "socket.io-client";
-// import { LocalStorage } from "@/lib/local-storage";
-// import { SocketEmit, SocketOn } from "@/constants/socket";
-// import { store } from "@/redux/store";
-// import { setDetailInformation, fetchDetailInformation } from "@/redux/store/models";
-// import { IDetailInformation } from "@/types/implement";
+import { io, Socket } from "socket.io-client";
+import { SocketEmit, SocketOn } from "@/constants/socket";
+import { IDetailInformation } from "@/types/implement";
+import { ExpoSecureStoreKeys, getSecure } from "../expo-secure-store/expo-secure-store";
+import { fetchDetailInformation, setDetailInformation } from "../redux/stores";
+import { store } from "../redux/redux.config";
+import NetInfo from "@react-native-community/netinfo"; // Thêm dòng này
 
-// class SocketService {
-//   private static instance: SocketService;
-//   private socket: Socket | null = null;
-//   private URL = process.env.NEXT_PUBLIC_SOCKET_URL || "";
+class SocketService {
+   private static instance: SocketService;
+   private socket: Socket | null = null;
+   private URL = process.env.EXPO_PUBLIC_BACKEND_SOCKET || "";
 
-//   private constructor() {}
+   private constructor() { }
 
-//   public static getInstance(): SocketService {
-//     if (!SocketService.instance) {
-//       SocketService.instance = new SocketService();
-//     }
-//     return SocketService.instance;
-//   }
+   public static getInstance(): SocketService {
+      if (!SocketService.instance) {
+         SocketService.instance = new SocketService();
+      }
+      return SocketService.instance;
+   }
 
-//   public connect() {
-//     if (this.socket || !navigator.onLine) {
-//       console.warn("Already connected or offline.");
-//       store.dispatch(fetchDetailInformation());
-//       return;
-//     }
+   public async connect() {
+      const netState = await NetInfo.fetch();
+      const isConnected = netState.isConnected && netState.isInternetReachable;
 
-//     const token = localStorage.getItem(LocalStorage.token);
+      if (this.socket || !isConnected) {
+         console.warn("Already connected or offline.");
+         store.dispatch(fetchDetailInformation());
+         return;
+      }
 
-//     this.socket = io(this.URL, {
-//       autoConnect: true,
-//       extraHeaders: {
-//         token: `${token}`,
-//       },
-//     });
+      console.log("status:", netState.isConnected, netState.isInternetReachable);
 
-//     this.registerCoreEvents();
-//   }
+      const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
+      console.log("Connecting to socket with token:", token);
 
-//   private registerCoreEvents() {
-//     if (!this.socket) return;
+      this.socket = io(this.URL, {
+         autoConnect: true,
+         extraHeaders: {
+            token: `${token}`,
+         },
+      });
 
-//     this.socket.emit(SocketEmit.connectServer, {});
-//     this.socket.on(SocketOn.connectServer, (data) => {
-//       console.log("Connected to server:", data);
-//     });
+      this.registerCoreEvents();
+   }
 
-//     this.socket.emit(SocketEmit.detailInformation, {});
-//     this.socket.on(SocketOn.updateUserDetailInformation, (data: IDetailInformation) => {
-//       console.log("User detail info updated:", data);
-//       store.dispatch(setDetailInformation(data));
-//     });
-//   }
+   private registerCoreEvents() {
+      if (!this.socket) return;
 
-//   public disconnect() {
-//     this.socket?.disconnect();
-//     this.socket = null;
-//   }
+      this.socket.emit(SocketEmit.connectServer, {});
+      this.socket.on(SocketOn.connectServer, (data) => {
+         console.log("Connected to server:", data);
+      });
 
-//   public getSocket(): Socket | null {
-//     return this.socket;
-//   }
+      this.socket.emit(SocketEmit.detailInformation, {});
+      this.socket.on(SocketOn.updateUserDetailInformation, (data: IDetailInformation) => {
+         console.log("User detail info updated:", data);
+         store.dispatch(setDetailInformation(data));
+      });
+   }
 
-//   public emit(event: string, data: any) {
-//     this.socket?.emit(event, data);
-//   }
+   public disconnect() {
+      this.socket?.disconnect();
+      this.socket = null;
+   }
 
-//   public on(event: string, callback: (...args: any[]) => void) {
-//     this.socket?.on(event, callback);
-//   }
+   public getSocket(): Socket | null {
+      return this.socket;
+   }
 
-//   public off(event: string, callback?: (...args: any[]) => void) {
-//     if (!this.socket) return;
-//     if (callback) {
-//       this.socket.off(event, callback);
-//     } else {
-//       this.socket.removeAllListeners(event);
-//     }
-//   }
-// }
+   public emit(event: string, data: any) {
+      this.socket?.emit(event, data);
+   }
 
-// export const socketService = SocketService.getInstance();
+   public on(event: string, callback: (...args: any[]) => void) {
+      this.socket?.on(event, callback);
+   }
+
+   public off(event: string, callback?: (...args: any[]) => void) {
+      if (!this.socket) return;
+      if (callback) {
+         this.socket.off(event, callback);
+      } else {
+         this.socket.removeAllListeners(event);
+      }
+   }
+}
+
+export const socketService = SocketService.getInstance();

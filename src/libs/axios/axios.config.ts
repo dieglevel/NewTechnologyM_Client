@@ -49,7 +49,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		console.log(error)
+		console.error("⛔ Axios: ", error.message);
+
 
 
 		const errorResponse: ErrorResponse = error.response.data;

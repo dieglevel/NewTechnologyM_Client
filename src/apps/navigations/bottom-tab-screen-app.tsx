@@ -4,6 +4,7 @@ import { Tab } from "@/libs/navigation";
 import { Text } from "react-native";
 
 export const BottomTabScreenApp = () => {
+
 	return (
 		<Tab.Navigator
 			screenOptions={({ route }) => ({

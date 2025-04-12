@@ -1,5 +1,6 @@
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { StackScreenNavigationProp } from "@/libs/navigation";
+import { socketService } from "@/libs/socket/socket";
 import { loginApi } from "@/services/auth";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
@@ -21,6 +22,7 @@ export const LoginUserScreen = () => {
 					type: "success",
 					text1: "Đăng nhập thành công",
 				})
+				socketService.connect();
 				navigation.navigate("BottomTabScreenApp");
 			}
 		} catch (error) {

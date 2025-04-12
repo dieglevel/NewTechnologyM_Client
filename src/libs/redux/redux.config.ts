@@ -1,8 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
+import { DetailInformationReducer } from "./stores/detail-information-slice";
 
 export const store = configureStore({
-	reducer: {},
+	reducer: {
+		detailInformation: DetailInformationReducer
+	},
 });
 
 export type RootState = ReturnType<typeof store.getState>;

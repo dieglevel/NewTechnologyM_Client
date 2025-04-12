@@ -16,13 +16,35 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { texts } from "./handle";
 import { use } from "i18next";
+import { detailInformationStorage } from "@/libs/mmkv/mmkv";
+import { IDetailInformation } from "@/types/implement";
+import { MMKV } from "react-native-mmkv";
+import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
+import {  StackScreenNavigationProp } from "@/libs/navigation";
+import { getAccountApi } from "@/services/auth";
+import { socketService } from "@/libs/socket/socket";
 
 export const LoginScreen = () => {
-	const navigation = useNavigation();
+	const navigation = useNavigation<StackScreenNavigationProp>();
 	const [language, setLanguage] = useState<string>("vi");
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<number>(0);
 	const [imageSource, setImageSource] = useState<any>(texts[language].pages[0].image);
+
+	useEffect(() => {
+
+
+		const checkToken = async () => {
+		const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
+
+			const accountResponse = await getAccountApi(navigation);
+			if (accountResponse.statusCode === 200) {
+				socketService.connect();
+				navigation.navigate("BottomTabScreenApp");
+			}
+		};
+		checkToken()
+	}, []);
 
 	const handleImagePress = () => {
 		if (currentPage < texts[language].pages.length - 1) {
