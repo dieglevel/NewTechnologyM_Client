@@ -24,6 +24,7 @@ export type RootStackParamList = {
   LoginUser: undefined;
   ForgotPasswordScreen: undefined; 
   UpdatePasswordScreen: { phone: string }; 
+  UpdateProfileScreen: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

@@ -84,6 +84,13 @@ export const RootScreenApp = () => {
   				name="UpdatePasswordScreen"
  				 component={UpdatePasswordScreen}
 				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="UpdateProfileScreen"
+					component={UpdatePasswordScreen}
+				/>
 
 			</Stack.Navigator>
 		</NavigationContainer>
