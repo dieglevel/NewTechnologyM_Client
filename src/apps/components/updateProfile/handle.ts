@@ -10,5 +10,5 @@ export const handleProfileUpdate = (fullName: string, dateOfBirth: string, gende
       gender
    });
 
-   navigate.navigate("UserDetail");
+   navigate.goBack();
 }
