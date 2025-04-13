@@ -98,6 +98,20 @@ export const verifyOTPPasswordApi = async (otp: string,identifier: string) => {
 
 		return response.data;
 	} catch (e) {
+		console.log(e)
 		throw e as ErrorResponse;
 	}
 };
+
+export const changePasswordApi = async (phone: string, newPassword: string) => {
+	try {
+	  const response = await api.post<BaseResponse<null>>("/auth/update-password-forget", {
+		identifier: phone,
+		newPassword,
+	  });
+  
+	  return response.data;
+	} catch (e) {
+	  throw e as ErrorResponse;
+	}
+  };
