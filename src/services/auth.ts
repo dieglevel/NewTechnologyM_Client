@@ -62,3 +62,17 @@ export const getAccountApi = async () => {
 		throw e as ErrorResponse;
 	}
 };
+
+
+export const verifyLoginQrApi = async (qrCode: {
+	ipDevice: string,
+	userAgent: string,
+}) => {
+	try {
+		const response = await api.post<BaseResponse<null>>("/auth/verify-loginQR", qrCode);
+
+		return response.data;
+	} catch (e) {
+		throw e as ErrorResponse;
+	}
+}

@@ -1,5 +1,5 @@
 import { SocketEmit } from "@/constants/socket";
-import {  StackScreenNavigationProp } from "@/libs/navigation";
+import { StackScreenNavigationProp } from "@/libs/navigation";
 import { socketService } from "@/libs/socket/socket"
 
 export const handleProfileUpdate = (fullName: string, dateOfBirth: string, gender: boolean, navigate: StackScreenNavigationProp) => {
@@ -10,5 +10,5 @@ export const handleProfileUpdate = (fullName: string, dateOfBirth: string, gende
       gender
    });
 
-   navigate.goBack();
+   navigate.navigate("UserDetail");
 }

@@ -13,6 +13,8 @@ export const pickImage = async (setImage: Dispatch<SetStateAction<string | null>
       setIsLoading(true);
       const result = await DocumentPicker.getDocumentAsync({
          type: 'image/*',
+         multiple: false,
+         
       });
 
       if (result.canceled === false) {

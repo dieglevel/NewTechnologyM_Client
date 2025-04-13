@@ -23,6 +23,7 @@ import { MMKV } from "react-native-mmkv";
 export const RootScreenApp = () => {
 	useEffect(() => {
 		const checkToken = async () => {
+
 			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 
 			const accountResponse = await getAccountApi();

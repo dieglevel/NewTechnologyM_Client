@@ -12,9 +12,7 @@ export type RootStackParamList = {
   Register: undefined;
   Login: undefined;
   OTP: { identifier: string; type: "phone" | "email" };
-  UserDetail: {
-    userId: string
-  };
+  UserDetail: undefined
   Chat: undefined;
   ChatDetail: { chatId: string };
   ChatScreen: undefined;

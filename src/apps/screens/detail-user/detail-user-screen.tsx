@@ -9,9 +9,6 @@ import { changeDateToString } from "@/utils/change-date-to-string";
 
 export const UserDetailScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
-	const route = useRoute<UserDetailRouteProp>();
-
-	const { detailInformation } = useAppSelector((state) => state.detailInformation);
 
 	const handleBack = () => {
 		navigation.goBack();
