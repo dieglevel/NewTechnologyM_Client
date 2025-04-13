@@ -36,6 +36,11 @@ const Tabs = ["Bạn bè", "Nhóm", "OA"];
 
 const ContactsScreen = () => {
   const [activeTab, setActiveTab] = useState("Bạn bè");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredContacts = contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -73,9 +78,14 @@ const ContactsScreen = () => {
                 </View>
               </View>
             }
-            data={contacts}
+            data={filteredContacts}
             keyExtractor={(item) => item.id}
             renderItem={ContactItem}
+            ListEmptyComponent={
+              <View style={styles.emptyTab}>
+                <Text style={styles.emptyTabText}>Không tìm thấy liên hệ</Text>
+              </View>
+            }
           />
         );
       case "Nhóm":
@@ -108,6 +118,8 @@ const ContactsScreen = () => {
           style={styles.searchInput}
           placeholder="Tìm kiếm"
           placeholderTextColor="white"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
         <Ionicons name="person-add" size={24} color="white" />
       </View>
@@ -116,17 +128,11 @@ const ContactsScreen = () => {
         {Tabs.map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[
-              styles.tab,
-              activeTab === tab && styles.activeTab,
-            ]}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
             onPress={() => setActiveTab(tab)}
           >
             <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
+              style={[styles.tabText, activeTab === tab && styles.activeTabText]}
             >
               {tab}
             </Text>
@@ -140,133 +146,130 @@ const ContactsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white", // bg-white
-  },
+  container: { flex: 1, backgroundColor: "white" },
   searchBar: {
-    backgroundColor: "#3b82f6", // bg-blue-500
-    flexDirection: "row", // flex-row
-    alignItems: "center", // items-center
-    paddingHorizontal: 12, // px-3
+    backgroundColor: "#3b82f6",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 50,
-    paddingBottom: 12, // pb-3
+    paddingBottom: 12,
   },
   searchInput: {
-    flex: 1, // flex-1
-    color: "white", // text-white
-    marginHorizontal: 8, // mx-2
+    flex: 1,
+    color: "white",
+    marginHorizontal: 8,
   },
   tabs: {
-    flexDirection: "row", // flex-row
-    borderBottomWidth: 1, // border-b
-    borderBottomColor: "#e5e7eb", // border-gray-200
-    backgroundColor: "white", // bg-white
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    backgroundColor: "white",
   },
   tab: {
-    flex: 1, // flex-1
-    padding: 12, // p-3
-    alignItems: "center", // items-center
+    flex: 1,
+    padding: 12,
+    alignItems: "center",
   },
   activeTab: {
-    borderBottomWidth: 2, // border-b-2
-    borderBottomColor: "#3b82f6", // border-blue-500
+    borderBottomWidth: 2,
+    borderBottomColor: "#3b82f6",
   },
   tabText: {
-    fontSize: 14, // text-sm
-    fontWeight: "600", // font-semibold
-    color: "#6b7280", // text-gray-500
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6b7280",
   },
   activeTabText: {
-    color: "#3b82f6", // text-blue-500
+    color: "#3b82f6",
   },
   tabContent: {
-    flex: 1, // flex-1
-    backgroundColor: "white", // bg-white
+    flex: 1,
+    backgroundColor: "white",
   },
   listHeader: {
-    paddingHorizontal: 12, // px-3
-    paddingTop: 16, // pt-4
-    paddingBottom: 8, // pb-2
+    paddingHorizontal: 12,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   listHeaderItem: {
-    flexDirection: "row", // flex-row
-    alignItems: "center", // items-center
-    padding: 12, // p-3
-    backgroundColor: "#f3f4f6", // bg-gray-100
-    borderRadius: 8, // rounded-lg
-    marginBottom: 8, // mb-2
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+    marginBottom: 8,
   },
   listHeaderText: {
-    marginLeft: 8, // ml-2
-    fontSize: 14, // text-sm
-    fontWeight: "600", // font-semibold
-    color: "#374151", // text-gray-700
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
   },
   filterButtons: {
-    flexDirection: "row", // flex-row
-    justifyContent: "space-between", // justify-between
-    marginTop: 8, // mt-2
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
   },
   filterButtonActive: {
-    paddingHorizontal: 16, // px-4
-    paddingVertical: 8, // py-2
-    borderRadius: 9999, // rounded-full
-    backgroundColor: "#3b82f6", // bg-blue-500
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: "#3b82f6",
   },
   filterButtonTextActive: {
-    color: "white", // text-white
-    fontWeight: "500", // font-medium
+    color: "white",
+    fontWeight: "500",
   },
   filterButtonInactive: {
-    paddingHorizontal: 16, // px-4
-    paddingVertical: 8, // py-2
-    borderRadius: 9999, // rounded-full
-    backgroundColor: "#e5e7eb", // bg-gray-200
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: "#e5e7eb",
   },
   filterButtonTextInactive: {
-    color: "#374151", // text-gray-800
-    fontWeight: "500", // font-medium
+    color: "#374151",
+    fontWeight: "500",
   },
   contactItem: {
-    flexDirection: "row", // flex-row
-    alignItems: "center", // items-center
-    padding: 12, // p-3
-    borderBottomWidth: 1, // border-b
-    borderBottomColor: "#e5e7eb", // border-gray-200
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
   },
   avatar: {
-    width: 48, // w-12
-    height: 48, // h-12
-    borderRadius: 24, // rounded-full
-    backgroundColor: "#3b82f6", // bg-blue-500
-    alignItems: "center", // items-center
-    justifyContent: "center", // justify-center
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#3b82f6",
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
-    color: "white", // text-white
-    fontWeight: "bold", // font-bold
-    fontSize: 18, // text-lg
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
   },
   contactInfo: {
-    marginLeft: 12, // ml-3
-    flex: 1, // flex-1
+    marginLeft: 12,
+    flex: 1,
   },
   contactName: {
-    fontWeight: "600", // font-semibold
-    color: "#374151", // text-gray-800
+    fontWeight: "600",
+    color: "#374151",
   },
   icon: {
-    marginHorizontal: 8, // mx-2
+    marginHorizontal: 8,
   },
   emptyTab: {
-    flex: 1, // flex-1
-    justifyContent: "center", // justify-center
-    alignItems: "center", // items-center
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyTabText: {
-    color: "#6b7280", // text-gray-500
-    fontSize: 16, // text-lg
+    color: "#6b7280",
+    fontSize: 16,
   },
 });
 

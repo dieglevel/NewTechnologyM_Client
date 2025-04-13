@@ -70,3 +70,28 @@ export const getAccountApi = async (navigatior: StackScreenNavigationProp ) => {
 		throw e as ErrorResponse;
 	}
 };
+
+export const sendOTPPasswordApi = async (identifier: string) => {
+	try {
+		const response = await api.post<BaseResponse<null>>("/auth/send-OTP-forget", {
+			identifier
+		});
+
+		return response.data;
+	} catch (e) {
+		throw e as ErrorResponse;
+	}
+};
+
+export const verifyOTPPasswordApi = async (otp: string,identifier: string) => {
+	try {
+		const response = await api.post<BaseResponse<null>>("/auth/verify-OTP-forget", {
+			otp:otp,
+			identifier:identifier
+		});
+
+		return response.data;
+	} catch (e) {
+		throw e as ErrorResponse;
+	}
+};

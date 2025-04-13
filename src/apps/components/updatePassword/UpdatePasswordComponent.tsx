@@ -6,32 +6,45 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+
+type RouteParams = {
+  params: {
+    phone: string;
+  };
+};
 
 export const UpdatePasswordComponent = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigation = useNavigation();
-  const route = useRoute();
-  const { phone } = route.params as { phone: string };
+  const route = useRoute<RouteProp<RouteParams, "params">>();
+  const { phone } = route.params;
 
-  const handleUpdatePassword = () => {
-    console.log("SĐT:", phone);
-    console.log("Mật khẩu mới:", newPassword);
-    console.log("Xác nhận mật khẩu mới:", confirmPassword);
-
-    if (newPassword !== confirmPassword) {
-      console.warn("Mật khẩu xác nhận không khớp.");
+  const onUpdatePasswordPress = () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin mật khẩu.");
       return;
     }
 
-    // Gọi API cập nhật mật khẩu
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
+    console.log("SĐT:", phone);
+    console.log("Mật khẩu mới:", newPassword);
+    console.log("Xác nhận mật khẩu:", confirmPassword);
+
+    // TODO: Gọi API đổi mật khẩu
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -39,6 +52,7 @@ export const UpdatePasswordComponent = () => {
         <Text style={styles.headerText}>Đổi mật khẩu</Text>
       </View>
 
+      {/* Form nhập mật khẩu */}
       <Text style={styles.label}>Mật khẩu mới</Text>
       <TextInput
         secureTextEntry
@@ -48,7 +62,7 @@ export const UpdatePasswordComponent = () => {
         onChangeText={setNewPassword}
       />
 
-      <Text style={styles.label}>Xác nhận lại mật khẩu mới</Text>
+      <Text style={styles.label}>Xác nhận lại mật khẩu</Text>
       <TextInput
         secureTextEntry
         style={styles.input}
@@ -57,51 +71,52 @@ export const UpdatePasswordComponent = () => {
         onChangeText={setConfirmPassword}
       />
 
-      <TouchableOpacity
-        onPress={handleUpdatePassword}
-        style={styles.updateButton}
-      >
+      {/* Button cập nhật */}
+      <TouchableOpacity style={styles.updateButton} onPress={onUpdatePasswordPress}>
         <Text style={styles.updateButtonText}>Cập nhật mật khẩu</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "white", // bg-white
-    padding: 16, // p-4
+    backgroundColor: "#fff",
+    padding: 16,
   },
   header: {
-    flexDirection: "row", // flex-row
-    alignItems: "center", // items-center
-    marginBottom: 16, // mb-4
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
   },
   headerText: {
-    fontSize: 18, // text-lg
-    fontWeight: "600", // font-semibold
-    marginLeft: 16, // ml-4
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 16,
   },
   label: {
-    marginBottom: 8, // mb-2
-    color: "#4B5563", // text-gray-700
+    marginBottom: 8,
+    color: "#374151", // text-gray-700
+    fontSize: 14,
   },
   input: {
-    borderWidth: 1, // border
-    borderColor: "#D1D5DB", // border-gray-300
-    borderRadius: 8, // rounded-lg
-    padding: 12, // p-2
-    marginBottom: 16, // mb-4
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
   },
   updateButton: {
-    backgroundColor: "#3B82F6", // bg-blue-500
-    padding: 12, // p-3
-    borderRadius: 8, // rounded-lg
-    alignItems: "center", // items-center
+    backgroundColor: "#3B82F6",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
   },
   updateButtonText: {
-    color: "white", // text-white
-    fontWeight: "600", // font-semibold
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
