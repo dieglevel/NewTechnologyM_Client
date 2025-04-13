@@ -1,31 +1,25 @@
-import { TouchableOpacity, Image, StyleSheet } from "react-native";
+import { TouchableOpacity, Image, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
 import { useAppSelector } from "@/libs/redux/redux.config";
 import { images } from "@/assets/images";
 import { pickImage } from "./hande";
+import { colors } from "@/constants";
 
 interface HeaderDetailUserProps {}
 
 export const CoverPhoto = ({}: HeaderDetailUserProps) => {
 	const { detailInformation, status } = useAppSelector((state) => state.detailInformation);
-
-	const [image, setImage] = useState<string | null>(null);
-
-
 	return (
-		<TouchableOpacity
-			style={styles.touchable}
-			onPress={() => {
-				pickImage(setImage)
-			}}
-		>
-			<Image
-				source={
-					detailInformation?.thumbnailUrl ? { uri: detailInformation?.thumbnailUrl } : images.background
-				}
-				style={styles.image}
-			/>
-		</TouchableOpacity>
+		<>
+					<Image
+						source={
+							detailInformation?.thumbnailUrl
+								? { uri: detailInformation?.thumbnailUrl }
+								: images.background
+						}
+						style={styles.image}
+					/>
+		</>
 	);
 };
 
@@ -36,6 +30,6 @@ const styles = StyleSheet.create({
 	},
 	image: {
 		width: "100%",
-		height: "100%",
+		height: 240, 
 	},
 });

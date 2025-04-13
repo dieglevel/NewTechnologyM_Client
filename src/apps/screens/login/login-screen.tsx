@@ -33,11 +33,10 @@ export const LoginScreen = () => {
 
 	useEffect(() => {
 
-
 		const checkToken = async () => {
 		const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 
-			const accountResponse = await getAccountApi(navigation);
+			const accountResponse = await getAccountApi();
 			if (accountResponse.statusCode === 200) {
 				socketService.connect();
 				navigation.navigate("BottomTabScreenApp");

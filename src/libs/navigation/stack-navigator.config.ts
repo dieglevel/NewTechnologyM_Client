@@ -1,6 +1,6 @@
 import { ForgotPasswordComponent } from '@/apps/components/forgotPassword/forgot-password';
 import { UpdatePasswordScreen } from './../../apps/screens/updatePassword/updatePasswordScreen';
-import { UpdateProfileScreen } from './../../apps/screens/updateProfile/updateProfileScreen';
+import { UpdateProfileScreen } from '../../apps/screens/update-profile/update-profile-screen';
 import { ChatScreen } from '../../apps/screens/chat-detail/chat-screen';
 import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgot-password-screen";
 import { RouteProp } from "@react-navigation/native";
@@ -14,9 +14,7 @@ export type RootStackParamList = {
   Register: undefined;
   Login: undefined;
   OTP: { identifier: string; type: "phone" | "email" };
-  UserDetail: {
-    userId: string
-  };
+  UserDetail: undefined
   Chat: undefined;
   ChatDetail: { chatId: string };
   ChatScreen: undefined;
@@ -25,6 +23,7 @@ export type RootStackParamList = {
   UpdatePasswordScreen: undefined;
   UpdateProfileScreen: undefined;
   ForgotPasswordComponent: undefined;
+  Qr: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

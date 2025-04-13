@@ -51,19 +51,25 @@ export const verifyAccount = async (identifier: string, otp: string) => {
 	}
 }
 
-export const getAccountApi = async (navigatior: StackScreenNavigationProp ) => {
+export const getAccountApi = async () => {
 	try {
 		const response = await api.get<BaseResponse<{
 			detailInformation: IDetailInformation;
 		}>>("/auth/my-account");
 
-		if (response.data.statusCode === 200 && response.data.data) {
-			const detailInformation = response.data.data.detailInformation;
-			if (!detailInformation.fullName && !detailInformation.avatarUrl && !detailInformation.gender && !detailInformation.dateOfBirth) {
-				// navigatior.navigate("BottomTabScreenApp") // navigate to update Profile
+		return response.data;
+	} catch (e) {
+		throw e as ErrorResponse;
+	}
+};
 
-			}
-		}
+
+export const verifyLoginQrApi = async (qrCode: {
+	ipDevice: string,
+	userAgent: string,
+}) => {
+	try {
+		const response = await api.post<BaseResponse<null>>("/auth/verify-loginQR", qrCode);
 
 		return response.data;
 	} catch (e) {

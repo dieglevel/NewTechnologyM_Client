@@ -55,7 +55,6 @@ class SocketService {
 
       this.socket.emit(SocketEmit.detailInformation, {});
       this.socket.on(SocketOn.updateUserDetailInformation, (data: IDetailInformation) => {
-         console.log("User detail info updated:", data);
          store.dispatch(setDetailInformation(data));
       });
    }

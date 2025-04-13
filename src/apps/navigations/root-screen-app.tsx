@@ -1,10 +1,12 @@
-import { 
-	ChatScreen, 
-	LoginScreen, 
-	OTPScreen, 
-	RegisterScreen, 
-	UserDetailScreen, 
+import {
+	ChatScreen,
+	LoginScreen,
+	OTPScreen,
+	RegisterScreen,
+	UserDetailScreen,
+	QrScreen,
 	ForgotPasswordScreen,
+
 	UpdateProfileScreen,
 	UpdatePasswordScreen
   } from "@/apps/screens";
@@ -13,8 +15,27 @@ import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
 import { LoginUserScreen } from "../screens/login-user/login-user-screen";
+import { detailInformationStorage } from "@/libs/mmkv/mmkv";
+import { useEffect } from "react";
+import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
+import { getAccountApi } from "@/services/auth";
+import { socketService } from "@/libs/socket/socket";
+import { MMKV } from "react-native-mmkv";
 
 export const RootScreenApp = () => {
+	useEffect(() => {
+		const checkToken = async () => {
+
+			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
+
+			const accountResponse = await getAccountApi();
+			if (accountResponse.statusCode === 200) {
+				socketService.connect();
+			}
+		};
+		checkToken();
+	}, []);
+
 	return (
 		<NavigationContainer>
 			<Stack.Navigator
@@ -35,7 +56,7 @@ export const RootScreenApp = () => {
 					name="Login"
 					component={LoginScreen}
 				/>
-								<Stack.Screen
+				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
 						headerShown: true,
@@ -48,7 +69,7 @@ export const RootScreenApp = () => {
 					options={{
 						statusBarBackgroundColor: "gray",
 						headerShown: true,
-						headerTitle: "Đăng ký"
+						headerTitle: "Đăng ký",
 					}}
 					name="Register"
 					component={RegisterScreen}
@@ -61,7 +82,6 @@ export const RootScreenApp = () => {
 					}}
 					name="OTP"
 					component={OTPScreen}
-					
 					initialParams={{ identifier: "", type: "phone" }}
 				/>
 				<Stack.Screen
@@ -79,11 +99,11 @@ export const RootScreenApp = () => {
 					component={ChatScreen}
 				/>
 				<Stack.Screen
- 				 options={{
-   						 statusBarBackgroundColor: "gray",
- 					 }}
-  				name="ForgotPasswordScreen"
- 				 component={ForgotPasswordScreen}
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="ForgotPasswordScreen"
+					component={ForgotPasswordScreen}
 				/>
 				<Stack.Screen
  				 options={{
@@ -95,12 +115,20 @@ export const RootScreenApp = () => {
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
+						headerShown: true,
+						headerTitle: "Cập nhật thông tin",
 					}}
 					name="UpdateProfileScreen"
 					component={UpdateProfileScreen}
 				/>
 
-
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="Qr"
+					component={QrScreen}
+				/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);

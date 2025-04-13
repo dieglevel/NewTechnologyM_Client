@@ -66,7 +66,7 @@ export const ListChat = () => {
                     placeholder="Tìm kiếm"
                     placeholderTextColor="black"
                 />
-                <Ionicons name="qr-code" size={20} color="black" style={styles.icon} />
+                <Ionicons name="qr-code" size={20} color="black" style={styles.icon} onPress={() => navigation.push("Qr")}/>
                 <Ionicons name="add" size={24} color="black" style={styles.icon} />
             </View>
 

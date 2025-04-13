@@ -8,6 +8,6 @@ export * from "./user/user-screen";
 export * from "./chat-detail/chat-screen";
 export * from "./forgotPassword/forgot-password-screen";
 export * from "./contacts/contacts-screen"
+export * from "./update-profile/update-profile-screen";
+export * from "./qr/qr-screen";
 export * from "./updatePassword/updatePasswordScreen";
-export * from "./updateProfile/updateProfileScreen";
-

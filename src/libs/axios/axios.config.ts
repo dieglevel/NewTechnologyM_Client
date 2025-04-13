@@ -15,7 +15,6 @@ export interface ErrorResponse {
 
 export const api = axios.create({
 	baseURL: process.env.EXPO_PUBLIC_BACKEND_URL,
-	timeout: 5000,
 	headers: { "Content-Type": "application/json" },
 });
 
@@ -49,10 +48,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		console.error("⛔ Axios: ", error.message);
-
-
-
+		// console.error("⛔ Axios: ", error.config);
 		const errorResponse: ErrorResponse = error.response.data;
 
 		if (errorResponse.statusCode === 401) {

@@ -1,4 +1,4 @@
-import { SocketEmit } from "@/constants/socket";
+import { SocketEmit, SocketOn } from "@/constants/socket";
 import { store } from "@/libs/redux/redux.config";
 import { setDetailInformation } from "@/libs/redux/stores";
 import { socketService } from "@/libs/socket/socket";
@@ -8,14 +8,14 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Dispatch, SetStateAction } from "react";
 import Toast from "react-native-toast-message";
 
-export const pickImage = async (setImage: Dispatch<SetStateAction<string | null>>) => {
+export const pickImage = async (setImage: Dispatch<SetStateAction<string | null>>, setIsLoading: Dispatch<SetStateAction<boolean>>) => {
    try {
+      setIsLoading(true);
       const result = await DocumentPicker.getDocumentAsync({
          type: 'image/*',
-         copyToCacheDirectory: true,
+         multiple: false,
       });
 
-      console.log(result);
       if (result.canceled === false) {
          const formData = new FormData();
 
@@ -34,12 +34,13 @@ export const pickImage = async (setImage: Dispatch<SetStateAction<string | null>
                text2: 'Tải ảnh thành công',
             });
             socketService.emit(SocketEmit.detailInformation, {
-               thumbnailUrl: response.data.url,
+               avatarUrl: response.data.url,
             });
 
-            socketService.on(SocketEmit.detailInformation, (data: IDetailInformation) => {
+            socketService.on(SocketOn.updateUserDetailInformation, (data: IDetailInformation) => {
                store.dispatch(setDetailInformation(data));
             });
+            socketService.off(SocketOn.updateUserDetailInformation);
          } else {
             Toast.show({
                type: 'error',
@@ -50,6 +51,8 @@ export const pickImage = async (setImage: Dispatch<SetStateAction<string | null>
       }
    } catch (error) {
       console.error('Error picking document:', error);
+   } finally {
+      setIsLoading(false);
    }
 
 };
