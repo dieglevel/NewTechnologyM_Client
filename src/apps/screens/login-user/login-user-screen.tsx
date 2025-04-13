@@ -44,7 +44,6 @@ export const LoginUserScreen = () => {
 					<TextInput
 						style={styles.textInput}
 						placeholder="Nhập số điện thoại"
-						keyboardType="phone-pad"
 						value={identifier}
 						onChangeText={setIdentifier}
 					/>
