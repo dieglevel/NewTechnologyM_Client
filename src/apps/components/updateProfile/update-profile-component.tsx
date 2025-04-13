@@ -94,6 +94,8 @@ export const UpdateProfileComponent = () => {
 					/>
 
 					<DatePicker
+						// greate 13 years old
+						maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 13))}
 						modal
 						mode="date"
 						open={open}

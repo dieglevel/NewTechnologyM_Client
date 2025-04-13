@@ -1,3 +1,4 @@
+import { UpdatePasswordComponent } from './../../apps/components/updatePassword/UpdatePasswordComponent';
 import { ForgotPasswordComponent } from '@/apps/components/forgotPassword/forgot-password';
 import { UpdatePasswordScreen } from './../../apps/screens/updatePassword/updatePasswordScreen';
 import { UpdateProfileScreen } from '../../apps/screens/update-profile/update-profile-screen';
@@ -20,7 +21,7 @@ export type RootStackParamList = {
   ChatScreen: undefined;
   LoginUser: undefined;
   ForgotPasswordScreen: undefined; 
-  UpdatePasswordScreen: undefined;
+  UpdatePasswordScreen: {identifier: string};
   UpdateProfileScreen: undefined;
   ForgotPasswordComponent: undefined;
   Qr: undefined;
@@ -39,3 +40,4 @@ export type StackScreenNavigationProp =
 
 export type OTPRouteProp = RouteProp<RootStackParamList, "OTP">;
 export type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
+export type UpdatePasswordRouteProp = RouteProp<RootStackParamList, "UpdatePasswordScreen">;
