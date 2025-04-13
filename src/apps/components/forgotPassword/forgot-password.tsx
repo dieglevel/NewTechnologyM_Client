@@ -132,7 +132,6 @@ export const ForgotPasswordComponent = () => {
 						<TextInput
 							style={styles.input}
 							placeholder="Nhập số điện thoại"
-							keyboardType="phone-pad"
 							value={phone}
 							onChangeText={setPhone}
 						/>
