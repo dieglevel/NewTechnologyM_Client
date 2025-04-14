@@ -6,13 +6,28 @@ import { IAuth, IDetailInformation } from "@/types/implement";
 
 export const loginApi = async (username: string, password: string) => {
 	try {
+		const isPhoneNumber = username.match(/^\d{10}$/);
+
+		if (isPhoneNumber) {
+			const phone84 = username.startsWith("0") ? username.replace(/^0/, "+84") : username;
+			const response = await api.post<BaseResponse<IAuth>>(`auth/login`, { identifier: phone84, password });
+			const { data, statusCode } = response.data;
+
+			if (statusCode === 200) {
+				console.log("Login successful:", data);
+				await setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
+				console.log("Access token set:", await getSecure(ExpoSecureStoreKeys.AccessToken));
+			}
+			return response.data;
+		}
+
 		const response = await api.post<BaseResponse<IAuth>>(`auth/login`, { identifier: username, password });
 		const { data, statusCode } = response.data;
 
 		if (statusCode === 200) {
 			console.log("Login successful:", data);
-			setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
-			console.log("Access token set:", getSecure(ExpoSecureStoreKeys.AccessToken));
+			await setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
+			console.log("Access token set:", await getSecure(ExpoSecureStoreKeys.AccessToken));
 		}
 		return response.data;
 	} catch (e) {
@@ -25,7 +40,8 @@ export const registerApi = async (identifier: string, password: string) => {
 
 		const isPhoneNumber = identifier.match(/^\d{10}$/);
 		if (isPhoneNumber) {
-			const response = await api.post<BaseResponse<IAuth>>("/auth/register", { "email": "", "phone": identifier, password });
+			const phone84 = identifier.startsWith("0") ? identifier.replace(/^0/, "+84") : identifier;
+			const response = await api.post<BaseResponse<IAuth>>("/auth/register", { "email": "", "phone": phone84, password });
 			return response.data;
 		}
 
@@ -43,6 +59,13 @@ export const registerApi = async (identifier: string, password: string) => {
 
 export const verifyAccount = async (identifier: string, otp: string) => {
 	try {
+		const isPhoneNumber = identifier.match(/^\d{10}$/);
+		if (isPhoneNumber) {
+			const phone84 = identifier.startsWith("0") ? identifier.replace(/^0/, "+84") : identifier;
+			const response = await api.post<BaseResponse<null>>("/auth/verify-otp", { identifier: phone84, otp });
+
+			return response.data;
+		}
 		const response = await api.post<BaseResponse<null>>("/auth/verify-otp", { identifier, otp });
 
 		return response.data;
@@ -89,11 +112,23 @@ export const sendOTPPasswordApi = async (identifier: string) => {
 	}
 };
 
-export const verifyOTPPasswordApi = async (otp: string,identifier: string) => {
+export const verifyOTPPasswordApi = async (otp: string, identifier: string) => {
 	try {
+
+		const isPhoneNumber = identifier.match(/^\d{10}$/);
+		if (isPhoneNumber) {
+			const phone84 = identifier.startsWith("0") ? identifier.replace(/^0/, "+84") : identifier;
+			const response = await api.post<BaseResponse<null>>("/auth/verify-OTP-forget", {
+				otp: otp,
+				identifier: phone84
+			});
+
+			return response.data;
+		}
+
 		const response = await api.post<BaseResponse<null>>("/auth/verify-OTP-forget", {
-			otp:otp,
-			identifier:identifier
+			otp: otp,
+			identifier: identifier
 		});
 
 		return response.data;
@@ -105,13 +140,24 @@ export const verifyOTPPasswordApi = async (otp: string,identifier: string) => {
 
 export const changePasswordApi = async (phone: string, newPassword: string) => {
 	try {
-	  const response = await api.post<BaseResponse<null>>("/auth/update-password-forget", {
-		identifier: phone,
-		newPassword,
-	  });
-  
-	  return response.data;
+		const isPhoneNumber = phone.match(/^\d{10}$/);
+		if (isPhoneNumber) {
+			const phone84 = phone.startsWith("0") ? phone.replace(/^0/, "+84") : phone;
+			const response = await api.post<BaseResponse<null>>("/auth/update-password-forget", {
+				identifier: phone84,
+				newPassword,
+			});
+
+			return response.data;
+		}
+
+		const response = await api.post<BaseResponse<null>>("/auth/update-password-forget", {
+			identifier: phone,
+			newPassword,
+		});
+
+		return response.data;
 	} catch (e) {
-	  throw e as ErrorResponse;
+		throw e as ErrorResponse;
 	}
-  };
+};
