@@ -9,6 +9,7 @@ import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { handleProfileUpdate } from "./handle";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import DatePicker from "react-native-date-picker";
+import { socketService } from "@/libs/socket/socket";
 
 interface UpdateProfileComponentProps {}
 
@@ -25,6 +26,10 @@ export const UpdateProfileComponent = () => {
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
 	const [open, setOpen] = useState(false);
+
+	useEffect(() => {
+		socketService.connect();
+	}, [])
 
 	useEffect(() => {
 		const getData = async () => {

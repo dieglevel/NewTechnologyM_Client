@@ -15,12 +15,12 @@ export const RegisterScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-	const [identifier, setIdentifier] = useState<string>("213123123");
+	const [identifier, setIdentifier] = useState<string>("");
 
-	const [password, setPassword] = useState<string>("Minh123!");
+	const [password, setPassword] = useState<string>("");
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-	const [rePassword, setRePassword] = useState<string>("Minh123!");
+	const [rePassword, setRePassword] = useState<string>("");
 	const [isRePasswordVisible, setIsRePasswordVisible] = useState(false);
 
 	const [error, setError] = useState<{
@@ -102,6 +102,7 @@ export const RegisterScreen = () => {
 							padding: 10,
 							marginBottom: 16,
 						}}
+						placeholder="Nhập số điện thoại hoặc email"
 						value={identifier}
 						onChangeText={setIdentifier}
 					/>

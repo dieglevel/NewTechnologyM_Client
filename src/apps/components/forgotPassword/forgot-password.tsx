@@ -91,7 +91,7 @@ export const ForgotPasswordComponent = () => {
 						text1: "Xác thực thành công",
 						text2: "Mã OTP đã được xác thực thành công.",
 					});
-
+					setShowOTPModal(false);
 					navigation.navigate("UpdatePasswordScreen", {identifier: phone});
 				} else {
 					Toast.show({

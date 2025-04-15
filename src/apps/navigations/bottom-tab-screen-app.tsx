@@ -1,6 +1,7 @@
 import { ContactsScreen, HomeScreen, ListChatScreen, UserScreen } from "@/apps/screens";
 import { Message, Profile } from "@/assets/svgs";
 import { StackScreenNavigationProp, Tab } from "@/libs/navigation";
+import { socketService } from "@/libs/socket/socket";
 import { getAccountApi } from "@/services/auth";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
@@ -16,7 +17,6 @@ export const BottomTabScreenApp = () => {
 			if (response.statusCode === 200) {
 				const data = response.data?.detailInformation;
 				console.log("data", data);
-
 				if (!data?.fullName && !data?.dateOfBirth && !data?.avatarUrl && !data?.thumbnailUrl ) {
 					navigator.push("UpdateProfileScreen")
 				}
