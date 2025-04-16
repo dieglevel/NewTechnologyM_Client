@@ -9,8 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  useColorScheme,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import EmojiSelector from "react-native-emoji-selector";
 import * as ImagePicker from "expo-image-picker";
@@ -20,6 +21,8 @@ const ChatDetail = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { name }: any = route.params || { name: "Người dùng" };
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const [messages, setMessages] = useState([
     {
@@ -27,7 +30,6 @@ const ChatDetail = () => {
       text: "Xin chào!",
       sender: "me",
       time: "10:00",
-      date: "17/04/2025",
       read: true,
       avatar: "https://i.pravatar.cc/150?img=3",
       senderName: "Tôi",
@@ -37,7 +39,6 @@ const ChatDetail = () => {
       text: "Chào bạn!",
       sender: "other",
       time: "10:01",
-      date: "17/04/2025",
       avatar: "https://i.pravatar.cc/150?img=5",
       senderName: "Minh",
     },
@@ -45,31 +46,34 @@ const ChatDetail = () => {
 
   const [inputText, setInputText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const sendMessage = () => {
-    if (inputText.trim() === "") return;
-    const now = new Date();
-    const currentTime = now.toLocaleTimeString([], {
+  const sendMessage = (text?: string, imageUri?: string) => {
+    if ((text?.trim() ?? "") === "" && !imageUri) return;
+
+    const currentTime = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
-    const currentDate = now.toLocaleDateString("vi-VN");
+
     setMessages((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
-        text: inputText,
+        text: text || "",
         sender: "me",
         time: currentTime,
-        date: currentDate,
         read: true,
         avatar: "https://i.pravatar.cc/150?img=3",
         senderName: "Tôi",
+        image: imageUri || null,
       },
     ]);
+
     setInputText("");
     setShowEmoji(false);
+    setIsTyping(false);
   };
 
   const pickImage = async () => {
@@ -78,39 +82,15 @@ const ChatDetail = () => {
       quality: 0.5,
     });
 
-    if (!result.canceled) {
-      const now = new Date();
-      const currentTime = now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const currentDate = now.toLocaleDateString("vi-VN");
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: "🖼️ [Đã gửi ảnh]",
-          sender: "me",
-          time: currentTime,
-          date: currentDate,
-          read: true,
-          avatar: "https://i.pravatar.cc/150?img=3",
-          senderName: "Tôi",
-        },
-      ]);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const imageUri = result.assets[0].uri;
+      sendMessage("", imageUri);
     }
   };
 
   useEffect(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
-
-  const renderDateSeparator = (date: string) => (
-    <View style={{ alignItems: "center", marginVertical: 10 }}>
-      <Text style={{ color: "#6b7280", fontSize: 12 }}>{date}</Text>
-    </View>
-  );
 
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
@@ -125,18 +105,27 @@ const ChatDetail = () => {
           style={[
             styles.messageContainer,
             isMyMessage ? styles.myMessage : styles.otherMessage,
+            isDark && {
+              backgroundColor: isMyMessage ? "#2563eb" : "#374151",
+            },
           ]}
         >
           {!isMyMessage && (
             <Text style={styles.senderName}>{item.senderName}</Text>
           )}
-          <Text
-            style={
-              isMyMessage ? styles.myMessageText : styles.otherMessageText
-            }
-          >
-            {item.text}
-          </Text>
+          {item.image && (
+            <Image
+              source={{ uri: item.image }}
+              style={{ width: 180, height: 180, borderRadius: 10, marginBottom: 6 }}
+            />
+          )}
+          {item.text !== "" && (
+            <Text
+              style={isMyMessage ? styles.myMessageText : styles.otherMessageText}
+            >
+              {item.text}
+            </Text>
+          )}
           <View style={styles.metaInfo}>
             <Text style={styles.timestamp}>{item.time}</Text>
             {item.read && (
@@ -154,21 +143,21 @@ const ChatDetail = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDark && { backgroundColor: "#111827" }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerText}>{name}</Text>
         <View style={styles.headerIcons}>
-          <TouchableOpacity onPress={() => alert("Gọi thoại")}>
-            <Ionicons name="call-outline" size={22} color="white" style={styles.iconMargin} />
+          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+            <Ionicons name="call-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => alert("Gọi video")}>
-            <Ionicons name="videocam-outline" size={22} color="white" style={styles.iconMargin} />
+          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+            <Ionicons name="videocam-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => alert("Thông tin chi tiết")}>
-            <Ionicons name="information-circle-outline" size={22} color="white" style={styles.iconMargin} />
+          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+            <Feather name="info" size={22} color="white" />
           </TouchableOpacity>
         </View>
       </View>
@@ -177,17 +166,22 @@ const ChatDetail = () => {
         ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => {
-          const prevDate = index > 0 ? messages[index - 1].date : null;
-          return (
-            <>
-              {item.date !== prevDate && renderDateSeparator(item.date)}
-              {renderMessageItem({ item })}
-            </>
-          );
-        }}
+        renderItem={renderMessageItem}
         contentContainerStyle={{ padding: 10 }}
       />
+
+      {isTyping && (
+        <Text
+          style={{
+            marginLeft: 16,
+            marginBottom: 4,
+            color: isDark ? "#d1d5db" : "#4b5563",
+            fontStyle: "italic",
+          }}
+        >
+          Đang gõ...
+        </Text>
+      )}
 
       {showEmoji && (
         <View style={{ height: 300 }}>
@@ -197,6 +191,7 @@ const ChatDetail = () => {
             showTabs={true}
             showHistory={true}
             showSectionTitles={false}
+            theme={isDark ? "dark" : "light"}
           />
         </View>
       )}
@@ -225,14 +220,25 @@ const ChatDetail = () => {
           </TouchableOpacity>
 
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              isDark && {
+                backgroundColor: "#1f2937",
+                color: "white",
+              },
+            ]}
             placeholder="Nhập tin nhắn..."
+            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
             value={inputText}
-            onChangeText={setInputText}
-            onSubmitEditing={sendMessage}
+            onChangeText={(text) => {
+              setInputText(text);
+              setIsTyping(text.length > 0);
+            }}
+            onSubmitEditing={() => sendMessage(inputText)}
             returnKeyType="send"
           />
-          <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+
+          <TouchableOpacity onPress={() => sendMessage(inputText)} style={styles.sendButton}>
             <Ionicons name="send" size={20} color="white" />
           </TouchableOpacity>
         </View>
@@ -248,19 +254,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#3b82f6",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   headerText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 18,
     marginLeft: 12,
+    flex: 1,
   },
   headerIcons: {
     flexDirection: "row",
-    marginLeft: "auto",
-  },
-  iconMargin: {
-    marginLeft: 16,
   },
   messageRow: {
     flexDirection: "row",
