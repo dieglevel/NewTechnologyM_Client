@@ -27,6 +27,7 @@ const ChatDetail = () => {
       text: "Xin chào!",
       sender: "me",
       time: "10:00",
+      date: "17/04/2025",
       read: true,
       avatar: "https://i.pravatar.cc/150?img=3",
       senderName: "Tôi",
@@ -36,6 +37,7 @@ const ChatDetail = () => {
       text: "Chào bạn!",
       sender: "other",
       time: "10:01",
+      date: "17/04/2025",
       avatar: "https://i.pravatar.cc/150?img=5",
       senderName: "Minh",
     },
@@ -47,10 +49,12 @@ const ChatDetail = () => {
 
   const sendMessage = () => {
     if (inputText.trim() === "") return;
-    const currentTime = new Date().toLocaleTimeString([], {
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
+    const currentDate = now.toLocaleDateString("vi-VN");
     setMessages((prev) => [
       ...prev,
       {
@@ -58,6 +62,7 @@ const ChatDetail = () => {
         text: inputText,
         sender: "me",
         time: currentTime,
+        date: currentDate,
         read: true,
         avatar: "https://i.pravatar.cc/150?img=3",
         senderName: "Tôi",
@@ -74,16 +79,39 @@ const ChatDetail = () => {
     });
 
     if (!result.canceled) {
-      const currentTime = new Date().toLocaleTimeString([], {
+      const now = new Date();
+      const currentTime = now.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       });
+      const currentDate = now.toLocaleDateString("vi-VN");
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: "🖼️ [Đã gửi ảnh]",
+          sender: "me",
+          time: currentTime,
+          date: currentDate,
+          read: true,
+          avatar: "https://i.pravatar.cc/150?img=3",
+          senderName: "Tôi",
+        },
+      ]);
     }
   };
 
   useEffect(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
+
+  const renderDateSeparator = (date: string) => (
+    <View style={{ alignItems: "center", marginVertical: 10 }}>
+      <Text style={{ color: "#6b7280", fontSize: 12 }}>{date}</Text>
+    </View>
+  );
+
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
     return (
@@ -132,13 +160,32 @@ const ChatDetail = () => {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerText}>{name}</Text>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={() => alert("Gọi thoại")}>
+            <Ionicons name="call-outline" size={22} color="white" style={styles.iconMargin} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => alert("Gọi video")}>
+            <Ionicons name="videocam-outline" size={22} color="white" style={styles.iconMargin} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => alert("Thông tin chi tiết")}>
+            <Ionicons name="information-circle-outline" size={22} color="white" style={styles.iconMargin} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
         ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
-        renderItem={renderMessageItem}
+        renderItem={({ item, index }) => {
+          const prevDate = index > 0 ? messages[index - 1].date : null;
+          return (
+            <>
+              {item.date !== prevDate && renderDateSeparator(item.date)}
+              {renderMessageItem({ item })}
+            </>
+          );
+        }}
         contentContainerStyle={{ padding: 10 }}
       />
 
@@ -207,6 +254,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     marginLeft: 12,
+  },
+  headerIcons: {
+    flexDirection: "row",
+    marginLeft: "auto",
+  },
+  iconMargin: {
+    marginLeft: 16,
   },
   messageRow: {
     flexDirection: "row",
