@@ -10,6 +10,7 @@ import {
   Platform,
   Image,
   useColorScheme,
+  Alert,
 } from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -94,14 +95,43 @@ const ChatDetail = () => {
 
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
+
+    // Thu hồi tin nhắn
+    const handleRecallMessage = (id: string) => {
+      if (!isMyMessage) {
+        Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
+        return;
+      }
+
+      Alert.alert("Thu hồi tin nhắn", "Bạn có chắc muốn thu hồi tin nhắn này?", [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Thu hồi",
+          style: "destructive",
+          onPress: () => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", image: null } : msg
+              )
+            );
+          },
+        },
+      ]);
+    };
+
     return (
-      <View style={styles.messageRow}>
-        {!isMyMessage && (
-          <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        )}
-        <Animatable.View
-          animation="fadeInUp"
-          duration={500}
+      <View
+        style={[
+          styles.messageRow,
+          {
+            justifyContent: isMyMessage ? "flex-end" : "flex-start",
+          },
+        ]}
+      >
+        {!isMyMessage && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
+        <TouchableOpacity
+          onLongPress={() => handleRecallMessage(item.id)}
+          activeOpacity={0.8}
           style={[
             styles.messageContainer,
             isMyMessage ? styles.myMessage : styles.otherMessage,
@@ -110,9 +140,7 @@ const ChatDetail = () => {
             },
           ]}
         >
-          {!isMyMessage && (
-            <Text style={styles.senderName}>{item.senderName}</Text>
-          )}
+          {!isMyMessage && <Text style={styles.senderName}>{item.senderName}</Text>}
           {item.image && (
             <Image
               source={{ uri: item.image }}
@@ -128,7 +156,7 @@ const ChatDetail = () => {
           )}
           <View style={styles.metaInfo}>
             <Text style={styles.timestamp}>{item.time}</Text>
-            {item.read && (
+            {item.read && isMyMessage && (
               <MaterialIcons
                 name="check-circle"
                 size={14}
@@ -137,7 +165,7 @@ const ChatDetail = () => {
               />
             )}
           </View>
-        </Animatable.View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -270,6 +298,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     marginVertical: 4,
+    paddingHorizontal: 10,
   },
   avatar: {
     width: 32,
@@ -288,14 +317,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   myMessage: {
-    alignSelf: "flex-end",
     backgroundColor: "#3b82f6",
     borderTopRightRadius: 0,
+    alignSelf: "flex-end",
+    marginLeft: 50,
   },
   otherMessage: {
-    alignSelf: "flex-start",
     backgroundColor: "#e5e7eb",
     borderTopLeftRadius: 0,
+    alignSelf: "flex-start",
+    marginRight: 50,
   },
   myMessageText: { color: "white", fontSize: 16 },
   otherMessageText: { color: "#111827", fontSize: 16 },
