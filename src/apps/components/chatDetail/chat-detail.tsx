@@ -11,6 +11,7 @@ import {
   Image,
   useColorScheme,
   Alert,
+  Dimensions,
 } from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -48,10 +49,11 @@ const ChatDetail = () => {
   const [inputText, setInputText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
-  const sendMessage = (text?: string, imageUri?: string) => {
-    if ((text?.trim() ?? "") === "" && !imageUri) return;
+  const sendMessage = (text?: string, images?: string[]) => {
+    if ((text?.trim() ?? "") === "" && (!images || images.length === 0)) return;
 
     const currentTime = new Date().toLocaleTimeString([], {
       hour: "2-digit",
@@ -68,24 +70,33 @@ const ChatDetail = () => {
         read: true,
         avatar: "https://i.pravatar.cc/150?img=3",
         senderName: "Tôi",
-        image: imageUri || null,
+        images: images || null,
       },
     ]);
 
     setInputText("");
     setShowEmoji(false);
     setIsTyping(false);
+    setSelectedImages([]);
   };
 
-  const pickImage = async () => {
+  const pickImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Quyền truy cập bị từ chối", "Vui lòng cấp quyền truy cập vào thư viện ảnh.");
+      return;
+    }
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
       quality: 0.5,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const imageUri = result.assets[0].uri;
-      sendMessage("", imageUri);
+      const imageUris = result.assets.map((asset) => asset.uri);
+      setSelectedImages(imageUris);
+      sendMessage("", imageUris); // Gửi ngay sau khi chọn
     }
   };
 
@@ -96,7 +107,6 @@ const ChatDetail = () => {
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
 
-    // Thu hồi tin nhắn
     const handleRecallMessage = (id: string) => {
       if (!isMyMessage) {
         Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
@@ -111,7 +121,7 @@ const ChatDetail = () => {
           onPress: () => {
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", image: null } : msg
+                msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null } : msg
               )
             );
           },
@@ -141,11 +151,16 @@ const ChatDetail = () => {
           ]}
         >
           {!isMyMessage && <Text style={styles.senderName}>{item.senderName}</Text>}
-          {item.image && (
-            <Image
-              source={{ uri: item.image }}
-              style={{ width: 180, height: 180, borderRadius: 10, marginBottom: 6 }}
-            />
+          {item.images && item.images.length > 0 && (
+            <View style={styles.imageGrid}>
+              {item.images.map((imageUri: string, index: number) => (
+                <Image
+                  key={index}
+                  source={{ uri: imageUri }}
+                  style={styles.gridImage}
+                />
+              ))}
+            </View>
           )}
           {item.text !== "" && (
             <Text
@@ -238,7 +253,7 @@ const ChatDetail = () => {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={pickImage}>
+          <TouchableOpacity onPress={pickImages}>
             <Ionicons
               name="image-outline"
               size={26}
@@ -345,6 +360,18 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 10,
     color: "#6b7280",
+  },
+  imageGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    width: Dimensions.get("window").width * 0.65, // Giới hạn chiều rộng
+  },
+  gridImage: {
+    width: Dimensions.get("window").width * 0.65 / 3 - 8, // 1/3 chiều rộng, trừ margin
+    height: Dimensions.get("window").width * 0.65 / 3 - 8,
+    borderRadius: 10,
+    marginRight: 6,
+    marginBottom: 6,
   },
   inputContainer: {
     flexDirection: "row",
