@@ -33,7 +33,7 @@ const ChatDetail = () => {
       sender: "me",
       time: "10:00",
       read: true,
-      avatar: "https://i.pravatar.cc/150?img=3",
+      avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
       senderName: "Tôi",
     },
     {
@@ -41,7 +41,7 @@ const ChatDetail = () => {
       text: "Chào bạn!",
       sender: "other",
       time: "10:01",
-      avatar: "https://i.pravatar.cc/150?img=5",
+      avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
       senderName: "Minh",
     },
   ]);
@@ -68,7 +68,7 @@ const ChatDetail = () => {
         sender: "me",
         time: currentTime,
         read: true,
-        avatar: "https://i.pravatar.cc/150?img=3",
+        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
         senderName: "Tôi",
         images: images || null,
       },
@@ -152,14 +152,23 @@ const ChatDetail = () => {
         >
           {!isMyMessage && <Text style={styles.senderName}>{item.senderName}</Text>}
           {item.images && item.images.length > 0 && (
-            <View style={styles.imageGrid}>
-              {item.images.map((imageUri: string, index: number) => (
+            <View style={styles.imageContainer}>
+              {item.images.length === 1 ? (
                 <Image
-                  key={index}
-                  source={{ uri: imageUri }}
-                  style={styles.gridImage}
+                  source={{ uri: item.images[0] }}
+                  style={styles.singleImage}
                 />
-              ))}
+              ) : (
+                <View style={styles.imageGrid}>
+                  {item.images.map((imageUri: string, index: number) => (
+                    <Image
+                      key={index}
+                      source={{ uri: imageUri }}
+                      style={styles.gridImage}
+                    />
+                  ))}
+                </View>
+              )}
             </View>
           )}
           {item.text !== "" && (
@@ -360,6 +369,14 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 10,
     color: "#6b7280",
+  },
+  imageContainer: {
+    marginBottom: 6,
+  },
+  singleImage: {
+    width: 180,
+    height: 180,
+    borderRadius: 10,
   },
   imageGrid: {
     flexDirection: "row",
