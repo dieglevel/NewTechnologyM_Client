@@ -20,14 +20,22 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import EmojiSelector from "react-native-emoji-selector";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { Audio } from "expo-av";
 import axios from "axios";
 
 const REACTIONS = ["❤️", "😂", "👍", "😮", "😢", "😡"];
 
+// Mock data cho danh sách cuộc trò chuyện (thay bằng API GET /api/chats nếu có)
+const mockChats = [
+  { id: "chat1", name: "Nhóm bạn", avatar: "https://example.com/avatar1.png" },
+  { id: "chat2", name: "Gia đình", avatar: "https://example.com/avatar2.png" },
+  { id: "chat3", name: "Công việc", avatar: "https://example.com/avatar3.png" },
+];
+
 const ChatDetail = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { name }: any = route.params || { name: "Người dùng" };
+  const { name, chatId }: any = route.params || { name: "Người dùng", chatId: "default_chat_id" };
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -43,6 +51,7 @@ const ChatDetail = () => {
       reaction: string | null;
       images?: string[] | null;
       files?: string[] | null;
+      audio?: string | null;
       isEdited?: boolean;
     }[]
   >([
@@ -72,6 +81,10 @@ const ChatDetail = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -82,10 +95,206 @@ const ChatDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionMessage, setActionMessage] = useState<any>(null);
+  const [showForwardModal, setShowForwardModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const imageFlatListRef = useRef<FlatList>(null);
+
+  const checkAudioPermissions = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Quyền truy cập bị từ chối", "Vui lòng cấp quyền truy cập microphone.");
+      return false;
+    }
+    return true;
+  };
+
+  const startRecording = async () => {
+    const hasPermission = await checkAudioPermissions();
+    if (!hasPermission) return;
+
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể bắt đầu ghi âm. Vui lòng thử lại.");
+      console.error("Error in startRecording:", error);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setIsRecording(false);
+      setRecording(null);
+
+      if (uri) {
+        const file = {
+          uri,
+          name: `recording_${Date.now()}.m4a`,
+          type: "audio/m4a",
+        };
+        uploadAudio(file);
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể dừng ghi âm. Vui lòng thử lại.");
+      console.error("Error in stopRecording:", error);
+    }
+  };
+
+  const uploadAudio = async (file: { uri: string; name: string; type: string }) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", {
+        uri: file.uri,
+        name: file.name,
+        type: file.type,
+      } as any);
+
+      console.log("Uploading audio:", file);
+
+      const response = await axios.post(
+        "https://your-api-domain.com/api/file-cloud/upload-single-file",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            // Authorization: `Bearer ${yourToken}`,
+          },
+        }
+      );
+
+      console.log("Upload response:", response.data);
+
+      if (response.data && response.data.url) {
+        sendAudioMessage(response.data.url);
+      } else {
+        Alert.alert("Lỗi", "Không thể tải file âm thanh lên server.");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file âm thanh. Vui lòng thử lại.");
+      console.error("Error in uploadAudio:", error);
+    }
+  };
+
+  const sendAudioMessage = async (audioUrl: string) => {
+    try {
+      const currentTime = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      const message = {
+        id: Date.now().toString(),
+        text: "",
+        sender: "me",
+        time: currentTime,
+        read: true,
+        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+        senderName: "Tôi",
+        audio: audioUrl,
+        reaction: null,
+      };
+
+      setMessages((prev) => [...prev, message]);
+
+      const messageResponse = await axios.post(
+        "https://your-api-domain.com/api/message",
+        {
+          chatId: chatId,
+          senderId: "me",
+          content: "",
+          audioUrl,
+          timestamp: new Date().toISOString(),
+        },
+        {
+          headers: {
+            // Authorization: `Bearer ${yourToken}`,
+          },
+        }
+      );
+
+      console.log("Message API response:", messageResponse.data);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể gửi tin nhắn thoại. Vui lòng thử lại.");
+      console.error("Error in sendAudioMessage:", error);
+    }
+  };
+
+  const playAudio = async (audioUrl: string, messageId: string) => {
+    try {
+      if (sound && playingAudioId === messageId) {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+        setSound(null);
+        setPlayingAudioId(null);
+        return;
+      }
+
+      const { sound: newSound } = await Audio.Sound.createAsync({ uri: audioUrl });
+      setSound(newSound);
+      setPlayingAudioId(messageId);
+      await newSound.playAsync();
+
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          newSound.unloadAsync();
+          setSound(null);
+          setPlayingAudioId(null);
+        }
+      });
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể phát âm thanh. Vui lòng thử lại.");
+      console.error("Error in playAudio:", error);
+    }
+  };
+
+  const forwardMessage = async (targetChatId: string) => {
+    if (!actionMessage) return;
+
+    try {
+      const payload: any = {
+        chatId: targetChatId,
+        senderId: "me",
+        content: actionMessage.text || "",
+        timestamp: new Date().toISOString(),
+      };
+
+      if (actionMessage.images) payload.images = actionMessage.images;
+      if (actionMessage.files) payload.files = actionMessage.files;
+      if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
+
+      const response = await axios.post(
+        "https://your-api-domain.com/api/message",
+        payload,
+        {
+          headers: {
+            // Authorization: `Bearer ${yourToken}`,
+          },
+        }
+      );
+
+      console.log("Forward message response:", response.data);
+      Alert.alert("Thành công", "Tin nhắn đã được chuyển tiếp!");
+      setShowForwardModal(false);
+      setShowActionModal(false);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể chuyển tiếp tin nhắn. Vui lòng thử lại.");
+      console.error("Error in forwardMessage:", error);
+    }
+  };
 
   const sendMessage = (text?: string, images?: string[], files?: string[]) => {
     if ((text?.trim() ?? "") === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
@@ -118,6 +327,7 @@ const ChatDetail = () => {
           senderName: "Tôi",
           images: images || null,
           files: files || null,
+          audio: null,
           reaction: null,
         },
       ]);
@@ -161,7 +371,7 @@ const ChatDetail = () => {
         multiple: true,
       });
 
-      if (result.type === "success") {
+      if (!result.canceled) {
         const files = result.assets.map((asset) => ({
           uri: asset.uri,
           name: asset.name,
@@ -172,7 +382,7 @@ const ChatDetail = () => {
       }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể chọn file. Vui lòng thử lại.");
-      console.error(error);
+      console.error("Error in pickDocument:", error);
     }
   };
 
@@ -188,6 +398,8 @@ const ChatDetail = () => {
           type: file.type,
         } as any);
 
+        console.log("Uploading file:", file);
+
         const response = await axios.post(
           "https://your-api-domain.com/api/file-cloud/upload-single-file",
           formData,
@@ -199,19 +411,22 @@ const ChatDetail = () => {
           }
         );
 
+        console.log("Upload response:", response.data);
+
         if (response.data && response.data.url) {
           uploadedUrls.push(response.data.url);
         }
       }
 
       if (uploadedUrls.length > 0) {
+        console.log("Uploaded URLs:", uploadedUrls);
         sendMessage("", [], uploadedUrls);
       } else {
         Alert.alert("Lỗi", "Không thể tải file lên server.");
       }
     } catch (error) {
       Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
-      console.error(error);
+      console.error("Error in uploadFiles:", error);
     }
   };
 
@@ -252,7 +467,7 @@ const ChatDetail = () => {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === id
-                ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, files: null, reaction: null }
+                ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, files: null, audio: null, reaction: null }
                 : msg
             )
           );
@@ -387,10 +602,26 @@ const ChatDetail = () => {
                   }}
                   style={styles.fileItem}
                 >
-                  <Ionicons name="document-outline" size={20} color="#3b82f6" style={{ marginRight: 8 }} />
+                  <Ionicons name="document-outline" size={20} color="#3b82f6" style={styles.fileIcon} />
                   <Text style={styles.fileText}>{fileUrl.split("/").pop()}</Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          )}
+          {item.audio && (
+            <View style={styles.audioContainer}>
+              <TouchableOpacity
+                onPress={() => playAudio(item.audio, item.id)}
+                style={styles.audioButton}
+              >
+                <Ionicons
+                  name={playingAudioId === item.id ? "pause" : "play"}
+                  size={20}
+                  color="#3b82f6"
+                  style={styles.audioIcon}
+                />
+                <Text style={styles.audioText}>Tin nhắn thoại</Text>
+              </TouchableOpacity>
             </View>
           )}
           {item.text !== "" && (
@@ -402,12 +633,12 @@ const ChatDetail = () => {
             </Text>
           )}
           {item.reaction && (
-            <Text style={{ fontSize: 18, marginTop: 4, textAlign: "right" }}>{item.reaction}</Text>
+            <Text style={styles.reactionText}>{item.reaction}</Text>
           )}
           <View style={styles.metaInfo}>
             <Text style={styles.timestamp}>{item.time}</Text>
             {item.read && isMyMessage && (
-              <MaterialIcons name="check-circle" size={14} color="#3b82f6" style={{ marginLeft: 4 }} />
+              <MaterialIcons name="check-circle" size={14} color="#3b82f6" style={styles.readIcon} />
             )}
           </View>
         </TouchableOpacity>
@@ -421,16 +652,16 @@ const ChatDetail = () => {
       onPress={item.onPress}
     >
       <Ionicons
-        name={item.icon}
+        name={item.icon as keyof typeof Ionicons.glyphMap}
         size={20}
         color={item.destructive ? "#ef4444" : isDark ? "#d1d5db" : "#374151"}
-        style={{ marginRight: 10 }}
+        style={styles.actionIcon}
       />
       <Text
         style={[
           styles.actionText,
-          item.destructive && { color: "#ef4444" },
-          isDark && !item.destructive && { color: "#d1d5db" },
+          item.destructive && styles.destructiveText,
+          isDark && !item.destructive && styles.darkActionText,
         ]}
       >
         {item.label}
@@ -438,7 +669,17 @@ const ChatDetail = () => {
     </TouchableOpacity>
   );
 
-  const getActionItems = () => {
+  const renderChatItem = ({ item }: { item: { id: string; name: string; avatar: string } }) => (
+    <TouchableOpacity
+      style={styles.chatItem}
+      onPress={() => forwardMessage(item.id)}
+    >
+      <Image source={{ uri: item.avatar }} style={styles.chatAvatar} />
+      <Text style={[styles.chatName, isDark && styles.darkChatName]}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const getActionItems = (): { icon: string; label: string; onPress: () => void; destructive?: boolean }[] => {
     if (!actionMessage) return [];
 
     const isMyMessage = actionMessage.sender === "me";
@@ -456,6 +697,14 @@ const ChatDetail = () => {
         icon: "copy-outline",
         label: "Sao chép",
         onPress: () => copyMessage(actionMessage.text),
+      },
+      {
+        icon: "share-outline",
+        label: "Chuyển tiếp",
+        onPress: () => {
+          setShowForwardModal(true);
+          setShowActionModal(false);
+        },
       },
     ];
 
@@ -479,32 +728,32 @@ const ChatDetail = () => {
   };
 
   return (
-    <View style={[styles.container, isDark && { backgroundColor: "#111827" }]}>
+    <View style={[styles.container, isDark && styles.darkContainer]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerText}>{name}</Text>
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+          <TouchableOpacity style={styles.headerIcon}>
             <Ionicons name="call-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+          <TouchableOpacity style={styles.headerIcon}>
             <Ionicons name="videocam-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ marginHorizontal: 6 }} onPress={toggleSearchBar}>
+          <TouchableOpacity style={styles.headerIcon} onPress={toggleSearchBar}>
             <Ionicons name="search-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+          <TouchableOpacity style={styles.headerIcon}>
             <Feather name="info" size={22} color="white" />
           </TouchableOpacity>
         </View>
       </View>
 
       {showSearchBar && (
-        <View style={[styles.searchContainer, isDark && { backgroundColor: "#1f2937" }]}>
+        <View style={[styles.searchContainer, isDark && styles.darkSearchContainer]}>
           <TextInput
-            style={[styles.searchInput, isDark && { color: "white", backgroundColor: "#374151" }]}
+            style={[styles.searchInput, isDark && styles.darkSearchInput]}
             placeholder="Tìm kiếm tin nhắn..."
             placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
             value={searchQuery}
@@ -522,17 +771,17 @@ const ChatDetail = () => {
         data={searchQuery ? filteredMessages : messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessageItem}
-        contentContainerStyle={{ padding: 10 }}
+        contentContainerStyle={styles.flatListContent}
       />
 
       {isTyping && !showSearchBar && (
-        <Text style={{ marginLeft: 16, marginBottom: 4, color: isDark ? "#d1d5db" : "#4b5563", fontStyle: "italic" }}>
+        <Text style={[styles.typingIndicator, isDark && styles.darkTypingIndicator]}>
           Đang gõ...
         </Text>
       )}
 
       {showEmoji && (
-        <View style={{ height: 300 }}>
+        <View style={styles.emojiContainer}>
           <EmojiSelector
             onEmojiSelected={(emoji) => setInputText((prev) => prev + emoji)}
             showSearchBar={false}
@@ -546,13 +795,13 @@ const ChatDetail = () => {
 
       <Modal visible={showReactionPicker} transparent animationType="fade">
         <TouchableOpacity
-          style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#00000066" }}
+          style={styles.reactionModalContainer}
           onPress={() => setShowReactionPicker(false)}
         >
-          <View style={{ backgroundColor: "white", padding: 12, borderRadius: 12, flexDirection: "row" }}>
+          <View style={styles.reactionModalContent}>
             {REACTIONS.map((emoji) => (
-              <TouchableOpacity key={emoji} onPress={() => handleReactionSelect(emoji)} style={{ marginHorizontal: 6 }}>
-                <Text style={{ fontSize: 24 }}>{emoji}</Text>
+              <TouchableOpacity key={emoji} onPress={() => handleReactionSelect(emoji)} style={styles.reactionButton}>
+                <Text style={styles.reactionEmoji}>{emoji}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -599,13 +848,38 @@ const ChatDetail = () => {
           style={styles.actionModalContainer}
           onPress={() => setShowActionModal(false)}
         >
-          <View style={[styles.actionModalContent, isDark && { backgroundColor: "#1f2937" }]}>
+          <View style={[styles.actionModalContent, isDark && styles.darkActionModalContent]}>
             <FlatList
               data={getActionItems()}
               renderItem={renderActionItem}
               keyExtractor={(item) => item.label}
-              contentContainerStyle={{ padding: 10 }}
+              contentContainerStyle={styles.actionListContent}
             />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={showForwardModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.forwardModalContainer}
+          onPress={() => setShowForwardModal(false)}
+        >
+          <View style={[styles.forwardModalContent, isDark && styles.darkForwardModalContent]}>
+            <Text style={[styles.forwardModalTitle, isDark && styles.darkForwardModalTitle]}>
+              Chọn cuộc trò chuyện
+            </Text>
+            <FlatList
+              data={mockChats}
+              renderItem={renderChatItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.chatListContent}
+            />
+            <TouchableOpacity
+              style={styles.cancelForwardButton}
+              onPress={() => setShowForwardModal(false)}
+            >
+              <Text style={styles.cancelForwardText}>Hủy</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -613,24 +887,31 @@ const ChatDetail = () => {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={80}>
         <View style={styles.inputContainer}>
           {editingMessageId && (
-            <TouchableOpacity onPress={cancelEdit} style={{ marginHorizontal: 6 }}>
+            <TouchableOpacity onPress={cancelEdit} style={styles.inputIcon}>
               <Ionicons name="close-circle-outline" size={26} color="#ef4444" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)}>
-            <Ionicons name="happy-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
+          <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)} style={styles.inputIcon}>
+            <Ionicons name="happy-outline" size={26} color="#3b82f6" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={pickImages}>
-            <Ionicons name="image-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
+          <TouchableOpacity onPress={pickImages} style={styles.inputIcon}>
+            <Ionicons name="image-outline" size={26} color="#3b82f6" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={pickDocument}>
-            <Ionicons name="document-attach-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
+          <TouchableOpacity onPress={pickDocument} style={styles.inputIcon}>
+            <Ionicons name="document-attach-outline" size={26} color="#3b82f6" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={isRecording ? stopRecording : startRecording}
+            style={styles.inputIcon}
+          >
+            <Ionicons
+              name={isRecording ? "stop-circle-outline" : "mic-outline"}
+              size={26}
+              color={isRecording ? "#ef4444" : "#3b82f6"}
+            />
           </TouchableOpacity>
           <TextInput
-            style={[
-              styles.textInput,
-              isDark && { backgroundColor: "#1f2937", color: "white" },
-            ]}
+            style={[styles.textInput, isDark && styles.darkTextInput]}
             placeholder={editingMessageId ? "Chỉnh sửa tin nhắn..." : "Nhập tin nhắn..."}
             placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
             value={inputText}
@@ -651,7 +932,13 @@ const ChatDetail = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f9fafb",
+  },
+  darkContainer: {
+    backgroundColor: "#111827",
+  },
   header: {
     padding: 12,
     backgroundColor: "#3b82f6",
@@ -666,7 +953,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     flex: 1,
   },
-  headerIcons: { flexDirection: "row" },
+  headerIcons: {
+    flexDirection: "row",
+  },
+  headerIcon: {
+    marginHorizontal: 6,
+  },
   messageRow: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -701,8 +993,14 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginRight: 50,
   },
-  myMessageText: { color: "black", fontSize: 16 },
-  otherMessageText: { color: "#111827", fontSize: 16 },
+  myMessageText: {
+    color: "black",
+    fontSize: 16,
+  },
+  otherMessageText: {
+    color: "#111827",
+    fontSize: 16,
+  },
   senderName: {
     fontWeight: "bold",
     fontSize: 13,
@@ -719,7 +1017,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#6b7280",
   },
-  imageContainer: { marginBottom: 6 },
+  readIcon: {
+    marginLeft: 4,
+  },
+  imageContainer: {
+    marginBottom: 6,
+  },
   singleImage: {
     width: 180,
     height: 180,
@@ -748,7 +1051,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 4,
   },
+  fileIcon: {
+    marginRight: 8,
+  },
   fileText: {
+    fontSize: 14,
+    color: "#374151",
+  },
+  audioContainer: {
+    marginBottom: 6,
+  },
+  audioButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+  },
+  audioIcon: {
+    marginRight: 8,
+  },
+  audioText: {
     fontSize: 14,
     color: "#374151",
   },
@@ -760,6 +1083,9 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: "white",
   },
+  inputIcon: {
+    marginHorizontal: 6,
+  },
   textInput: {
     flex: 1,
     borderWidth: 1,
@@ -769,6 +1095,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#f3f4f6",
     fontSize: 16,
+  },
+  darkTextInput: {
+    backgroundColor: "#1f2937",
+    color: "white",
   },
   sendButton: {
     marginLeft: 8,
@@ -780,6 +1110,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
     fontStyle: "italic",
+  },
+  reactionText: {
+    fontSize: 18,
+    marginTop: 4,
+    textAlign: "right",
   },
   imageModalContainer: {
     flex: 1,
@@ -842,15 +1177,85 @@ const styles = StyleSheet.create({
     maxHeight: 300,
     padding: 10,
   },
+  darkActionModalContent: {
+    backgroundColor: "#1f2937",
+  },
+  actionListContent: {
+    padding: 10,
+  },
   actionItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 10,
   },
+  actionIcon: {
+    marginRight: 10,
+  },
   actionText: {
     fontSize: 16,
     color: "#374151",
+  },
+  destructiveText: {
+    color: "#ef4444",
+  },
+  darkActionText: {
+    color: "#d1d5db",
+  },
+  forwardModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#00000066",
+  },
+  forwardModalContent: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    width: 300,
+    maxHeight: 400,
+    padding: 20,
+  },
+  darkForwardModalContent: {
+    backgroundColor: "#1f2937",
+  },
+  forwardModalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#374151",
+  },
+  darkForwardModalTitle: {
+    color: "#d1d5db",
+  },
+  chatListContent: {
+    paddingVertical: 10,
+  },
+  chatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  chatAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  chatName: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  darkChatName: {
+    color: "#d1d5db",
+  },
+  cancelForwardButton: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  cancelForwardText: {
+    fontSize: 16,
+    color: "#3b82f6",
   },
   searchContainer: {
     flexDirection: "row",
@@ -859,6 +1264,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9fafb",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+  },
+  darkSearchContainer: {
+    backgroundColor: "#1f2937",
   },
   searchInput: {
     flex: 1,
@@ -871,12 +1279,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 10,
   },
+  darkSearchInput: {
+    color: "white",
+    backgroundColor: "#374151",
+  },
   cancelSearchButton: {
     paddingHorizontal: 10,
   },
   cancelSearchText: {
     fontSize: 16,
     color: "#3b82f6",
+  },
+  typingIndicator: {
+    marginLeft: 16,
+    marginBottom: 4,
+    color: "#4b5563",
+    fontStyle: "italic",
+  },
+  darkTypingIndicator: {
+    color: "#d1d5db",
+  },
+  emojiContainer: {
+    height: 300,
+  },
+  reactionModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#00000066",
+  },
+  reactionModalContent: {
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: "row",
+  },
+  reactionButton: {
+    marginHorizontal: 6,
+  },
+  reactionEmoji: {
+    fontSize: 24,
+  },
+  flatListContent: {
+    padding: 10,
   },
 });
 
