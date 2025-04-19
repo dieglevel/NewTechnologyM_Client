@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client";
 import { SocketEmit, SocketOn } from "@/constants/socket";
-import { IDetailInformation } from "@/types/implement";
+import { IDetailInformation, IFriend, IRequestFriend, ISendedFriend } from "@/types/implement";
 import { ExpoSecureStoreKeys, getSecure } from "../expo-secure-store/expo-secure-store";
-import { fetchDetailInformation, setDetailInformation } from "../redux/stores";
+import { deleteMyListFriend, deleteSendedFriend, fetchDetailInformation, setDetailInformation, setMyListFriend, setSendedFriend } from "../redux/stores";
 import { store } from "../redux/redux.config";
 import NetInfo from "@react-native-community/netinfo"; // Thêm dòng này
+import { deleteRequestFriend, setRequestFriend } from "../redux/stores/request-friend-slice";
 
 class SocketService {
    private static instance: SocketService;
@@ -30,10 +31,10 @@ class SocketService {
          return;
       }
 
-      console.log("status:", netState.isConnected, netState.isInternetReachable);
+      // console.log("status:", netState.isConnected, netState.isInternetReachable);
 
       const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
-      console.log("Connecting to socket with token:", token);
+      // console.log("Connecting to socket with token:", token);
 
       this.socket = io(this.URL, {
          autoConnect: true,
@@ -50,13 +51,66 @@ class SocketService {
 
       this.socket.emit(SocketEmit.connectServer, {});
       this.socket.on(SocketOn.connectServer, (data) => {
-         console.log("Connected to server:", data);
+         // console.log("Connected to server:", data);
       });
 
       this.socket.emit(SocketEmit.detailInformation, {});
       this.socket.on(SocketOn.updateUserDetailInformation, (data: IDetailInformation) => {
          store.dispatch(setDetailInformation(data));
       });
+
+		this.socket.on(SocketOn.requestFriend, async (data: {
+			behavior: string, data: IRequestFriend
+		}) => {
+			console.log("Socket REQUESTFRIEND request event:", data);
+			if (data.behavior === "add") {
+				// console.log("Friend request received:", data.data);
+				const friendRequest: IRequestFriend[] = [
+					data.data
+				]
+				const myAccountId = await getSecure(ExpoSecureStoreKeys.UserId) ?? "`";
+				if (data.data.sender_id !== myAccountId) {
+					store.dispatch(setRequestFriend(friendRequest));
+				}
+				const sendedFriend: ISendedFriend = data.data as ISendedFriend;
+				const sendedFriends = [sendedFriend]
+				store.dispatch(setSendedFriend(sendedFriends));
+
+			} 
+			else if (data.behavior === "remove") {
+				// console.log("Friend request deleted:", data.data);
+				store.dispatch(deleteRequestFriend(data.data.sender_id ?? ""));
+				store.dispatch(deleteSendedFriend(data.data.receiver_id ?? ""));
+			}
+		});
+
+		this.socket.on(SocketOn.friend, (data: {
+			behavior: string, friend: {
+				accountId: string,
+				friendId: string,
+			}
+			detail_friend: IDetailInformation,
+			accountOwner: string
+		}) => {
+			console.log("Socket FRIENDq event:", data);
+
+			if (data.behavior === "add") {
+				// console.log("Friend added:", data);
+				const friend: IFriend[] = [{
+					accountId: data.friend.accountId,
+					friendId: data.friend.friendId,
+					detail: data.detail_friend,
+				}]
+				store.dispatch(deleteRequestFriend(data.friend.accountId));
+				store.dispatch(deleteSendedFriend(data.friend.accountId));
+				store.dispatch(setMyListFriend(friend));
+			} else if (data.behavior === "remove") {
+				// console.log("Friend deleted:", data.friend);
+				store.dispatch(deleteRequestFriend(data.friend.accountId));
+				store.dispatch(deleteMyListFriend(data.friend.friendId));
+			}
+
+		});
    }
 
    public disconnect() {

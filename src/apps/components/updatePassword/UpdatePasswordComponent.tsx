@@ -24,9 +24,9 @@ export const UpdatePasswordComponent = () => {
 			return;
 		}
 
-		console.log("SĐT:", identifier);
-		console.log("Mật khẩu mới:", newPassword);
-		console.log("Xác nhận mật khẩu:", confirmPassword);
+		// console.log("SĐT:", identifier);
+		// console.log("Mật khẩu mới:", newPassword);
+		// console.log("Xác nhận mật khẩu:", confirmPassword);
 
 		const changePassword = async () => {
 			try {

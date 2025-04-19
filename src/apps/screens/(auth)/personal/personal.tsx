@@ -42,7 +42,7 @@ export const UserProfileScreen = () => {
             <TouchableOpacity
               key={item.id}
               style={styles.menuItem}
-              onPress={() => console.log(`Navigating to ${item.label}`)}
+              onPress={() => // console.log(`Navigating to ${item.label}`)}
             >
               <View style={styles.menuItemContent}>
                 <Text style={styles.menuIcon}>{item.icon}</Text>

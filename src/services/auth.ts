@@ -14,9 +14,10 @@ export const loginApi = async (username: string, password: string) => {
 			const { data, statusCode } = response.data;
 
 			if (statusCode === 200) {
-				console.log("Login successful:", data);
+				// console.log("Login successful:", data);
 				await setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
-				console.log("Access token set:", await getSecure(ExpoSecureStoreKeys.AccessToken));
+				await setSecure(ExpoSecureStoreKeys.UserId, data?.userId || "");
+				// console.log("Access token set:", await getSecure(ExpoSecureStoreKeys.AccessToken));
 			}
 			return response.data;
 		}
@@ -25,9 +26,10 @@ export const loginApi = async (username: string, password: string) => {
 		const { data, statusCode } = response.data;
 
 		if (statusCode === 200) {
-			console.log("Login successful:", data);
+			// console.log("Login successful:", data);
 			await setSecure(ExpoSecureStoreKeys.AccessToken, data?.accessToken || "");
-			console.log("Access token set:", await getSecure(ExpoSecureStoreKeys.AccessToken));
+			await setSecure(ExpoSecureStoreKeys.UserId, data?.userId || "");
+			// console.log("Access token set:", await getSecure(ExpoSecureStoreKeys.AccessToken));
 		}
 		return response.data;
 	} catch (e) {
@@ -133,7 +135,7 @@ export const verifyOTPPasswordApi = async (otp: string, identifier: string) => {
 
 		return response.data;
 	} catch (e) {
-		console.log(e)
+		// console.log(e)
 		throw e as ErrorResponse;
 	}
 };

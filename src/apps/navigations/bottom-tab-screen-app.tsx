@@ -1,8 +1,14 @@
 import { ContactsScreen, HomeScreen, ListChatScreen, UserScreen } from "@/apps/screens";
 import { Message, Profile } from "@/assets/svgs";
+import { ErrorResponse } from "@/libs/axios/axios.config";
 import { StackScreenNavigationProp, Tab } from "@/libs/navigation";
+import { store } from "@/libs/redux/redux.config";
+import { initMyListFriend } from "@/libs/redux/stores/friend-slice";
+import { initRequestFriend } from "@/libs/redux/stores/request-friend-slice";
+import { initSendedFriend } from "@/libs/redux/stores/sended-friend-slice";
 import { socketService } from "@/libs/socket/socket";
 import { getAccountApi } from "@/services/auth";
+import { getListFriend, getListResponseFriend, getListSended } from "@/services/friend";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 import { Text } from "react-native";
@@ -16,7 +22,7 @@ export const BottomTabScreenApp = () => {
 			const response  = await getAccountApi();
 			if (response.statusCode === 200) {
 				const data = response.data?.detailInformation;
-				console.log("data", data);
+				// console.log("data", data);
 				if (!data?.fullName && !data?.dateOfBirth && !data?.avatarUrl && !data?.thumbnailUrl ) {
 					navigator.push("UpdateProfileScreen")
 				}
@@ -24,6 +30,38 @@ export const BottomTabScreenApp = () => {
 		}
 		getDetailInformation();
 	},[])
+
+
+
+	useEffect(() => {
+		const fetch = async () => {
+			try {
+				const response = await getListSended();
+				if (response?.statusCode === 200) {
+					// console.log("response: ", response.data);
+					store.dispatch(initSendedFriend(response.data || []));
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+			}
+		};
+		fetch();
+	}, []);
+
+	useEffect(() => {
+		const fetch = async () => {
+			try {
+				const response = await getListResponseFriend();
+				if (response?.statusCode === 200) {
+					// console.log("response: ", response.data);
+					store.dispatch(initRequestFriend(response.data || []));
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+			}
+		};
+		fetch();
+	}, []);
 
 	return (
 		<Tab.Navigator

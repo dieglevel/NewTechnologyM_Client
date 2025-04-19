@@ -19,7 +19,7 @@ export const ForgotPasswordScreen = () => {
   };
 
   const handleContinue = () => {
-    console.log("Số điện thoại:", phoneNumber);
+    // console.log("Số điện thoại:", phoneNumber);
     navigation.navigate("Register");
   };
 

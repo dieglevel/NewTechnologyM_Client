@@ -1,10 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import { DetailInformationReducer } from "./stores/detail-information-slice";
+import { MyListFriendReducer } from "./stores/friend-slice";
+import { RequestFriendReducer } from "./stores/request-friend-slice";
 
 export const store = configureStore({
 	reducer: {
-		detailInformation: DetailInformationReducer
+		detailInformation: DetailInformationReducer,
+		myListFriend: MyListFriendReducer,
+		requestFriend: RequestFriendReducer,
+		
 	},
 });
 

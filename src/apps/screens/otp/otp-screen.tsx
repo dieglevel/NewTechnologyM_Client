@@ -24,7 +24,7 @@ export const OTPScreen = () => {
 
 	const handleSubmit = async () => {
 		setIsLoading(true);
-		console.log("identifier", identifier);
+		// console.log("identifier", identifier);
 		try {
 			const response = await verifyAccount(identifier, otp.join(""));
 			if (response?.statusCode === 201) {

@@ -4,6 +4,7 @@ import * as SecureStore from "expo-secure-store";
 export class ExpoSecureStoreKeys {
 	public static readonly AccessToken = "accessToken";
 	public static readonly IpDevice = "ipDevice";
+	public static readonly UserId = "userId";
 }
 
 const setSecure = async (key: string, value: string) => {

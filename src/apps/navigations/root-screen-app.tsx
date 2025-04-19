@@ -6,11 +6,10 @@ import {
 	UserDetailScreen,
 	QrScreen,
 	ForgotPasswordScreen,
-
 	UpdateProfileScreen,
-	UpdatePasswordScreen
-  } from "@/apps/screens";
-  
+	UpdatePasswordScreen,
+} from "@/apps/screens";
+
 import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
@@ -21,11 +20,11 @@ import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-se
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import { MMKV } from "react-native-mmkv";
+import RequestFriendScreen from "../screens/request-friend/request-friend-screen";
 
 export const RootScreenApp = () => {
 	useEffect(() => {
 		const checkToken = async () => {
-
 			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 
 			const accountResponse = await getAccountApi();
@@ -106,11 +105,11 @@ export const RootScreenApp = () => {
 					component={ForgotPasswordScreen}
 				/>
 				<Stack.Screen
- 				 options={{
-   						 statusBarBackgroundColor: "gray",
- 					 }}
-  				name="UpdatePasswordScreen"
- 				 component={UpdatePasswordScreen}
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="UpdatePasswordScreen"
+					component={UpdatePasswordScreen}
 				/>
 				<Stack.Screen
 					options={{
@@ -128,7 +127,16 @@ export const RootScreenApp = () => {
 					}}
 					name="Qr"
 					component={QrScreen}
-				/>
+				/>				
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+						headerShown: true,
+						headerTitle: "Yêu cầu kết bạn",
+					}}
+				name="RequestFriendScreen"
+				component={RequestFriendScreen}
+			/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);

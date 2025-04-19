@@ -15,7 +15,7 @@ export const pickImage = async (setImage: Dispatch<SetStateAction<string | null>
          copyToCacheDirectory: true,
       });
 
-      console.log(result);
+      // console.log(result);
       if (result.canceled === false) {
          const formData = new FormData();
 

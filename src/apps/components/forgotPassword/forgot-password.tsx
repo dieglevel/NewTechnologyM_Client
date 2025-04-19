@@ -36,12 +36,12 @@ export const ForgotPasswordComponent = () => {
 	const handlePhoneConfirmation = () => {
 		setShowConfirmModal(false);
 		setShowOTPModal(true);
-		console.log("OTP đã được gửi:", phone);
+		// console.log("OTP đã được gửi:", phone);
 		const sendEmail = async () => {
 			try {
 				const response = await sendOTPPasswordApi(phone);
 				if (response.statusCode === 200) {
-					console.log("Gửi OTP thành công:", response);
+					// console.log("Gửi OTP thành công:", response);
 				}
 			} catch (error) {
 				console.error("Lỗi kết nối:", error);
@@ -84,7 +84,7 @@ export const ForgotPasswordComponent = () => {
 		const verify = async () => {
 			try {
 				const response = await verifyOTPPasswordApi(otpValue, phone);
-        console.log(response)
+        // console.log(response)
 				if (response.statusCode === 201) {
 					Toast.show({
 						type: "success",
@@ -99,10 +99,10 @@ export const ForgotPasswordComponent = () => {
 						text1: "Xác thực thất bại",
 						text2: "Mã OTP không chính xác.",
 					});
-					console.log("Xác thực thất bại:", response);
+					// console.log("Xác thực thất bại:", response);
 				}
 			} catch (error) {
-				console.log(error);
+				// console.log(error);
 			}
 		};
 

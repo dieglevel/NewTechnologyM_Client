@@ -1,20 +1,22 @@
-import { IDetailInformation } from '@/types/implement';
+import { IDetailInformation, IFriend, IRequestFriend, ISendedFriend } from '@/types/implement';
 import { MMKV } from 'react-native-mmkv';
 
 
-export class GenericMMKVStorage<T extends { id: string }> {
+export class GenericMMKVStorage<T> {
    private storage: MMKV;
    private prefix: string;
    private keyListKey: string;
+   private primaryField: keyof T;
 
-   constructor(prefix: string) {
-      this.prefix = prefix; // ví dụ: 'user', 'product'
+   constructor(prefix: string, primaryField: keyof T) {
+      this.prefix = prefix;
       this.keyListKey = `${prefix}:keys`;
+      this.primaryField = primaryField;
       this.storage = new MMKV();
    }
 
-   private getKey(id: string) {
-      return `${this.prefix}:${id}`;
+   private getKey(primaryValue: string) {
+      return `${this.prefix}:${primaryValue}`;
    }
 
    private getKeyList(): string[] {
@@ -26,28 +28,31 @@ export class GenericMMKVStorage<T extends { id: string }> {
       this.storage.set(this.keyListKey, JSON.stringify(keys));
    }
 
-   private ensureKeyExists(id: string) {
+   private ensureKeyExists(primaryValue: string) {
       const keys = this.getKeyList();
-      if (!keys.includes(id)) {
-         this.saveKeyList([...keys, id]);
+      if (!keys.includes(primaryValue)) {
+         this.saveKeyList([...keys, primaryValue]);
       }
    }
 
-   public get(id: string): T | undefined {
-      const json = this.storage.getString(this.getKey(id));
+   public get(primaryValue: string): T | undefined {
+      const json = this.storage.getString(this.getKey(primaryValue));
       return json ? JSON.parse(json) : undefined;
    }
 
    public getAll(): T[] {
-      const ids = this.getKeyList();
-      return ids
-         .map(id => this.get(id))
-         .filter((item): item is T => item !== undefined);
+      const keys = this.getKeyList();
+      return keys.map(k => this.get(k)).filter((item): item is T => item !== undefined);
    }
 
    public set(item: T): void {
-      this.ensureKeyExists(item.id);
-      this.storage.set(this.getKey(item.id), JSON.stringify(item));
+      const primaryValue = item[this.primaryField];
+      if (typeof primaryValue !== 'string') {
+         throw new Error(`Primary field "${String(this.primaryField)}" must be a string`);
+      }
+
+      this.ensureKeyExists(primaryValue);
+      this.storage.set(this.getKey(primaryValue), JSON.stringify(item));
    }
 
    public setMany(items: T[]): void {
@@ -55,34 +60,39 @@ export class GenericMMKVStorage<T extends { id: string }> {
       const keySet = new Set(keyList);
 
       for (const item of items) {
-         if (!keySet.has(item.id)) {
-            keySet.add(item.id);
+         const primaryValue = item[this.primaryField];
+         if (typeof primaryValue !== 'string') {
+            throw new Error(`Primary field "${String(this.primaryField)}" must be a string`);
          }
 
-         this.storage.set(this.getKey(item.id), JSON.stringify(item));
+         if (!keySet.has(primaryValue)) {
+            keySet.add(primaryValue);
+         }
+
+         this.storage.set(this.getKey(primaryValue), JSON.stringify(item));
       }
 
       this.saveKeyList(Array.from(keySet));
    }
 
-   public update(id: string, updater: Partial<T>): void {
-      const item = this.get(id);
+   public update(primaryValue: string, updater: Partial<T>): void {
+      const item = this.get(primaryValue);
       if (!item) return;
 
       const updated = { ...item, ...updater };
-      this.storage.set(this.getKey(id), JSON.stringify(updated));
+      this.set(updated);
    }
 
-   public delete(id: string): void {
-      this.storage.delete(this.getKey(id));
-      const keys = this.getKeyList().filter(k => k !== id);
+   public delete(primaryValue: string): void {
+      this.storage.delete(this.getKey(primaryValue));
+      const keys = this.getKeyList().filter(k => k !== primaryValue);
       this.saveKeyList(keys);
    }
 
    public clearAll(): void {
       const keys = this.getKeyList();
-      for (const id of keys) {
-         this.storage.delete(this.getKey(id));
+      for (const k of keys) {
+         this.storage.delete(this.getKey(k));
       }
       this.storage.delete(this.keyListKey);
    }
@@ -92,4 +102,8 @@ export class GenericMMKVStorage<T extends { id: string }> {
    }
 }
 
-export const detailInformationStorage = new GenericMMKVStorage<IDetailInformation>('detailInformation');
+
+export const detailInformationStorage = new GenericMMKVStorage<IDetailInformation>('detailInformation', 'id');
+export const requestFriendStorage = new GenericMMKVStorage<IRequestFriend>('requestFriend', 'sender_id');
+export const myListFriendStorage = new GenericMMKVStorage<IFriend>('myListFriend', 'accountId');
+export const sendedFriendStorage = new GenericMMKVStorage<ISendedFriend>('sendedFriend', 'receiver_id');

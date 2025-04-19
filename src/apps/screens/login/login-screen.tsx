@@ -20,10 +20,15 @@ import { detailInformationStorage } from "@/libs/mmkv/mmkv";
 import { IDetailInformation } from "@/types/implement";
 import { MMKV } from "react-native-mmkv";
 import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
-import {  StackScreenNavigationProp } from "@/libs/navigation";
+import { StackScreenNavigationProp } from "@/libs/navigation";
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import { ListChat } from "@/apps/components/list-chat";
+import { getListFriend, getListResponseFriend, getListSended } from "@/services/friend";
+import { initMyListFriend } from "@/libs/redux/stores/friend-slice";
+import { store } from "@/libs/redux/redux.config";
+import { ErrorResponse } from "@/libs/axios/axios.config";
+import { initRequestFriend, initSendedFriend } from "@/libs/redux/stores";
 
 export const LoginScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -33,18 +38,50 @@ export const LoginScreen = () => {
 	const [imageSource, setImageSource] = useState<any>(texts[language].pages[0].image);
 
 	useEffect(() => {
-
 		const checkToken = async () => {
-		const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
+			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 
 			const accountResponse = await getAccountApi();
 			if (accountResponse.statusCode === 200) {
 				socketService.connect();
+				const temp = await fetch();
 				navigation.navigate("BottomTabScreenApp");
 			}
 		};
-		checkToken()
+		checkToken();
 	}, []);
+
+	const fetch = async () => {
+		try {
+			const response = await getListFriend();
+			if (response?.statusCode === 200) {
+				// console.log("response: ", response.data);
+				store.dispatch(initMyListFriend(response?.data || []));
+			}
+		} catch (error) {
+			const e = error as ErrorResponse;
+		}
+
+		try {
+			const response = await getListResponseFriend();
+			if (response?.statusCode === 200) {
+				// console.log("response: ", response.data);
+				store.dispatch(initRequestFriend(response.data || []));
+			}
+		} catch (error) {
+			const e = error as ErrorResponse;
+		}
+
+		try {
+			const response = await getListSended();
+			if (response?.statusCode === 200) {
+				// console.log("response: ", response.data);
+				store.dispatch(initSendedFriend(response.data || []));
+			}
+		} catch (error) {
+			const e = error as ErrorResponse;
+		}
+	};
 
 	const handleImagePress = () => {
 		if (currentPage < texts[language].pages.length - 1) {
@@ -154,7 +191,7 @@ export const LoginScreen = () => {
 					<View style={styles.buttonContainer}>
 						<TouchableOpacity
 							style={styles.loginButton}
-							onPress={() => navigation.navigate("ChatScreen")}
+							onPress={handleLoginPress}
 						>
 							<Text style={styles.loginButtonText}>{texts[language].login}</Text>
 						</TouchableOpacity>

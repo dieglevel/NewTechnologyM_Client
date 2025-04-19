@@ -34,13 +34,13 @@ export const QrScreen = () => {
 		if (isDisabled) return;
 		setIsDisabled(true);
 		try {
-			console.log("Scanned data:", data);
+			// console.log("Scanned data:", data);
 			const qr = JSON.parse(data);
 			const qrCode = { ipDevice: qr.ipDevice, userAgent: qr.userAgent };
 
 			const response = await verifyLoginQrApi(qrCode);
 			if (response.statusCode === 200) {
-				console.log("Login successful:", response.data);
+				// console.log("Login successful:", response.data);
 				// navigate to home screen
 				navigate.navigate("BottomTabScreenApp");
 			}

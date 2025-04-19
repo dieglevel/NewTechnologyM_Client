@@ -22,7 +22,7 @@ export const LoginScreen = () => {
   };
 
   const handleLogin = () => {
-    console.log("Username:", username, "Password:", password);
+    // console.log("Username:", username, "Password:", password);
   };
 
   const handlePressCloseModal = () => {
@@ -93,13 +93,13 @@ export const LoginScreen = () => {
         <Text style={styles.loginButtonText}>Đăng nhập</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => console.log("Quên mật khẩu")}>
+      <TouchableOpacity onPress={() => // console.log("Quên mật khẩu")}>
         <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.createAccountButton}
-        onPress={() => console.log("Tạo tài khoản")}
+        onPress={() => // console.log("Tạo tài khoản")}
       >
         <Text style={styles.createAccountText}>Tạo tài khoản</Text>
       </TouchableOpacity>

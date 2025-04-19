@@ -21,7 +21,7 @@ export const fetchDetailInformation = createAsyncThunk(
   `${thunkDB}${thunkAction.fetch}${thunkName}`,
   async (): Promise<IDetailInformation | null> => {
     const detailInformations = detailInformationStorage.getAll();
-    console.log("detailInformations", detailInformations);
+    // console.log("detailInformations", detailInformations);
     return detailInformations[0] || null;
   }
 );

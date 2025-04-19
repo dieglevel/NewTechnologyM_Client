@@ -31,7 +31,7 @@
 //   const handleConfirmPhone = () => {
 //     setShowConfirmModal(false);
 //     setShowOTPModal(true);
-//     console.log("Đã gửi mã OTP về: ", phone);
+//     // console.log("Đã gửi mã OTP về: ", phone);
 //   };
 
 //   const handleChangeOtp = (text: string, index: number) => {
@@ -50,7 +50,7 @@
 //   const handleContinueOTP = () => {
 //     const otpValue = otp.join("");
 //     if (otpValue.length === 6) {
-//       console.log("OTP hợp lệ:", otpValue);
+//       // console.log("OTP hợp lệ:", otpValue);
 //       setShowOTPModal(false);
 //     } else {
 //       alert("Vui lòng nhập đầy đủ mã OTP.");
