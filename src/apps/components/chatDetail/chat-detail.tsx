@@ -76,8 +76,10 @@ const ChatDetail = () => {
   const [allImageUris, setAllImageUris] = useState<string[]>([]);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showActionModal, setShowActionModal] = useState(false); // Modal tùy chọn hành động
-  const [actionMessage, setActionMessage] = useState<any>(null); // Tin nhắn được chọn cho hành động
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionMessage, setActionMessage] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState(""); // Từ khóa tìm kiếm
+  const [showSearchBar, setShowSearchBar] = useState(false); // Hiển thị thanh tìm kiếm
   const flatListRef = useRef<FlatList>(null);
   const imageFlatListRef = useRef<FlatList>(null);
 
@@ -144,7 +146,7 @@ const ChatDetail = () => {
 
   const copyMessage = (text: string) => {
     if (text === "Tin nhắn đã được thu hồi") {
-      Alert.alert("Không thể sao chép", "Tin nhắn này đã được thu hồi.");
+      Alert.alert("Không thể sao chép");
       return;
     }
     Clipboard.setString(text);
@@ -236,6 +238,15 @@ const ChatDetail = () => {
     setInitialImageIndex(0);
     setCurrentImageIndex(0);
   };
+
+  const toggleSearchBar = () => {
+    setShowSearchBar(!showSearchBar);
+    setSearchQuery("");
+  };
+
+  const filteredMessages = messages.filter((msg) =>
+    msg.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderImageItem = ({ item }: { item: string }) => (
     <View style={styles.fullScreenImageContainer}>
@@ -392,21 +403,40 @@ const ChatDetail = () => {
           <TouchableOpacity style={{ marginHorizontal: 6 }}>
             <Ionicons name="videocam-outline" size={22} color="white" />
           </TouchableOpacity>
+          <TouchableOpacity style={{ marginHorizontal: 6 }} onPress={toggleSearchBar}>
+            <Ionicons name="search-outline" size={22} color="white" />
+          </TouchableOpacity>
           <TouchableOpacity style={{ marginHorizontal: 6 }}>
             <Feather name="info" size={22} color="white" />
           </TouchableOpacity>
         </View>
       </View>
 
+      {showSearchBar && (
+        <View style={[styles.searchContainer, isDark && { backgroundColor: "#1f2937" }]}>
+          <TextInput
+            style={[styles.searchInput, isDark && { color: "white", backgroundColor: "#374151" }]}
+            placeholder="Tìm kiếm tin nhắn..."
+            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+          <TouchableOpacity onPress={toggleSearchBar} style={styles.cancelSearchButton}>
+            <Text style={styles.cancelSearchText}>Hủy</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={searchQuery ? filteredMessages : messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessageItem}
         contentContainerStyle={{ padding: 10 }}
       />
 
-      {isTyping && (
+      {isTyping && !showSearchBar && (
         <Text style={{ marginLeft: 16, marginBottom: 4, color: isDark ? "#d1d5db" : "#4b5563", fontStyle: "italic" }}>
           Đang gõ...
         </Text>
@@ -714,6 +744,32 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 16,
     color: "#374151",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#f9fafb",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#f3f4f6",
+    fontSize: 16,
+    marginRight: 10,
+  },
+  cancelSearchButton: {
+    paddingHorizontal: 10,
+  },
+  cancelSearchText: {
+    fontSize: 16,
+    color: "#3b82f6",
   },
 });
 
