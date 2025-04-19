@@ -13,6 +13,7 @@ import {
   Alert,
   Dimensions,
   Modal,
+  Clipboard,
 } from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -72,9 +73,11 @@ const ChatDetail = () => {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [showImageModal, setShowImageModal] = useState(false);
-  const [allImageUris, setAllImageUris] = useState<string[]>([]); // Tất cả URI hình ảnh trong cuộc trò chuyện
-  const [initialImageIndex, setInitialImageIndex] = useState(0); // Chỉ số hình ảnh ban đầu
-  const [currentImageIndex, setCurrentImageIndex] = useState(0); // Chỉ số hình ảnh hiện tại
+  const [allImageUris, setAllImageUris] = useState<string[]>([]);
+  const [initialImageIndex, setInitialImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showActionModal, setShowActionModal] = useState(false); // Modal tùy chọn hành động
+  const [actionMessage, setActionMessage] = useState<any>(null); // Tin nhắn được chọn cho hành động
   const flatListRef = useRef<FlatList>(null);
   const imageFlatListRef = useRef<FlatList>(null);
 
@@ -139,9 +142,14 @@ const ChatDetail = () => {
     }
   };
 
-  useEffect(() => {
-    flatListRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+  const copyMessage = (text: string) => {
+    if (text === "Tin nhắn đã được thu hồi") {
+      Alert.alert("Không thể sao chép", "Tin nhắn này đã được thu hồi.");
+      return;
+    }
+    Clipboard.setString(text);
+    setShowActionModal(false);
+  };
 
   const handleReactionSelect = (emoji: string) => {
     if (!selectedMessageId) return;
@@ -153,6 +161,7 @@ const ChatDetail = () => {
     );
     setShowReactionPicker(false);
     setSelectedMessageId(null);
+    setShowActionModal(false);
   };
 
   const handleRecallMessage = (id: string, isMyMessage: boolean) => {
@@ -172,6 +181,7 @@ const ChatDetail = () => {
               msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, reaction: null } : msg
             )
           );
+          setShowActionModal(false);
         },
       },
     ]);
@@ -181,6 +191,7 @@ const ChatDetail = () => {
     setEditingMessageId(id);
     setEditText(text);
     setInputText(text);
+    setShowActionModal(false);
   };
 
   const cancelEdit = () => {
@@ -190,7 +201,6 @@ const ChatDetail = () => {
   };
 
   const openImageModal = (messageImages: string[], selectedIndex: number) => {
-    // Thu thập tất cả hình ảnh từ các tin nhắn
     const allImages: string[] = [];
     messages.forEach((msg) => {
       if (msg.images && msg.images.length > 0) {
@@ -198,7 +208,6 @@ const ChatDetail = () => {
       }
     });
 
-    // Tìm chỉ số của hình ảnh được chọn trong danh sách tất cả hình ảnh
     let globalIndex = 0;
     let found = false;
     for (const msg of messages) {
@@ -253,29 +262,8 @@ const ChatDetail = () => {
         {!isMyMessage && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
         <TouchableOpacity
           onLongPress={() => {
-            if (isMyMessage && item.text !== "Tin nhắn đã được thu hồi") {
-              Alert.alert("Tùy chọn", "Chọn hành động", [
-                {
-                  text: "Thêm Reaction",
-                  onPress: () => {
-                    setSelectedMessageId(item.id);
-                    setShowReactionPicker(true);
-                  },
-                },
-                {
-                  text: "Chỉnh sửa",
-                  onPress: () => handleEditMessage(item.id, item.text),
-                },
-                {
-                  text: "Thu hồi",
-                  onPress: () => handleRecallMessage(item.id, isMyMessage),
-                },
-                { text: "Hủy", style: "cancel" },
-              ]);
-            } else {
-              setSelectedMessageId(item.id);
-              setShowReactionPicker(true);
-            }
+            setActionMessage(item);
+            setShowActionModal(true);
           }}
           onPress={() => handleRecallMessage(item.id, isMyMessage)}
           activeOpacity={0.8}
@@ -325,6 +313,69 @@ const ChatDetail = () => {
         </TouchableOpacity>
       </View>
     );
+  };
+
+  const renderActionItem = ({ item }: { item: { icon: string; label: string; onPress: () => void; destructive?: boolean } }) => (
+    <TouchableOpacity
+      style={styles.actionItem}
+      onPress={item.onPress}
+    >
+      <Ionicons
+        name={item.icon}
+        size={20}
+        color={item.destructive ? "#ef4444" : isDark ? "#d1d5db" : "#374151"}
+        style={{ marginRight: 10 }}
+      />
+      <Text
+        style={[
+          styles.actionText,
+          item.destructive && { color: "#ef4444" },
+          isDark && !item.destructive && { color: "#d1d5db" },
+        ]}
+      >
+        {item.label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const getActionItems = () => {
+    if (!actionMessage) return [];
+
+    const isMyMessage = actionMessage.sender === "me";
+    const items = [
+      {
+        icon: "heart-outline",
+        label: "Thêm Reaction",
+        onPress: () => {
+          setSelectedMessageId(actionMessage.id);
+          setShowReactionPicker(true);
+          setShowActionModal(false);
+        },
+      },
+      {
+        icon: "copy-outline",
+        label: "Sao chép",
+        onPress: () => copyMessage(actionMessage.text),
+      },
+    ];
+
+    if (isMyMessage && actionMessage.text !== "Tin nhắn đã được thu hồi") {
+      items.push(
+        {
+          icon: "pencil-outline",
+          label: "Chỉnh sửa",
+          onPress: () => handleEditMessage(actionMessage.id, actionMessage.text),
+        },
+        {
+          icon: "trash-outline",
+          label: "Thu hồi",
+          onPress: () => handleRecallMessage(actionMessage.id, isMyMessage),
+          destructive: true,
+        }
+      );
+    }
+
+    return items;
   };
 
   return (
@@ -424,6 +475,22 @@ const ChatDetail = () => {
         </View>
       </Modal>
 
+      <Modal visible={showActionModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.actionModalContainer}
+          onPress={() => setShowActionModal(false)}
+        >
+          <View style={[styles.actionModalContent, isDark && { backgroundColor: "#1f2937" }]}>
+            <FlatList
+              data={getActionItems()}
+              renderItem={renderActionItem}
+              keyExtractor={(item) => item.label}
+              contentContainerStyle={{ padding: 10 }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={80}>
         <View style={styles.inputContainer}>
           {editingMessageId && (
@@ -434,11 +501,9 @@ const ChatDetail = () => {
           <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)}>
             <Ionicons name="happy-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={pickImages}>
             <Ionicons name="image-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
           </TouchableOpacity>
-
           <TextInput
             style={[
               styles.textInput,
@@ -454,7 +519,6 @@ const ChatDetail = () => {
             onSubmitEditing={() => sendMessage(inputText)}
             returnKeyType="send"
           />
-
           <TouchableOpacity onPress={() => sendMessage(inputText)} style={styles.sendButton}>
             <Ionicons name={editingMessageId ? "save" : "send"} size={20} color="white" />
           </TouchableOpacity>
@@ -627,6 +691,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 10,
+  },
+  actionModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#00000066",
+  },
+  actionModalContent: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    width: 250,
+    maxHeight: 300,
+    padding: 10,
+  },
+  actionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+  },
+  actionText: {
+    fontSize: 16,
+    color: "#374151",
   },
 });
 
