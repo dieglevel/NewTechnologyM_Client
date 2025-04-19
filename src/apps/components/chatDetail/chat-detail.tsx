@@ -277,7 +277,7 @@ const ChatDetail = () => {
       if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
 
       const response = await axios.post(
-        "https://your-api-domain.com/api/message",
+        "/api/message",
         payload,
         {
           headers: {
@@ -297,7 +297,8 @@ const ChatDetail = () => {
   };
 
   const sendMessage = (text?: string, images?: string[], files?: string[]) => {
-    if ((text?.trim() ?? "") === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
+    const trimmedText = text?.trim() ?? "";
+    if (trimmedText === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
 
     if (editingMessageId) {
       setMessages((prev) =>
@@ -783,7 +784,11 @@ const ChatDetail = () => {
       {showEmoji && (
         <View style={styles.emojiContainer}>
           <EmojiSelector
-            onEmojiSelected={(emoji) => setInputText((prev) => prev + emoji)}
+            onEmojiSelected={(emoji) => {
+              const newText = inputText + emoji;
+              setInputText(newText);
+              sendMessage(newText);
+          }}
             showSearchBar={false}
             showTabs={true}
             showHistory={true}
