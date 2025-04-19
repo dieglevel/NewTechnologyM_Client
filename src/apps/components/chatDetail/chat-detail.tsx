@@ -39,6 +39,7 @@ const ChatDetail = () => {
       senderName: string;
       reaction: string | null;
       images?: string[] | null;
+      isEdited?: boolean; // Thêm thuộc tính để theo dõi tin nhắn đã chỉnh sửa
     }[]
   >([
     {
@@ -68,30 +69,46 @@ const ChatDetail = () => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null); // Theo dõi tin nhắn đang chỉnh sửa
+  const [editText, setEditText] = useState(""); // Nội dung tin nhắn đang chỉnh sửa
   const flatListRef = useRef<FlatList>(null);
 
   const sendMessage = (text?: string, images?: string[]) => {
     if ((text?.trim() ?? "") === "" && (!images || images.length === 0)) return;
 
-    const currentTime = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    if (editingMessageId) {
+      // Lưu chỉnh sửa tin nhắn
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === editingMessageId
+            ? { ...msg, text: text || "", isEdited: true }
+            : msg
+        )
+      );
+      setEditingMessageId(null);
+      setEditText("");
+    } else {
+      // Gửi tin nhắn mới
+      const currentTime = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        text: text || "",
-        sender: "me",
-        time: currentTime,
-        read: true,
-        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-        senderName: "Tôi",
-        images: images || null,
-        reaction: null,
-      },
-    ]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: text || "",
+          sender: "me",
+          time: currentTime,
+          read: true,
+          avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+          senderName: "Tôi",
+          images: images || null,
+          reaction: null,
+        },
+      ]);
+    }
 
     setInputText("");
     setShowEmoji(false);
@@ -115,7 +132,7 @@ const ChatDetail = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const imageUris = result.assets.map((asset) => asset.uri);
       setSelectedImages(imageUris);
-      sendMessage("", imageUris); // Gửi ngay sau khi chọn
+      sendMessage("", imageUris);
     }
   };
 
@@ -157,6 +174,18 @@ const ChatDetail = () => {
     ]);
   };
 
+  const handleEditMessage = (id: string, text: string) => {
+    setEditingMessageId(id);
+    setEditText(text);
+    setInputText(text);
+  };
+
+  const cancelEdit = () => {
+    setEditingMessageId(null);
+    setEditText("");
+    setInputText("");
+  };
+
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
 
@@ -172,8 +201,29 @@ const ChatDetail = () => {
         {!isMyMessage && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
         <TouchableOpacity
           onLongPress={() => {
-            setSelectedMessageId(item.id);
-            setShowReactionPicker(true);
+            if (isMyMessage && item.text !== "Tin nhắn đã được thu hồi") {
+              Alert.alert("Tùy chọn", "Chọn hành động", [
+                {
+                  text: "Thêm Reaction",
+                  onPress: () => {
+                    setSelectedMessageId(item.id);
+                    setShowReactionPicker(true);
+                  },
+                },
+                {
+                  text: "Chỉnh sửa",
+                  onPress: () => handleEditMessage(item.id, item.text),
+                },
+                {
+                  text: "Thu hồi",
+                  onPress: () => handleRecallMessage(item.id, isMyMessage),
+                },
+                { text: "Hủy", style: "cancel" },
+              ]);
+            } else {
+              setSelectedMessageId(item.id);
+              setShowReactionPicker(true);
+            }
           }}
           onPress={() => handleRecallMessage(item.id, isMyMessage)}
           activeOpacity={0.8}
@@ -202,6 +252,9 @@ const ChatDetail = () => {
           {item.text !== "" && (
             <Text style={isMyMessage ? styles.myMessageText : styles.otherMessageText}>
               {item.text}
+              {item.isEdited && (
+                <Text style={styles.editedLabel}> (đã chỉnh sửa)</Text>
+              )}
             </Text>
           )}
           {item.reaction && (
@@ -282,6 +335,11 @@ const ChatDetail = () => {
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={80}>
         <View style={styles.inputContainer}>
+          {editingMessageId && (
+            <TouchableOpacity onPress={cancelEdit} style={{ marginHorizontal: 6 }}>
+              <Ionicons name="close-circle-outline" size={26} color="#ef4444" />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)}>
             <Ionicons name="happy-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
           </TouchableOpacity>
@@ -295,7 +353,7 @@ const ChatDetail = () => {
               styles.textInput,
               isDark && { backgroundColor: "#1f2937", color: "white" },
             ]}
-            placeholder="Nhập tin nhắn..."
+            placeholder={editingMessageId ? "Chỉnh sửa tin nhắn..." : "Nhập tin nhắn..."}
             placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
             value={inputText}
             onChangeText={(text) => {
@@ -307,7 +365,7 @@ const ChatDetail = () => {
           />
 
           <TouchableOpacity onPress={() => sendMessage(inputText)} style={styles.sendButton}>
-            <Ionicons name="send" size={20} color="white" />
+            <Ionicons name={editingMessageId ? "save" : "send"} size={20} color="white" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -355,7 +413,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   myMessage: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#E1F5FE",
     borderTopRightRadius: 0,
     alignSelf: "flex-end",
     marginLeft: 50,
@@ -366,7 +424,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginRight: 50,
   },
-  myMessageText: { color: "white", fontSize: 16 },
+  myMessageText: { color: "black", fontSize: 16 },
   otherMessageText: { color: "#111827", fontSize: 16 },
   senderName: {
     fontWeight: "bold",
@@ -425,6 +483,11 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#3b82f6",
     borderRadius: 25,
+  },
+  editedLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontStyle: "italic",
   },
 });
 
