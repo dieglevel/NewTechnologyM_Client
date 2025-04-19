@@ -39,7 +39,7 @@ const ChatDetail = () => {
       senderName: string;
       reaction: string | null;
       images?: string[] | null;
-      isEdited?: boolean; // Thêm thuộc tính để theo dõi tin nhắn đã chỉnh sửa
+      isEdited?: boolean;
     }[]
   >([
     {
@@ -69,15 +69,19 @@ const ChatDetail = () => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null); // Theo dõi tin nhắn đang chỉnh sửa
-  const [editText, setEditText] = useState(""); // Nội dung tin nhắn đang chỉnh sửa
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [allImageUris, setAllImageUris] = useState<string[]>([]); // Tất cả URI hình ảnh trong cuộc trò chuyện
+  const [initialImageIndex, setInitialImageIndex] = useState(0); // Chỉ số hình ảnh ban đầu
+  const [currentImageIndex, setCurrentImageIndex] = useState(0); // Chỉ số hình ảnh hiện tại
   const flatListRef = useRef<FlatList>(null);
+  const imageFlatListRef = useRef<FlatList>(null);
 
   const sendMessage = (text?: string, images?: string[]) => {
     if ((text?.trim() ?? "") === "" && (!images || images.length === 0)) return;
 
     if (editingMessageId) {
-      // Lưu chỉnh sửa tin nhắn
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === editingMessageId
@@ -88,7 +92,6 @@ const ChatDetail = () => {
       setEditingMessageId(null);
       setEditText("");
     } else {
-      // Gửi tin nhắn mới
       const currentTime = new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -186,6 +189,55 @@ const ChatDetail = () => {
     setInputText("");
   };
 
+  const openImageModal = (messageImages: string[], selectedIndex: number) => {
+    // Thu thập tất cả hình ảnh từ các tin nhắn
+    const allImages: string[] = [];
+    messages.forEach((msg) => {
+      if (msg.images && msg.images.length > 0) {
+        allImages.push(...msg.images);
+      }
+    });
+
+    // Tìm chỉ số của hình ảnh được chọn trong danh sách tất cả hình ảnh
+    let globalIndex = 0;
+    let found = false;
+    for (const msg of messages) {
+      if (msg.images && msg.images.length > 0) {
+        for (let i = 0; i < msg.images.length; i++) {
+          if (msg.images[i] === messageImages[selectedIndex]) {
+            globalIndex += i;
+            found = true;
+            break;
+          }
+          globalIndex++;
+        }
+        if (found) break;
+      }
+    }
+
+    setAllImageUris(allImages);
+    setInitialImageIndex(globalIndex);
+    setCurrentImageIndex(globalIndex);
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    setAllImageUris([]);
+    setInitialImageIndex(0);
+    setCurrentImageIndex(0);
+  };
+
+  const renderImageItem = ({ item }: { item: string }) => (
+    <View style={styles.fullScreenImageContainer}>
+      <Image
+        source={{ uri: item }}
+        style={styles.fullScreenImage}
+        resizeMode="contain"
+      />
+    </View>
+  );
+
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
 
@@ -239,11 +291,15 @@ const ChatDetail = () => {
           {item.images && item.images.length > 0 && (
             <View style={styles.imageContainer}>
               {item.images.length === 1 ? (
-                <Image source={{ uri: item.images[0] }} style={styles.singleImage} />
+                <TouchableOpacity onPress={() => openImageModal(item.images, 0)}>
+                  <Image source={{ uri: item.images[0] }} style={styles.singleImage} />
+                </TouchableOpacity>
               ) : (
                 <View style={styles.imageGrid}>
                   {item.images.map((imageUri: string, index: number) => (
-                    <Image key={index} source={{ uri: imageUri }} style={styles.gridImage} />
+                    <TouchableOpacity key={index} onPress={() => openImageModal(item.images, index)}>
+                      <Image source={{ uri: imageUri }} style={styles.gridImage} />
+                    </TouchableOpacity>
                   ))}
                 </View>
               )}
@@ -331,6 +387,41 @@ const ChatDetail = () => {
             ))}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={showImageModal} transparent animationType="fade">
+        <View style={styles.imageModalContainer}>
+          <TouchableOpacity style={styles.imageModalOverlay} onPress={closeImageModal} />
+          <View style={styles.imageModalContent}>
+            <FlatList
+              ref={imageFlatListRef}
+              data={allImageUris}
+              renderItem={renderImageItem}
+              keyExtractor={(item, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              initialScrollIndex={initialImageIndex}
+              getItemLayout={(data, index) => ({
+                length: Dimensions.get("window").width,
+                offset: Dimensions.get("window").width * index,
+                index,
+              })}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(event.nativeEvent.contentOffset.x / Dimensions.get("window").width);
+                setCurrentImageIndex(index);
+              }}
+            />
+            {allImageUris.length > 0 && (
+              <Text style={styles.imageCounter}>
+                {currentImageIndex + 1}/{allImageUris.length}
+              </Text>
+            )}
+            <TouchableOpacity style={styles.closeImageButton} onPress={closeImageModal}>
+              <Ionicons name="close" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={80}>
@@ -488,6 +579,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
     fontStyle: "italic",
+  },
+  imageModalContainer: {
+    flex: 1,
+    backgroundColor: "#000000cc",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageModalOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  imageModalContent: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullScreenImageContainer: {
+    width: Dimensions.get("window").width,
+    height: "80%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullScreenImage: {
+    width: "100%",
+    height: "100%",
+  },
+  closeImageButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    backgroundColor: "#00000066",
+    borderRadius: 20,
+    padding: 8,
+  },
+  imageCounter: {
+    position: "absolute",
+    bottom: 20,
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    backgroundColor: "#00000066",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
 });
 
