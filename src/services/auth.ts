@@ -3,6 +3,7 @@ import { ExpoSecureStoreKeys, getSecure, setSecure } from "@/libs/expo-secure-st
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { BaseResponse } from "@/types";
 import { IAuth, IDetailInformation } from "@/types/implement";
+import { ISearchAccount } from "@/types/implement/response";
 
 export const loginApi = async (username: string, password: string) => {
 	try {
@@ -163,3 +164,21 @@ export const changePasswordApi = async (phone: string, newPassword: string) => {
 		throw e as ErrorResponse;
 	}
 };
+
+export const findAccount = async (identifier: string) => {
+	try {
+
+		// check if phone number === true
+		const isPhoneNumber = identifier.match(/^\d{10}$/);
+		if (isPhoneNumber) {
+			const response = await api.get<BaseResponse<ISearchAccount[]>>(`auth/search?keywork=${identifier}`,);
+			return response.data;
+		}
+
+		const response = await api.get<BaseResponse<ISearchAccount[]>>(`auth/search?keywork=${identifier}`,);
+
+		return response.data;
+	} catch (e) {
+		throw e as ErrorResponse;
+	}
+}

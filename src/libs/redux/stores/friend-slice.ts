@@ -19,13 +19,13 @@ const thunkAction = {
 
 export const fetchMyListFriend = createAsyncThunk(`${thunkDB}${thunkAction.fetch}${thunkName}`, async (): Promise<IFriend[]> => {
   const myListFriendRequestStorages = myListFriendStorage.getAll();
-  console.log("myListFriendRequestStorages fetch", myListFriendRequestStorages);
+  // console.log("myListFriendRequestStorages fetch", myListFriendRequestStorages);
   return myListFriendRequestStorages;
 });
 
 export const setMyListFriend = createAsyncThunk(`${thunkDB}${thunkAction.set}${thunkName}`, async (friend: IFriend[]) => {
   const myListFriendRequestStorages = myListFriendStorage.setMany(friend);
-  console.log("myListFriendRequestStorages", myListFriendRequestStorages);
+  // console.log("myListFriendRequestStorages", myListFriendRequestStorages);
   const data = myListFriendStorage.getAll();
   return data;
 });
@@ -38,7 +38,7 @@ export const deleteMyListFriend = createAsyncThunk(`${thunkDB}${thunkAction.dele
 export const initMyListFriend = createAsyncThunk(`${thunkDB}${thunkAction.init}${thunkName}`, async (friend: IFriend[]) => {
   myListFriendStorage.clearAll();
   myListFriendStorage.setMany(friend);
-  console.log("myListFriendRequestStorages", myListFriendStorage.getAll());
+  // console.log("myListFriendRequestStorages", myListFriendStorage.getAll());
   return friend;
 });
 

@@ -3,12 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { DetailInformationReducer } from "./stores/detail-information-slice";
 import { MyListFriendReducer } from "./stores/friend-slice";
 import { RequestFriendReducer } from "./stores/request-friend-slice";
+import { SendedFriendReducer } from "./stores";
 
 export const store = configureStore({
 	reducer: {
 		detailInformation: DetailInformationReducer,
 		myListFriend: MyListFriendReducer,
 		requestFriend: RequestFriendReducer,
+		sendedFriend: SendedFriendReducer
 		
 	},
 });

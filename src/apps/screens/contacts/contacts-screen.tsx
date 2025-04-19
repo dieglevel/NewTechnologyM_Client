@@ -17,10 +17,12 @@ import { RootStackParamList, StackScreenNavigationProp } from "@/libs/navigation
 import { useSelector } from "react-redux";
 import { RootState } from "@/libs/redux/redux.config";
 import { IFriend } from "@/types/implement";
-import { unFriend } from "@/services/friend";
+import { sendRequestFriend, unFriend } from "@/services/friend";
 import Toast from "react-native-toast-message";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import Delete from "@/assets/svgs/delete";
+import { ISearchAccount } from "@/types/implement/response";
+import { findAccount } from "@/services/auth";
 
 // // Phân nhóm liên hệ theo chữ cái đầu
 // const groupContacts = (contacts: IFriend[]) => {
@@ -95,9 +97,9 @@ const ContactItem = ({ item, onPress }: ContactItemProps) => {
 				<TouchableOpacity onPress={handleUnFriend}>
 					<Ionicons
 						name="person-remove"
-            size={20}
-            color="gray"
-            style={styles.icon}
+						size={20}
+						color="gray"
+						style={styles.icon}
 					/>
 				</TouchableOpacity>
 
@@ -118,28 +120,136 @@ const ContactItem = ({ item, onPress }: ContactItemProps) => {
 	);
 };
 
+interface AccountItemProps {
+	data: ISearchAccount;
+	onPress: (contact: ISearchAccount) => void;
+}
+
+const AccountItem = ({ data, onPress }: AccountItemProps) => {
+	const { sendedFriends } = useSelector((state: RootState) => state.sendedFriend);
+	const { myListFriend } = useSelector((state: RootState) => state.myListFriend);
+
+	const handleSubmit = async () => {
+		try {
+			const response = await sendRequestFriend(data.id, "Kết bạn với tôi nhé");
+			if (response.statusCode === 201) {
+				Toast.show({
+					type: "success",
+					text1: "Thành công",
+					text2: "Gửi lời mời kết bạn thành công",
+				});
+			}
+		} catch (error) {
+			const e = error as ErrorResponse;
+			Toast.show({
+				type: "error",
+				text1: "Thất bại",
+				text2: e.message,
+			});
+		}
+	};
+
+	const checkSendedFriend = () => {
+		if (sendedFriends) {
+			const sendedFriend = sendedFriends.find((friend) => friend.receiver_id === data.id);
+			if (sendedFriend) {
+				// console.log("Sended friend: ", sendedFriend, "ID: ", data.id);
+				return true;
+			}
+		}
+
+		if (myListFriend) {
+			const myFriend = myListFriend.find((friend) => friend.accountId === data.id);
+			if (myFriend) {
+				// console.log("My friend: ", myFriend, "ID: ", data.id);
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	return (
+		<TouchableOpacity
+			style={styles.contactItem}
+			onPress={() => onPress(data)}
+		>
+			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
+			{data.detailInformation.avatarUrl ? (
+				<Image
+					source={{ uri: data.detailInformation.avatarUrl }}
+					style={styles.avatar}
+					resizeMode="cover"
+				/>
+			) : (
+				<Text style={styles.avatarText}>{(data.detailInformation?.fullName ?? "-").charAt(0)}</Text>
+			)}
+			{/* </View> */}
+			<View style={styles.contactInfo}>
+				<Text style={styles.contactName}>{data.detailInformation?.fullName}</Text>
+			</View>
+			<View style={{ flex: 1, gap: 8, justifyContent: "flex-end", flexDirection: "row" }}>
+				{!checkSendedFriend() && (
+					<TouchableOpacity onPress={handleSubmit}>
+						<Ionicons
+							name="person-add"
+							size={20}
+							color="gray"
+							style={styles.icon}
+						/>
+					</TouchableOpacity>
+				)}
+			</View>
+		</TouchableOpacity>
+	);
+};
+
 export const ContactsScreen = () => {
 	const navigator = useNavigation<StackScreenNavigationProp>();
 
 	const { myListFriend } = useSelector((state: RootState) => state.myListFriend);
 
+	const [search, setSearch] = useState<string>("");
+	const [searchResult, setSearchResult] = useState<ISearchAccount[]>([]);
+
 	useEffect(() => {
 		console.log("myListFriend", myListFriend);
 	}, [myListFriend]);
 
-	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [refreshing, setRefreshing] = useState<boolean>(false);
 
-	// const handleRefresh = useCallback(() => {
-	// 	setRefreshing(true);
-	// 	setTimeout(() => setRefreshing(false), 1000); // Mock fetch
-	// }, []);
+	useEffect(() => {
+		const fetch = async () => {
+			try {
+				const response = await findAccount(search);
+				if (response.statusCode === 200) {
+					console.log("response: ", response.data);
+					setSearchResult(response.data || []);
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+				// console.log("error: ", e.message);
+			}
+		};
 
-	const filtered = useMemo(() => {
-		return myListFriend?.filter((contact) =>
-			contact?.detail?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()),
-		);
-	}, [searchQuery]);
+		const timeoutId = setTimeout(() => {
+			if (search) {
+				fetch();
+			} else {
+				setSearchResult([]);
+			}
+		}, 500);
+
+		return () => {
+			clearTimeout(timeoutId);
+		};
+	}, [search]);
+
+	// const filtered = useMemo(() => {
+	// 	return myListFriend?.filter((contact) =>
+	// 		contact?.detail?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()),
+	// 	);
+	// }, [searchQuery]);
 
 	const handleContactPress = (contact: any) => {
 		// console.log("Contact selected:", contact);
@@ -164,8 +274,8 @@ export const ContactsScreen = () => {
 						style={styles.searchInput}
 						placeholder="Tìm kiếm"
 						placeholderTextColor="white"
-						value={searchQuery}
-						onChangeText={setSearchQuery}
+						value={search}
+						onChangeText={setSearch}
 					/>
 					<Ionicons
 						name="person-add"
@@ -175,46 +285,62 @@ export const ContactsScreen = () => {
 					/>
 				</View>
 
-				<TouchableOpacity
-					style={styles.contactItem}
-					onPress={handleRequestFriendPress}
-				>
-					<Text style={{ color: "black", padding: 12, fontSize: 16 }}>Danh sách lời mời kết bạn</Text>
-				</TouchableOpacity>
-
 				<FlatList
-					data={myListFriend}
-					keyExtractor={(item) => item.friendId?.toString() || ""}
+					data={searchResult}
+					style={{ display: search.length > 0 ? "flex" : "none" }}
+					keyExtractor={(item) => item.id?.toString() || ""}
 					renderItem={({ item }) => (
-						<ContactItem
-							item={item}
+						<AccountItem
+							data={item}
 							onPress={handleContactPress}
 						/>
 					)}
 				/>
 
-				<SectionList
+				<View style={{ flex: 1, display: searchResult.length > 0 ? "none" : "flex" }}>
+					<TouchableOpacity
+						style={styles.contactItem}
+						onPress={handleRequestFriendPress}
+					>
+						<Text style={{ color: "black", padding: 12, fontSize: 16 }}>
+							Danh sách lời mời kết bạn
+						</Text>
+					</TouchableOpacity>
+
+					<FlatList
+						data={myListFriend}
+						keyExtractor={(item) => item.friendId?.toString() || ""}
+						renderItem={({ item }) => (
+							<ContactItem
+								item={item}
+								onPress={handleContactPress}
+							/>
+						)}
+					/>
+
+					{/* <SectionList
 					sections={[]}
 					data={myListFriend}
 					keyExtractor={(item) => item.friendId?.toString() || ""}
 					renderItem={({ item }) => (
 						<ContactItem
-							item={item}
-							onPress={handleContactPress}
+						item={item}
+						onPress={handleContactPress}
 						/>
-					)}
-					// renderSectionHeader={({ section: { title } }) => (
-					// 	<View style={styles.sectionHeader}>
-					// 		<Text style={styles.sectionText}>{title}</Text>
-					// 	</View>
-					// )}
-					// refreshControl={
-					// 	<RefreshControl
-					// 		refreshing={refreshing}
-					// 		onRefresh={handleRefresh}
+						)}
+						// renderSectionHeader={({ section: { title } }) => (
+							// 	<View style={styles.sectionHeader}>
+							// 		<Text style={styles.sectionText}>{title}</Text>
+							// 	</View>
+							// )}
+							// refreshControl={
+								// 	<RefreshControl
+								// 		refreshing={refreshing}
+								// 		onRefresh={handleRefresh}
 					// 	/>
 					// }
-				/>
+					/> */}
+				</View>
 			</View>
 		</SafeAreaView>
 	);
