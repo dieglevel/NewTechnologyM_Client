@@ -1,97 +1,394 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRoute } from "@react-navigation/native";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  useColorScheme,
+  Alert,
+  Dimensions,
+} from "react-native";
+import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import EmojiSelector from "react-native-emoji-selector";
+import * as ImagePicker from "expo-image-picker";
+import * as Animatable from "react-native-animatable";
 
 const ChatDetail = () => {
   const route = useRoute();
-  const { name }: any = route.params || { name: "Người dùng" }; 
-  const [messages, setMessages] = useState([
-    { id: "1", text: "Xin chào!", sender: "me" },
-    { id: "2", text: "Chào bạn!", sender: "other" },
-  ]);
-  const [inputText, setInputText] = useState("");
+  const navigation = useNavigation();
+  const { name }: any = route.params || { name: "Người dùng" };
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
-  const sendMessage = () => {
-    if (inputText.trim() === "") return;
-    setMessages([...messages, { id: Date.now().toString(), text: inputText, sender: "me" }]);
+  const [messages, setMessages] = useState([
+    {
+      id: "1",
+      text: "Xin chào!",
+      sender: "me",
+      time: "10:00",
+      read: true,
+      avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+      senderName: "Tôi",
+    },
+    {
+      id: "2",
+      text: "Chào bạn!",
+      sender: "other",
+      time: "10:01",
+      avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+      senderName: "Minh",
+    },
+  ]);
+
+  const [inputText, setInputText] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const flatListRef = useRef<FlatList>(null);
+
+  const sendMessage = (text?: string, images?: string[]) => {
+    if ((text?.trim() ?? "") === "" && (!images || images.length === 0)) return;
+
+    const currentTime = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        text: text || "",
+        sender: "me",
+        time: currentTime,
+        read: true,
+        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+        senderName: "Tôi",
+        images: images || null,
+      },
+    ]);
+
     setInputText("");
+    setShowEmoji(false);
+    setIsTyping(false);
+    setSelectedImages([]);
+  };
+
+  const pickImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Quyền truy cập bị từ chối", "Vui lòng cấp quyền truy cập vào thư viện ảnh.");
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const imageUris = result.assets.map((asset) => asset.uri);
+      setSelectedImages(imageUris);
+      sendMessage("", imageUris); // Gửi ngay sau khi chọn
+    }
+  };
+
+  useEffect(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, [messages]);
+
+  const renderMessageItem = ({ item }: { item: any }) => {
+    const isMyMessage = item.sender === "me";
+
+    const handleRecallMessage = (id: string) => {
+      if (!isMyMessage) {
+        Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
+        return;
+      }
+
+      Alert.alert("Thu hồi tin nhắn", "Bạn có chắc muốn thu hồi tin nhắn này?", [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Thu hồi",
+          style: "destructive",
+          onPress: () => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null } : msg
+              )
+            );
+          },
+        },
+      ]);
+    };
+
+    return (
+      <View
+        style={[
+          styles.messageRow,
+          {
+            justifyContent: isMyMessage ? "flex-end" : "flex-start",
+          },
+        ]}
+      >
+        {!isMyMessage && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
+        <TouchableOpacity
+          onLongPress={() => handleRecallMessage(item.id)}
+          activeOpacity={0.8}
+          style={[
+            styles.messageContainer,
+            isMyMessage ? styles.myMessage : styles.otherMessage,
+            isDark && {
+              backgroundColor: isMyMessage ? "#2563eb" : "#374151",
+            },
+          ]}
+        >
+          {!isMyMessage && <Text style={styles.senderName}>{item.senderName}</Text>}
+          {item.images && item.images.length > 0 && (
+            <View style={styles.imageContainer}>
+              {item.images.length === 1 ? (
+                <Image
+                  source={{ uri: item.images[0] }}
+                  style={styles.singleImage}
+                />
+              ) : (
+                <View style={styles.imageGrid}>
+                  {item.images.map((imageUri: string, index: number) => (
+                    <Image
+                      key={index}
+                      source={{ uri: imageUri }}
+                      style={styles.gridImage}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+          {item.text !== "" && (
+            <Text
+              style={isMyMessage ? styles.myMessageText : styles.otherMessageText}
+            >
+              {item.text}
+            </Text>
+          )}
+          <View style={styles.metaInfo}>
+            <Text style={styles.timestamp}>{item.time}</Text>
+            {item.read && isMyMessage && (
+              <MaterialIcons
+                name="check-circle"
+                size={14}
+                color="#3b82f6"
+                style={{ marginLeft: 4 }}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDark && { backgroundColor: "#111827" }]}>
       <View style={styles.header}>
-        <Ionicons name="arrow-back" size={24} color="white" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
         <Text style={styles.headerText}>{name}</Text>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+            <Ionicons name="call-outline" size={22} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+            <Ionicons name="videocam-outline" size={22} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginHorizontal: 6 }}>
+            <Feather name="info" size={22} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
+
       <FlatList
+        ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.messageContainer,
-              item.sender === "me" ? styles.myMessage : styles.otherMessage,
-            ]}
-          >
-            <Text style={item.sender === "me" ? styles.myMessageText : styles.otherMessageText}>
-              {item.text}
-            </Text>
-          </View>
-        )}
+        renderItem={renderMessageItem}
+        contentContainerStyle={{ padding: 10 }}
       />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Nhập tin nhắn..."
-          value={inputText}
-          onChangeText={setInputText}
-        />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-          <Ionicons name="send" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
+
+      {isTyping && (
+        <Text
+          style={{
+            marginLeft: 16,
+            marginBottom: 4,
+            color: isDark ? "#d1d5db" : "#4b5563",
+            fontStyle: "italic",
+          }}
+        >
+          Đang gõ...
+        </Text>
+      )}
+
+      {showEmoji && (
+        <View style={{ height: 300 }}>
+          <EmojiSelector
+            onEmojiSelected={(emoji) => setInputText((prev) => prev + emoji)}
+            showSearchBar={false}
+            showTabs={true}
+            showHistory={true}
+            showSectionTitles={false}
+            theme={isDark ? "dark" : "light"}
+          />
+        </View>
+      )}
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={80}
+      >
+        <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)}>
+            <Ionicons
+              name="happy-outline"
+              size={26}
+              color="#3b82f6"
+              style={{ marginHorizontal: 6 }}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={pickImages}>
+            <Ionicons
+              name="image-outline"
+              size={26}
+              color="#3b82f6"
+              style={{ marginHorizontal: 6 }}
+            />
+          </TouchableOpacity>
+
+          <TextInput
+            style={[
+              styles.textInput,
+              isDark && {
+                backgroundColor: "#1f2937",
+                color: "white",
+              },
+            ]}
+            placeholder="Nhập tin nhắn..."
+            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+            value={inputText}
+            onChangeText={(text) => {
+              setInputText(text);
+              setIsTyping(text.length > 0);
+            }}
+            onSubmitEditing={() => sendMessage(inputText)}
+            returnKeyType="send"
+          />
+
+          <TouchableOpacity onPress={() => sendMessage(inputText)} style={styles.sendButton}>
+            <Ionicons name="send" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-  },
+  container: { flex: 1, backgroundColor: "#f9fafb" },
   header: {
     padding: 12,
     backgroundColor: "#3b82f6",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   headerText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 18,
     marginLeft: 12,
+    flex: 1,
+  },
+  headerIcons: {
+    flexDirection: "row",
+  },
+  messageRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginVertical: 4,
+    paddingHorizontal: 10,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 6,
   },
   messageContainer: {
-    padding: 12,
-    marginVertical: 4,
-    marginHorizontal: 8,
-    borderRadius: 8,
-    maxWidth: "70%",
+    padding: 10,
+    borderRadius: 16,
+    maxWidth: "75%",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
   myMessage: {
-    alignSelf: "flex-end",
     backgroundColor: "#3b82f6",
+    borderTopRightRadius: 0,
+    alignSelf: "flex-end",
+    marginLeft: 50,
   },
   otherMessage: {
-    alignSelf: "flex-start",
     backgroundColor: "#e5e7eb",
+    borderTopLeftRadius: 0,
+    alignSelf: "flex-start",
+    marginRight: 50,
   },
-  myMessageText: {
-    color: "white",
+  myMessageText: { color: "white", fontSize: 16 },
+  otherMessageText: { color: "#111827", fontSize: 16 },
+  senderName: {
+    fontWeight: "bold",
+    fontSize: 13,
+    marginBottom: 4,
+    color: "#374151",
   },
-  otherMessageText: {
-    color: "black",
+  metaInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 4,
+  },
+  timestamp: {
+    fontSize: 10,
+    color: "#6b7280",
+  },
+  imageContainer: {
+    marginBottom: 6,
+  },
+  singleImage: {
+    width: 180,
+    height: 180,
+    borderRadius: 10,
+  },
+  imageGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    width: Dimensions.get("window").width * 0.65, // Giới hạn chiều rộng
+  },
+  gridImage: {
+    width: Dimensions.get("window").width * 0.65 / 3 - 8, // 1/3 chiều rộng, trừ margin
+    height: Dimensions.get("window").width * 0.65 / 3 - 8,
+    borderRadius: 10,
+    marginRight: 6,
+    marginBottom: 6,
   },
   inputContainer: {
     flexDirection: "row",
@@ -99,17 +396,21 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
     padding: 8,
+    backgroundColor: "white",
   },
   textInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#d1d5db",
     borderRadius: 25,
-    padding: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#f3f4f6",
+    fontSize: 16,
   },
   sendButton: {
     marginLeft: 8,
-    padding: 8,
+    padding: 10,
     backgroundColor: "#3b82f6",
     borderRadius: 25,
   },

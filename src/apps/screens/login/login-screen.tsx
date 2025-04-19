@@ -23,6 +23,7 @@ import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-se
 import {  StackScreenNavigationProp } from "@/libs/navigation";
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
+import { ListChat } from "@/apps/components/list-chat";
 
 export const LoginScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -153,7 +154,7 @@ export const LoginScreen = () => {
 					<View style={styles.buttonContainer}>
 						<TouchableOpacity
 							style={styles.loginButton}
-							onPress={handleLoginPress}
+							onPress={() => navigation.navigate("ChatScreen")}
 						>
 							<Text style={styles.loginButtonText}>{texts[language].login}</Text>
 						</TouchableOpacity>
