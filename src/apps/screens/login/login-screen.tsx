@@ -154,7 +154,8 @@ export const LoginScreen = () => {
 					<View style={styles.buttonContainer}>
 						<TouchableOpacity
 							style={styles.loginButton}
-							onPress={() => navigation.navigate("ChatScreen")}
+							// onPress={() => navigation.navigate("ChatScreen")}
+							onPress={() => navigation.navigate("BottomTabScreenApp")}
 						>
 							<Text style={styles.loginButtonText}>{texts[language].login}</Text>
 						</TouchableOpacity>
