@@ -12,12 +12,14 @@ import {
   useColorScheme,
   Alert,
   Dimensions,
+  Modal,
 } from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import EmojiSelector from "react-native-emoji-selector";
 import * as ImagePicker from "expo-image-picker";
-import * as Animatable from "react-native-animatable";
+
+const REACTIONS = ["❤️", "😂", "👍", "😮", "😢", "😡"];
 
 const ChatDetail = () => {
   const route = useRoute();
@@ -26,7 +28,19 @@ const ChatDetail = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<
+    {
+      id: string;
+      text: string;
+      sender: string;
+      time: string;
+      read?: boolean;
+      avatar: string;
+      senderName: string;
+      reaction: string | null;
+      images?: string[] | null;
+    }[]
+  >([
     {
       id: "1",
       text: "Xin chào!",
@@ -35,6 +49,7 @@ const ChatDetail = () => {
       read: true,
       avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
       senderName: "Tôi",
+      reaction: null,
     },
     {
       id: "2",
@@ -43,6 +58,7 @@ const ChatDetail = () => {
       time: "10:01",
       avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
       senderName: "Minh",
+      reaction: null,
     },
   ]);
 
@@ -50,6 +66,8 @@ const ChatDetail = () => {
   const [showEmoji, setShowEmoji] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const sendMessage = (text?: string, images?: string[]) => {
@@ -71,6 +89,7 @@ const ChatDetail = () => {
         avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
         senderName: "Tôi",
         images: images || null,
+        reaction: null,
       },
     ]);
 
@@ -104,30 +123,42 @@ const ChatDetail = () => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
+  const handleReactionSelect = (emoji: string) => {
+    if (!selectedMessageId) return;
+
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === selectedMessageId ? { ...msg, reaction: emoji } : msg
+      )
+    );
+    setShowReactionPicker(false);
+    setSelectedMessageId(null);
+  };
+
+  const handleRecallMessage = (id: string, isMyMessage: boolean) => {
+    if (!isMyMessage) {
+      Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
+      return;
+    }
+
+    Alert.alert("Thu hồi tin nhắn", "Bạn có chắc muốn thu hồi tin nhắn này?", [
+      { text: "Hủy", style: "cancel" },
+      {
+        text: "Thu hồi",
+        style: "destructive",
+        onPress: () => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, reaction: null } : msg
+            )
+          );
+        },
+      },
+    ]);
+  };
+
   const renderMessageItem = ({ item }: { item: any }) => {
     const isMyMessage = item.sender === "me";
-
-    const handleRecallMessage = (id: string) => {
-      if (!isMyMessage) {
-        Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
-        return;
-      }
-
-      Alert.alert("Thu hồi tin nhắn", "Bạn có chắc muốn thu hồi tin nhắn này?", [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Thu hồi",
-          style: "destructive",
-          onPress: () => {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null } : msg
-              )
-            );
-          },
-        },
-      ]);
-    };
 
     return (
       <View
@@ -140,7 +171,11 @@ const ChatDetail = () => {
       >
         {!isMyMessage && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
         <TouchableOpacity
-          onLongPress={() => handleRecallMessage(item.id)}
+          onLongPress={() => {
+            setSelectedMessageId(item.id);
+            setShowReactionPicker(true);
+          }}
+          onPress={() => handleRecallMessage(item.id, isMyMessage)}
           activeOpacity={0.8}
           style={[
             styles.messageContainer,
@@ -154,39 +189,28 @@ const ChatDetail = () => {
           {item.images && item.images.length > 0 && (
             <View style={styles.imageContainer}>
               {item.images.length === 1 ? (
-                <Image
-                  source={{ uri: item.images[0] }}
-                  style={styles.singleImage}
-                />
+                <Image source={{ uri: item.images[0] }} style={styles.singleImage} />
               ) : (
                 <View style={styles.imageGrid}>
                   {item.images.map((imageUri: string, index: number) => (
-                    <Image
-                      key={index}
-                      source={{ uri: imageUri }}
-                      style={styles.gridImage}
-                    />
+                    <Image key={index} source={{ uri: imageUri }} style={styles.gridImage} />
                   ))}
                 </View>
               )}
             </View>
           )}
           {item.text !== "" && (
-            <Text
-              style={isMyMessage ? styles.myMessageText : styles.otherMessageText}
-            >
+            <Text style={isMyMessage ? styles.myMessageText : styles.otherMessageText}>
               {item.text}
             </Text>
+          )}
+          {item.reaction && (
+            <Text style={{ fontSize: 18, marginTop: 4, textAlign: "right" }}>{item.reaction}</Text>
           )}
           <View style={styles.metaInfo}>
             <Text style={styles.timestamp}>{item.time}</Text>
             {item.read && isMyMessage && (
-              <MaterialIcons
-                name="check-circle"
-                size={14}
-                color="#3b82f6"
-                style={{ marginLeft: 4 }}
-              />
+              <MaterialIcons name="check-circle" size={14} color="#3b82f6" style={{ marginLeft: 4 }} />
             )}
           </View>
         </TouchableOpacity>
@@ -223,14 +247,7 @@ const ChatDetail = () => {
       />
 
       {isTyping && (
-        <Text
-          style={{
-            marginLeft: 16,
-            marginBottom: 4,
-            color: isDark ? "#d1d5db" : "#4b5563",
-            fontStyle: "italic",
-          }}
-        >
+        <Text style={{ marginLeft: 16, marginBottom: 4, color: isDark ? "#d1d5db" : "#4b5563", fontStyle: "italic" }}>
           Đang gõ...
         </Text>
       )}
@@ -248,36 +265,35 @@ const ChatDetail = () => {
         </View>
       )}
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={80}
-      >
+      <Modal visible={showReactionPicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#00000066" }}
+          onPress={() => setShowReactionPicker(false)}
+        >
+          <View style={{ backgroundColor: "white", padding: 12, borderRadius: 12, flexDirection: "row" }}>
+            {REACTIONS.map((emoji) => (
+              <TouchableOpacity key={emoji} onPress={() => handleReactionSelect(emoji)} style={{ marginHorizontal: 6 }}>
+                <Text style={{ fontSize: 24 }}>{emoji}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={80}>
         <View style={styles.inputContainer}>
           <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)}>
-            <Ionicons
-              name="happy-outline"
-              size={26}
-              color="#3b82f6"
-              style={{ marginHorizontal: 6 }}
-            />
+            <Ionicons name="happy-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={pickImages}>
-            <Ionicons
-              name="image-outline"
-              size={26}
-              color="#3b82f6"
-              style={{ marginHorizontal: 6 }}
-            />
+            <Ionicons name="image-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
           </TouchableOpacity>
 
           <TextInput
             style={[
               styles.textInput,
-              isDark && {
-                backgroundColor: "#1f2937",
-                color: "white",
-              },
+              isDark && { backgroundColor: "#1f2937", color: "white" },
             ]}
             placeholder="Nhập tin nhắn..."
             placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
@@ -315,9 +331,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     flex: 1,
   },
-  headerIcons: {
-    flexDirection: "row",
-  },
+  headerIcons: { flexDirection: "row" },
   messageRow: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -370,9 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#6b7280",
   },
-  imageContainer: {
-    marginBottom: 6,
-  },
+  imageContainer: { marginBottom: 6 },
   singleImage: {
     width: 180,
     height: 180,
@@ -381,10 +393,10 @@ const styles = StyleSheet.create({
   imageGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    width: Dimensions.get("window").width * 0.65, // Giới hạn chiều rộng
+    width: Dimensions.get("window").width * 0.65,
   },
   gridImage: {
-    width: Dimensions.get("window").width * 0.65 / 3 - 8, // 1/3 chiều rộng, trừ margin
+    width: Dimensions.get("window").width * 0.65 / 3 - 8,
     height: Dimensions.get("window").width * 0.65 / 3 - 8,
     borderRadius: 10,
     marginRight: 6,
