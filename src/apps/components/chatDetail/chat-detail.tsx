@@ -19,6 +19,8 @@ import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import EmojiSelector from "react-native-emoji-selector";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import axios from "axios";
 
 const REACTIONS = ["❤️", "😂", "👍", "😮", "😢", "😡"];
 
@@ -40,6 +42,7 @@ const ChatDetail = () => {
       senderName: string;
       reaction: string | null;
       images?: string[] | null;
+      files?: string[] | null;
       isEdited?: boolean;
     }[]
   >([
@@ -68,6 +71,7 @@ const ChatDetail = () => {
   const [showEmoji, setShowEmoji] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -78,13 +82,13 @@ const ChatDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionMessage, setActionMessage] = useState<any>(null);
-  const [searchQuery, setSearchQuery] = useState(""); // Từ khóa tìm kiếm
-  const [showSearchBar, setShowSearchBar] = useState(false); // Hiển thị thanh tìm kiếm
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBar, setShowSearchBar] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const imageFlatListRef = useRef<FlatList>(null);
 
-  const sendMessage = (text?: string, images?: string[]) => {
-    if ((text?.trim() ?? "") === "" && (!images || images.length === 0)) return;
+  const sendMessage = (text?: string, images?: string[], files?: string[]) => {
+    if ((text?.trim() ?? "") === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
 
     if (editingMessageId) {
       setMessages((prev) =>
@@ -113,6 +117,7 @@ const ChatDetail = () => {
           avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
           senderName: "Tôi",
           images: images || null,
+          files: files || null,
           reaction: null,
         },
       ]);
@@ -122,6 +127,7 @@ const ChatDetail = () => {
     setShowEmoji(false);
     setIsTyping(false);
     setSelectedImages([]);
+    setSelectedFiles([]);
   };
 
   const pickImages = async () => {
@@ -141,6 +147,71 @@ const ChatDetail = () => {
       const imageUris = result.assets.map((asset) => asset.uri);
       setSelectedImages(imageUris);
       sendMessage("", imageUris);
+    }
+  };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ],
+        multiple: true,
+      });
+
+      if (result.type === "success") {
+        const files = result.assets.map((asset) => ({
+          uri: asset.uri,
+          name: asset.name,
+          type: asset.mimeType || "application/octet-stream",
+        }));
+        setSelectedFiles(files);
+        uploadFiles(files);
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể chọn file. Vui lòng thử lại.");
+      console.error(error);
+    }
+  };
+
+  const uploadFiles = async (files: { uri: string; name: string; type: string }[]) => {
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", {
+          uri: file.uri,
+          name: file.name,
+          type: file.type,
+        } as any);
+
+        const response = await axios.post(
+          "https://your-api-domain.com/api/file-cloud/upload-single-file",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              // Authorization: `Bearer ${yourToken}`,
+            },
+          }
+        );
+
+        if (response.data && response.data.url) {
+          uploadedUrls.push(response.data.url);
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        sendMessage("", [], uploadedUrls);
+      } else {
+        Alert.alert("Lỗi", "Không thể tải file lên server.");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
+      console.error(error);
     }
   };
 
@@ -180,7 +251,9 @@ const ChatDetail = () => {
         onPress: () => {
           setMessages((prev) =>
             prev.map((msg) =>
-              msg.id === id ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, reaction: null } : msg
+              msg.id === id
+                ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, files: null, reaction: null }
+                : msg
             )
           );
           setShowActionModal(false);
@@ -302,6 +375,22 @@ const ChatDetail = () => {
                   ))}
                 </View>
               )}
+            </View>
+          )}
+          {item.files && item.files.length > 0 && (
+            <View style={styles.fileContainer}>
+              {item.files.map((fileUrl: string, index: number) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    Alert.alert("Mở file", `Mở file tại: ${fileUrl}`);
+                  }}
+                  style={styles.fileItem}
+                >
+                  <Ionicons name="document-outline" size={20} color="#3b82f6" style={{ marginRight: 8 }} />
+                  <Text style={styles.fileText}>{fileUrl.split("/").pop()}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           )}
           {item.text !== "" && (
@@ -534,6 +623,9 @@ const ChatDetail = () => {
           <TouchableOpacity onPress={pickImages}>
             <Ionicons name="image-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
           </TouchableOpacity>
+          <TouchableOpacity onPress={pickDocument}>
+            <Ionicons name="document-attach-outline" size={26} color="#3b82f6" style={{ marginHorizontal: 6 }} />
+          </TouchableOpacity>
           <TextInput
             style={[
               styles.textInput,
@@ -644,6 +736,21 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 6,
     marginBottom: 6,
+  },
+  fileContainer: {
+    marginBottom: 6,
+  },
+  fileItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  fileText: {
+    fontSize: 14,
+    color: "#374151",
   },
   inputContainer: {
     flexDirection: "row",
