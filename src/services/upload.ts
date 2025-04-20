@@ -18,3 +18,19 @@ export const uploadSingleImageApi = async (file: FormData | null) => {
       throw error as ErrorResponse
    }
 }
+export const uploadMultipleImageApi = async (file: FormData | null) => {
+   if (!file) {
+      return;
+   }
+
+   try {
+      const response = await api.post<BaseResponse<ICloud>>("/cloud/upload-multiple-file", file, {
+         headers: {
+            "Content-Type": "multipart/form-data",
+         },
+      });
+      return response.data
+   } catch (error) {
+      throw error as ErrorResponse
+   }
+}

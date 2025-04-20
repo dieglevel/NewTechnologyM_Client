@@ -77,7 +77,6 @@ const ChatDetail = () => {
   ]);
 
   const [inputText, setInputText] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
@@ -335,7 +334,6 @@ const ChatDetail = () => {
     }
 
     setInputText("");
-    setShowEmoji(false);
     setIsTyping(false);
     setSelectedImages([]);
     setSelectedFiles([]);
@@ -720,7 +718,7 @@ const ChatDetail = () => {
           icon: "trash-outline",
           label: "Thu hồi",
           onPress: () => handleRecallMessage(actionMessage.id, isMyMessage),
-          destructive: true,
+          // destructive: true,
         }
       );
     }
@@ -779,23 +777,6 @@ const ChatDetail = () => {
         <Text style={[styles.typingIndicator, isDark && styles.darkTypingIndicator]}>
           Đang gõ...
         </Text>
-      )}
-
-      {showEmoji && (
-        <View style={styles.emojiContainer}>
-          <EmojiSelector
-            onEmojiSelected={(emoji) => {
-              const newText = inputText + emoji;
-              setInputText(newText);
-              sendMessage(newText);
-          }}
-            showSearchBar={false}
-            showTabs={true}
-            showHistory={true}
-            showSectionTitles={false}
-            theme={isDark ? "dark" : "light"}
-          />
-        </View>
       )}
 
       <Modal visible={showReactionPicker} transparent animationType="fade">
@@ -896,9 +877,6 @@ const ChatDetail = () => {
               <Ionicons name="close-circle-outline" size={26} color="#ef4444" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={() => setShowEmoji(!showEmoji)} style={styles.inputIcon}>
-            <Ionicons name="happy-outline" size={26} color="#3b82f6" />
-          </TouchableOpacity>
           <TouchableOpacity onPress={pickImages} style={styles.inputIcon}>
             <Ionicons name="image-outline" size={26} color="#3b82f6" />
           </TouchableOpacity>
