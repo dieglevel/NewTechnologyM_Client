@@ -9,6 +9,7 @@ import {
   createNativeStackNavigator,
   NativeStackNavigationProp,
 } from "@react-navigation/native-stack";
+import { IRoom } from '@/types/implement';
 
 export type RootStackParamList = {
   BottomTabScreenApp: undefined;
@@ -17,8 +18,7 @@ export type RootStackParamList = {
   OTP: { identifier: string; type: "phone" | "email" };
   UserDetail: undefined
   Chat: undefined;
-  ChatDetail: { chatId: string };
-  ChatScreen: undefined;
+  ChatScreen: { room: IRoom };
   LoginUser: undefined;
   ForgotPasswordScreen: undefined; 
   UpdatePasswordScreen: {identifier: string};
@@ -42,3 +42,4 @@ export type StackScreenNavigationProp =
 export type OTPRouteProp = RouteProp<RootStackParamList, "OTP">;
 export type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
 export type UpdatePasswordRouteProp = RouteProp<RootStackParamList, "UpdatePasswordScreen">;
+export type ChatScreenRouteProp = RouteProp<RootStackParamList, "ChatScreen">;

@@ -9,7 +9,7 @@ import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-se
 import { deleteItemAsync } from "expo-secure-store";
 import { api } from "@/libs/axios/axios.config";
 import { socketService } from "@/libs/socket/socket";
-import { detailInformationStorage, requestFriendStorage, sendedFriendStorage } from "@/libs/mmkv/mmkv";
+import { detailInformationStorage, messageStorage, requestFriendStorage, roomStorage, sendedFriendStorage } from "@/libs/mmkv/mmkv";
 
 export const UserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -22,6 +22,11 @@ export const UserScreen = () => {
 
 		socketService.disconnect();
 		detailInformationStorage.clearAll();
+		sendedFriendStorage.clearAll();
+		requestFriendStorage.clearAll();
+		sendedFriendStorage.clearAll();
+		roomStorage.clearAll();
+		messageStorage.clearAll();
 
 		navigation.reset({routes: [{ name: "Login" }]});
 	}
@@ -31,6 +36,8 @@ export const UserScreen = () => {
 		sendedFriendStorage.clearAll();
 		requestFriendStorage.clearAll();
 		sendedFriendStorage.clearAll();
+		roomStorage.clearAll();
+		messageStorage.clearAll();
 		alert("MMKV has been reset.");
 	}
 

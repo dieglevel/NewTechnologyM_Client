@@ -1,4 +1,5 @@
-import { IDetailInformation, IFriend, IRequestFriend, ISendedFriend } from '@/types/implement';
+import { getMessageByRoomId } from './../../services/chat';
+import { IDetailInformation, IFriend, IMessage, IRequestFriend, IRoom, ISendedFriend } from '@/types/implement';
 import { MMKV } from 'react-native-mmkv';
 
 
@@ -100,6 +101,7 @@ export class GenericMMKVStorage<T> {
    public getAllKeys(): string[] {
       return this.getKeyList();
    }
+
 }
 
 
@@ -107,3 +109,5 @@ export const detailInformationStorage = new GenericMMKVStorage<IDetailInformatio
 export const requestFriendStorage = new GenericMMKVStorage<IRequestFriend>('requestFriend', 'sender_id');
 export const myListFriendStorage = new GenericMMKVStorage<IFriend>('myListFriend', 'accountId');
 export const sendedFriendStorage = new GenericMMKVStorage<ISendedFriend>('sendedFriend', 'receiver_id');
+export const roomStorage = new GenericMMKVStorage<IRoom>('room', 'id');
+export const messageStorage = new GenericMMKVStorage<IMessage>('message', '_id');
