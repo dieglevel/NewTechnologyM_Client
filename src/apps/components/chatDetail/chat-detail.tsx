@@ -17,15 +17,15 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import EmojiSelector from "react-native-emoji-selector";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { Audio } from "expo-av";
 import axios from "axios";
+import { uploadAudioToMessageApi, uploadSingleImageApi } from "@/services/upload";
 
 const REACTIONS = ["❤️", "😂", "👍", "😮", "😢", "😡"];
 
-// Mock data cho danh sách cuộc trò chuyện (thay bằng API GET /api/chats nếu có)
+// Mock data cho danh sách cuộc trò chuyện
 const mockChats = [
   { id: "chat1", name: "Nhóm bạn", avatar: "https://example.com/avatar1.png" },
   { id: "chat2", name: "Gia đình", avatar: "https://example.com/avatar2.png" },
@@ -97,6 +97,8 @@ const ChatDetail = () => {
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const [showUserInfoModal, setShowUserInfoModal] = useState(false); // State cho modal thông tin người dùng
+  const [selectedUser, setSelectedUser] = useState<{ name: string; avatar: string; status?: string; phone?: string } | null>(null); // State lưu thông tin người dùng
   const flatListRef = useRef<FlatList>(null);
   const imageFlatListRef = useRef<FlatList>(null);
 
@@ -162,23 +164,16 @@ const ChatDetail = () => {
         type: file.type,
       } as any);
 
+      formData.append("chatId", chatId);
+      formData.append("senderId", "me");
+      formData.append("timestamp", new Date().toISOString());
+
       console.log("Uploading audio:", file);
 
-      const response = await axios.post(
-        "https://your-api-domain.com/api/file-cloud/upload-single-file",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            // Authorization: `Bearer ${yourToken}`,
-          },
-        }
-      );
+      const response = await uploadAudioToMessageApi(formData);
 
-      console.log("Upload response:", response.data);
-
-      if (response.data && response.data.url) {
-        sendAudioMessage(response.data.url);
+      if (response && (response.data as any)?.audioUrl) {
+        sendAudioMessage((response.data as any).audioUrl);
       } else {
         Alert.alert("Lỗi", "Không thể tải file âm thanh lên server.");
       }
@@ -405,7 +400,6 @@ const ChatDetail = () => {
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              // Authorization: `Bearer ${yourToken}`,
             },
           }
         );
@@ -526,6 +520,22 @@ const ChatDetail = () => {
     setCurrentImageIndex(0);
   };
 
+  // Hàm hiển thị modal thông tin người dùng
+  const showUserInfo = (user: { name: string; avatar: string }) => {
+    setSelectedUser({
+      name: user.name,
+      avatar: user.avatar,
+      status: user.name === "Tôi" ? "Đang hoạt động" : "Offline", // Giả lập trạng thái
+      phone: user.name === "Tôi" ? "+84 123 456 789" : "+84 987 654 321", // Giả lập số điện thoại
+    });
+    setShowUserInfoModal(true);
+  };
+
+  const closeUserInfoModal = () => {
+    setShowUserInfoModal(false);
+    setSelectedUser(null);
+  };
+
   const toggleSearchBar = () => {
     setShowSearchBar(!showSearchBar);
     setSearchQuery("");
@@ -557,7 +567,11 @@ const ChatDetail = () => {
           },
         ]}
       >
-        {!isMyMessage && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
+        {!isMyMessage && (
+          <TouchableOpacity onPress={() => showUserInfo({ name: item.senderName, avatar: item.avatar })}>
+            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           onLongPress={() => {
             setActionMessage(item);
@@ -718,7 +732,7 @@ const ChatDetail = () => {
           icon: "trash-outline",
           label: "Thu hồi",
           onPress: () => handleRecallMessage(actionMessage.id, isMyMessage),
-          // destructive: true,
+          destructive: true,
         }
       );
     }
@@ -866,6 +880,43 @@ const ChatDetail = () => {
             >
               <Text style={styles.cancelForwardText}>Hủy</Text>
             </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal hiển thị thông tin người dùng */}
+      <Modal visible={showUserInfoModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.userInfoModalContainer}
+          onPress={closeUserInfoModal}
+        >
+          <View style={[styles.userInfoModalContent, isDark && styles.darkUserInfoModalContent]}>
+            {selectedUser && (
+              <>
+                <Image source={{ uri: selectedUser.avatar }} style={styles.userInfoAvatar} />
+                <Text style={[styles.userInfoName, isDark && styles.darkUserInfoName]}>
+                  {selectedUser.name}
+                </Text>
+                <View style={styles.userInfoDetail}>
+                  <Ionicons name="ellipse" size={16} color={selectedUser.status === "Đang hoạt động" ? "#22c55e" : "#6b7280"} style={styles.userInfoIcon} />
+                  <Text style={[styles.userInfoText, isDark && styles.darkUserInfoText]}>
+                    {selectedUser.status}
+                  </Text>
+                </View>
+                <View style={styles.userInfoDetail}>
+                  <Ionicons name="call-outline" size={16} color="#3b82f6" style={styles.userInfoIcon} />
+                  <Text style={[styles.userInfoText, isDark && styles.darkUserInfoText]}>
+                    {selectedUser.phone}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.closeUserInfoButton}
+                  onPress={closeUserInfoModal}
+                >
+                  <Text style={styles.closeUserInfoText}>Đóng</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -1282,9 +1333,6 @@ const styles = StyleSheet.create({
   darkTypingIndicator: {
     color: "#d1d5db",
   },
-  emojiContainer: {
-    height: 300,
-  },
   reactionModalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -1305,6 +1353,65 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     padding: 10,
+  },
+  // Styles cho modal thông tin người dùng
+  userInfoModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#00000066",
+  },
+  userInfoModalContent: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    width: 300,
+    padding: 20,
+    alignItems: "center",
+  },
+  darkUserInfoModalContent: {
+    backgroundColor: "#1f2937",
+  },
+  userInfoAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 12,
+  },
+  userInfoName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#374151",
+    marginBottom: 8,
+  },
+  darkUserInfoName: {
+    color: "#d1d5db",
+  },
+  userInfoDetail: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 4,
+  },
+  userInfoIcon: {
+    marginRight: 8,
+  },
+  userInfoText: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  darkUserInfoText: {
+    color: "#d1d5db",
+  },
+  closeUserInfoButton: {
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#3b82f6",
+    borderRadius: 8,
+  },
+  closeUserInfoText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
