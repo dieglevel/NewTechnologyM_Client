@@ -1,8 +1,15 @@
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
-import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+    FlatList,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    StyleSheet,
+} from "react-native";
 
 interface IChatItem {
     item: {
@@ -21,7 +28,7 @@ const ChatItem = ({ item, navigation }: IChatItem) => {
             onPress={() => navigation.navigate("ChatScreen")}
         >
             <View style={styles.avatarContainer}>
-                <Text style={styles.avatarText}>{item.name}</Text>
+                <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
             </View>
 
             <View style={styles.chatContent}>
@@ -36,7 +43,7 @@ const ChatItem = ({ item, navigation }: IChatItem) => {
 export const ListChat = () => {
     const navigation = useNavigation<StackScreenNavigationProp>();
 
-    const chatData: IChatItem[] = [
+    const rawChatData: IChatItem[] = [
         {
             item: {
                 id: "1",
@@ -55,7 +62,28 @@ export const ListChat = () => {
             },
             navigation: navigation,
         },
+        {
+            item: {
+                id: "3",
+                name: "Lớp Java nâng cao",
+                message: "Giảng viên: Cập nhật lịch học",
+                time: "T3",
+            },
+            navigation: navigation,
+        },
     ];
+
+    const [searchText, setSearchText] = useState("");
+    const [filteredData, setFilteredData] = useState<IChatItem[]>(rawChatData);
+
+    useEffect(() => {
+        const text = searchText.toLowerCase();
+        const filtered = rawChatData.filter((chat) =>
+            chat.item.name.toLowerCase().includes(text) ||
+            chat.item.message.toLowerCase().includes(text)
+        );
+        setFilteredData(filtered);
+    }, [searchText]);
 
     return (
         <View style={styles.container}>
@@ -65,15 +93,19 @@ export const ListChat = () => {
                     style={styles.searchInput}
                     placeholder="Tìm kiếm"
                     placeholderTextColor="black"
+                    value={searchText}
+                    onChangeText={setSearchText}
                 />
-                <Ionicons name="qr-code" size={20} color="black" style={styles.icon} onPress={() => navigation.push("Qr")}/>
+                <Ionicons name="qr-code" size={20} color="black" style={styles.icon} onPress={() => navigation.push("Qr")} />
                 <Ionicons name="add" size={24} color="black" style={styles.icon} />
             </View>
 
             <FlatList
-                data={chatData}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => <ChatItem item={item.item} navigation={item.navigation} />}
+                data={filteredData}
+                keyExtractor={(item) => item.item.id}
+                renderItem={({ item }) => (
+                    <ChatItem item={item.item} navigation={item.navigation} />
+                )}
                 style={styles.chatList}
             />
         </View>
