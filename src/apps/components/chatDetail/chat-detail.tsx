@@ -5,27 +5,28 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Image,
-  useColorScheme,
-  Alert,
-  Dimensions,
   Modal,
-  Clipboard,
+  Dimensions,
+  Image,
 } from "react-native";
-import { Ionicons, MaterialIcons, Feather } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import { Audio } from "expo-av";
 import axios from "axios";
-import { uploadAudioToMessageApi, uploadSingleImageApi } from "@/services/upload";
+import { useColorScheme } from "react-native";
+import RenderMessageItem from "./render-message-item";
+import RenderChatItem from "./render-chat-item";
+import RenderImageItem from "./render-image-item";
+import RenderActionItem from "./render-action-item";
+import { startRecording, stopRecording } from "./audio-utils";
+import { copyMessage, handleEditMessage, sendMessage, toggleSearchBar, handleRecallMessage, handleReactionSelect, closeImageModal, forwardMessage, cancelEdit } from "./message-utils";
+import { showUserInfo, closeUserInfoModal } from "./user-utils";
+import styles from "./styles";
 
 const REACTIONS = ["❤️", "😂", "👍", "😮", "😢", "😡"];
-
-// Mock data cho danh sách cuộc trò chuyện
 const mockChats = [
   { id: "chat1", name: "Nhóm bạn", avatar: "https://example.com/avatar1.png" },
   { id: "chat2", name: "Gia đình", avatar: "https://example.com/avatar2.png" },
@@ -81,8 +82,8 @@ const ChatDetail = () => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [recording, setRecording] = useState<any>(null);
+  const [sound, setSound] = useState<any>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
@@ -97,247 +98,19 @@ const ChatDetail = () => {
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
-  const [showUserInfoModal, setShowUserInfoModal] = useState(false); // State cho modal thông tin người dùng
-  const [selectedUser, setSelectedUser] = useState<{ name: string; avatar: string; status?: string; phone?: string } | null>(null); // State lưu thông tin người dùng
+  const [showUserInfoModal, setShowUserInfoModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ name: string; avatar: string; status?: string; phone?: string } | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const imageFlatListRef = useRef<FlatList>(null);
 
-  const checkAudioPermissions = async () => {
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Quyền truy cập bị từ chối", "Vui lòng cấp quyền truy cập microphone.");
-      return false;
-    }
-    return true;
-  };
-
-  const startRecording = async () => {
-    const hasPermission = await checkAudioPermissions();
-    if (!hasPermission) return;
-
-    try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(recording);
-      setIsRecording(true);
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể bắt đầu ghi âm. Vui lòng thử lại.");
-      console.error("Error in startRecording:", error);
-    }
-  };
-
-  const stopRecording = async () => {
-    if (!recording) return;
-
-    try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setIsRecording(false);
-      setRecording(null);
-
-      if (uri) {
-        const file = {
-          uri,
-          name: `recording_${Date.now()}.m4a`,
-          type: "audio/m4a",
-        };
-        uploadAudio(file);
-      }
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể dừng ghi âm. Vui lòng thử lại.");
-      console.error("Error in stopRecording:", error);
-    }
-  };
-
-  const uploadAudio = async (file: { uri: string; name: string; type: string }) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", {
-        uri: file.uri,
-        name: file.name,
-        type: file.type,
-      } as any);
-
-      formData.append("chatId", chatId);
-      formData.append("senderId", "me");
-      formData.append("timestamp", new Date().toISOString());
-
-      console.log("Uploading audio:", file);
-
-      const response = await uploadAudioToMessageApi(formData);
-
-      if (response && (response.data as any)?.audioUrl) {
-        sendAudioMessage((response.data as any).audioUrl);
-      } else {
-        Alert.alert("Lỗi", "Không thể tải file âm thanh lên server.");
-      }
-    } catch (error) {
-      Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file âm thanh. Vui lòng thử lại.");
-      console.error("Error in uploadAudio:", error);
-    }
-  };
-
-  const sendAudioMessage = async (audioUrl: string) => {
-    try {
-      const currentTime = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      const message = {
-        id: Date.now().toString(),
-        text: "",
-        sender: "me",
-        time: currentTime,
-        read: true,
-        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-        senderName: "Tôi",
-        audio: audioUrl,
-        reaction: null,
-      };
-
-      setMessages((prev) => [...prev, message]);
-
-      const messageResponse = await axios.post(
-        "https://your-api-domain.com/api/message",
-        {
-          chatId: chatId,
-          senderId: "me",
-          content: "",
-          audioUrl,
-          timestamp: new Date().toISOString(),
-        },
-        {
-          headers: {
-            // Authorization: `Bearer ${yourToken}`,
-          },
-        }
-      );
-
-      console.log("Message API response:", messageResponse.data);
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể gửi tin nhắn thoại. Vui lòng thử lại.");
-      console.error("Error in sendAudioMessage:", error);
-    }
-  };
-
-  const playAudio = async (audioUrl: string, messageId: string) => {
-    try {
-      if (sound && playingAudioId === messageId) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-        setSound(null);
-        setPlayingAudioId(null);
-        return;
-      }
-
-      const { sound: newSound } = await Audio.Sound.createAsync({ uri: audioUrl });
-      setSound(newSound);
-      setPlayingAudioId(messageId);
-      await newSound.playAsync();
-
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          newSound.unloadAsync();
-          setSound(null);
-          setPlayingAudioId(null);
-        }
-      });
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể phát âm thanh. Vui lòng thử lại.");
-      console.error("Error in playAudio:", error);
-    }
-  };
-
-  const forwardMessage = async (targetChatId: string) => {
-    if (!actionMessage) return;
-
-    try {
-      const payload: any = {
-        chatId: targetChatId,
-        senderId: "me",
-        content: actionMessage.text || "",
-        timestamp: new Date().toISOString(),
-      };
-
-      if (actionMessage.images) payload.images = actionMessage.images;
-      if (actionMessage.files) payload.files = actionMessage.files;
-      if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
-
-      const response = await axios.post(
-        "/api/message",
-        payload,
-        {
-          headers: {
-            // Authorization: `Bearer ${yourToken}`,
-          },
-        }
-      );
-
-      console.log("Forward message response:", response.data);
-      Alert.alert("Thành công", "Tin nhắn đã được chuyển tiếp!");
-      setShowForwardModal(false);
-      setShowActionModal(false);
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể chuyển tiếp tin nhắn. Vui lòng thử lại.");
-      console.error("Error in forwardMessage:", error);
-    }
-  };
-
-  const sendMessage = (text?: string, images?: string[], files?: string[]) => {
-    const trimmedText = text?.trim() ?? "";
-    if (trimmedText === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
-
-    if (editingMessageId) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === editingMessageId
-            ? { ...msg, text: text || "", isEdited: true }
-            : msg
-        )
-      );
-      setEditingMessageId(null);
-      setEditText("");
-    } else {
-      const currentTime = new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: text || "",
-          sender: "me",
-          time: currentTime,
-          read: true,
-          avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-          senderName: "Tôi",
-          images: images || null,
-          files: files || null,
-          audio: null,
-          reaction: null,
-        },
-      ]);
-    }
-
-    setInputText("");
-    setIsTyping(false);
-    setSelectedImages([]);
-    setSelectedFiles([]);
-  };
+  const filteredMessages = messages.filter((msg) =>
+    msg.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Quyền truy cập bị từ chối", "Vui lòng cấp quyền truy cập vào thư viện ảnh.");
+      alert("Quyền truy cập bị từ chối. Vui lòng cấp quyền truy cập vào thư viện ảnh.");
       return;
     }
 
@@ -350,7 +123,7 @@ const ChatDetail = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const imageUris = result.assets.map((asset) => asset.uri);
       setSelectedImages(imageUris);
-      sendMessage("", imageUris);
+      sendMessage("", imageUris, [], setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
     }
   };
 
@@ -375,7 +148,7 @@ const ChatDetail = () => {
         uploadFiles(files);
       }
     } catch (error) {
-      Alert.alert("Lỗi", "Không thể chọn file. Vui lòng thử lại.");
+      alert("Lỗi: Không thể chọn file. Vui lòng thử lại.");
       console.error("Error in pickDocument:", error);
     }
   };
@@ -413,286 +186,17 @@ const ChatDetail = () => {
 
       if (uploadedUrls.length > 0) {
         console.log("Uploaded URLs:", uploadedUrls);
-        sendMessage("", [], uploadedUrls);
+        sendMessage("", [], uploadedUrls, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
       } else {
-        Alert.alert("Lỗi", "Không thể tải file lên server.");
+        alert("Lỗi: Không thể tải file lên server.");
       }
     } catch (error) {
-      Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
+      alert("Lỗi: Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
       console.error("Error in uploadFiles:", error);
     }
   };
 
-  const copyMessage = (text: string) => {
-    if (text === "Tin nhắn đã được thu hồi") {
-      Alert.alert("Không thể sao chép");
-      return;
-    }
-    Clipboard.setString(text);
-    setShowActionModal(false);
-  };
-
-  const handleReactionSelect = (emoji: string) => {
-    if (!selectedMessageId) return;
-
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === selectedMessageId ? { ...msg, reaction: emoji } : msg
-      )
-    );
-    setShowReactionPicker(false);
-    setSelectedMessageId(null);
-    setShowActionModal(false);
-  };
-
-  const handleRecallMessage = (id: string, isMyMessage: boolean) => {
-    if (!isMyMessage) {
-      Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
-      return;
-    }
-
-    Alert.alert("Thu hồi tin nhắn", "Bạn có chắc muốn thu hồi tin nhắn này?", [
-      { text: "Hủy", style: "cancel" },
-      {
-        text: "Thu hồi",
-        style: "destructive",
-        onPress: () => {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === id
-                ? { ...msg, text: "Tin nhắn đã được thu hồi", images: null, files: null, audio: null, reaction: null }
-                : msg
-            )
-          );
-          setShowActionModal(false);
-        },
-      },
-    ]);
-  };
-
-  const handleEditMessage = (id: string, text: string) => {
-    setEditingMessageId(id);
-    setEditText(text);
-    setInputText(text);
-    setShowActionModal(false);
-  };
-
-  const cancelEdit = () => {
-    setEditingMessageId(null);
-    setEditText("");
-    setInputText("");
-  };
-
-  const openImageModal = (messageImages: string[], selectedIndex: number) => {
-    const allImages: string[] = [];
-    messages.forEach((msg) => {
-      if (msg.images && msg.images.length > 0) {
-        allImages.push(...msg.images);
-      }
-    });
-
-    let globalIndex = 0;
-    let found = false;
-    for (const msg of messages) {
-      if (msg.images && msg.images.length > 0) {
-        for (let i = 0; i < msg.images.length; i++) {
-          if (msg.images[i] === messageImages[selectedIndex]) {
-            globalIndex += i;
-            found = true;
-            break;
-          }
-          globalIndex++;
-        }
-        if (found) break;
-      }
-    }
-
-    setAllImageUris(allImages);
-    setInitialImageIndex(globalIndex);
-    setCurrentImageIndex(globalIndex);
-    setShowImageModal(true);
-  };
-
-  const closeImageModal = () => {
-    setShowImageModal(false);
-    setAllImageUris([]);
-    setInitialImageIndex(0);
-    setCurrentImageIndex(0);
-  };
-
-  // Hàm hiển thị modal thông tin người dùng
-  const showUserInfo = (user: { name: string; avatar: string }) => {
-    setSelectedUser({
-      name: user.name,
-      avatar: user.avatar,
-      status: user.name === "Tôi" ? "Đang hoạt động" : "Offline", // Giả lập trạng thái
-      phone: user.name === "Tôi" ? "+84 123 456 789" : "+84 987 654 321", // Giả lập số điện thoại
-    });
-    setShowUserInfoModal(true);
-  };
-
-  const closeUserInfoModal = () => {
-    setShowUserInfoModal(false);
-    setSelectedUser(null);
-  };
-
-  const toggleSearchBar = () => {
-    setShowSearchBar(!showSearchBar);
-    setSearchQuery("");
-  };
-
-  const filteredMessages = messages.filter((msg) =>
-    msg.text.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const renderImageItem = ({ item }: { item: string }) => (
-    <View style={styles.fullScreenImageContainer}>
-      <Image
-        source={{ uri: item }}
-        style={styles.fullScreenImage}
-        resizeMode="contain"
-      />
-    </View>
-  );
-
-  const renderMessageItem = ({ item }: { item: any }) => {
-    const isMyMessage = item.sender === "me";
-
-    return (
-      <View
-        style={[
-          styles.messageRow,
-          {
-            justifyContent: isMyMessage ? "flex-end" : "flex-start",
-          },
-        ]}
-      >
-        {!isMyMessage && (
-          <TouchableOpacity onPress={() => showUserInfo({ name: item.senderName, avatar: item.avatar })}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          onLongPress={() => {
-            setActionMessage(item);
-            setShowActionModal(true);
-          }}
-          onPress={() => handleRecallMessage(item.id, isMyMessage)}
-          activeOpacity={0.8}
-          style={[
-            styles.messageContainer,
-            isMyMessage ? styles.myMessage : styles.otherMessage,
-            isDark && {
-              backgroundColor: isMyMessage ? "#2563eb" : "#374151",
-            },
-          ]}
-        >
-          {!isMyMessage && <Text style={styles.senderName}>{item.senderName}</Text>}
-          {item.images && item.images.length > 0 && (
-            <View style={styles.imageContainer}>
-              {item.images.length === 1 ? (
-                <TouchableOpacity onPress={() => openImageModal(item.images, 0)}>
-                  <Image source={{ uri: item.images[0] }} style={styles.singleImage} />
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.imageGrid}>
-                  {item.images.map((imageUri: string, index: number) => (
-                    <TouchableOpacity key={index} onPress={() => openImageModal(item.images, index)}>
-                      <Image source={{ uri: imageUri }} style={styles.gridImage} />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
-          {item.files && item.files.length > 0 && (
-            <View style={styles.fileContainer}>
-              {item.files.map((fileUrl: string, index: number) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    Alert.alert("Mở file", `Mở file tại: ${fileUrl}`);
-                  }}
-                  style={styles.fileItem}
-                >
-                  <Ionicons name="document-outline" size={20} color="#3b82f6" style={styles.fileIcon} />
-                  <Text style={styles.fileText}>{fileUrl.split("/").pop()}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-          {item.audio && (
-            <View style={styles.audioContainer}>
-              <TouchableOpacity
-                onPress={() => playAudio(item.audio, item.id)}
-                style={styles.audioButton}
-              >
-                <Ionicons
-                  name={playingAudioId === item.id ? "pause" : "play"}
-                  size={20}
-                  color="#3b82f6"
-                  style={styles.audioIcon}
-                />
-                <Text style={styles.audioText}>Tin nhắn thoại</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          {item.text !== "" && (
-            <Text style={isMyMessage ? styles.myMessageText : styles.otherMessageText}>
-              {item.text}
-              {item.isEdited && (
-                <Text style={styles.editedLabel}> (đã chỉnh sửa)</Text>
-              )}
-            </Text>
-          )}
-          {item.reaction && (
-            <Text style={styles.reactionText}>{item.reaction}</Text>
-          )}
-          <View style={styles.metaInfo}>
-            <Text style={styles.timestamp}>{item.time}</Text>
-            {item.read && isMyMessage && (
-              <MaterialIcons name="check-circle" size={14} color="#3b82f6" style={styles.readIcon} />
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  const renderActionItem = ({ item }: { item: { icon: string; label: string; onPress: () => void; destructive?: boolean } }) => (
-    <TouchableOpacity
-      style={styles.actionItem}
-      onPress={item.onPress}
-    >
-      <Ionicons
-        name={item.icon as keyof typeof Ionicons.glyphMap}
-        size={20}
-        color={item.destructive ? "#ef4444" : isDark ? "#d1d5db" : "#374151"}
-        style={styles.actionIcon}
-      />
-      <Text
-        style={[
-          styles.actionText,
-          item.destructive && styles.destructiveText,
-          isDark && !item.destructive && styles.darkActionText,
-        ]}
-      >
-        {item.label}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderChatItem = ({ item }: { item: { id: string; name: string; avatar: string } }) => (
-    <TouchableOpacity
-      style={styles.chatItem}
-      onPress={() => forwardMessage(item.id)}
-    >
-      <Image source={{ uri: item.avatar }} style={styles.chatAvatar} />
-      <Text style={[styles.chatName, isDark && styles.darkChatName]}>{item.name}</Text>
-    </TouchableOpacity>
-  );
-
-  const getActionItems = (): { icon: string; label: string; onPress: () => void; destructive?: boolean }[] => {
+  const getActionItems = () => {
     if (!actionMessage) return [];
 
     const isMyMessage = actionMessage.sender === "me";
@@ -709,7 +213,7 @@ const ChatDetail = () => {
       {
         icon: "copy-outline",
         label: "Sao chép",
-        onPress: () => copyMessage(actionMessage.text),
+        onPress: () => copyMessage(actionMessage.text, setShowActionModal),
       },
       {
         icon: "share-outline",
@@ -726,13 +230,12 @@ const ChatDetail = () => {
         {
           icon: "pencil-outline",
           label: "Chỉnh sửa",
-          onPress: () => handleEditMessage(actionMessage.id, actionMessage.text),
+          onPress: () => handleEditMessage(actionMessage.id, actionMessage.text, setEditingMessageId, setEditText, setInputText, setShowActionModal),
         },
         {
           icon: "trash-outline",
           label: "Thu hồi",
-          onPress: () => handleRecallMessage(actionMessage.id, isMyMessage),
-          destructive: true,
+          onPress: () => handleRecallMessage(actionMessage.id, isMyMessage, setMessages, setShowActionModal),
         }
       );
     }
@@ -754,7 +257,7 @@ const ChatDetail = () => {
           <TouchableOpacity style={styles.headerIcon}>
             <Ionicons name="videocam-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIcon} onPress={toggleSearchBar}>
+          <TouchableOpacity style={styles.headerIcon} onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}>
             <Ionicons name="search-outline" size={22} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIcon}>
@@ -773,7 +276,7 @@ const ChatDetail = () => {
             onChangeText={setSearchQuery}
             autoFocus
           />
-          <TouchableOpacity onPress={toggleSearchBar} style={styles.cancelSearchButton}>
+          <TouchableOpacity onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)} style={styles.cancelSearchButton}>
             <Text style={styles.cancelSearchText}>Hủy</Text>
           </TouchableOpacity>
         </View>
@@ -783,7 +286,33 @@ const ChatDetail = () => {
         ref={flatListRef}
         data={searchQuery ? filteredMessages : messages}
         keyExtractor={(item) => item.id}
-        renderItem={renderMessageItem}
+        renderItem={({ item }) => (
+          <RenderMessageItem
+            item={item}
+            setActionMessage={setActionMessage}
+            setShowActionModal={setShowActionModal}
+            messages={messages}
+            setMessages={setMessages}
+            setSelectedMessageId={setSelectedMessageId}
+            setShowReactionPicker={setShowReactionPicker}
+            setShowForwardModal={setShowForwardModal}
+            setEditingMessageId={setEditingMessageId}
+            setEditText={setEditText}
+            setInputText={setInputText}
+            setShowImageModal={setShowImageModal}
+            setAllImageUris={setAllImageUris}
+            setInitialImageIndex={setInitialImageIndex}
+            setCurrentImageIndex={setCurrentImageIndex}
+            showUserInfo={(user) => showUserInfo(user, setSelectedUser, setShowUserInfoModal)}
+            setShowUserInfoModal={setShowUserInfoModal}
+            setSelectedUser={setSelectedUser}
+            sound={sound}
+            setSound={setSound}
+            playingAudioId={playingAudioId}
+            setPlayingAudioId={setPlayingAudioId}
+            isDark={isDark}
+          />
+        )}
         contentContainerStyle={styles.flatListContent}
       />
 
@@ -800,7 +329,11 @@ const ChatDetail = () => {
         >
           <View style={styles.reactionModalContent}>
             {REACTIONS.map((emoji) => (
-              <TouchableOpacity key={emoji} onPress={() => handleReactionSelect(emoji)} style={styles.reactionButton}>
+              <TouchableOpacity
+                key={emoji}
+                onPress={() => handleReactionSelect(emoji, selectedMessageId, setMessages, setShowReactionPicker, setSelectedMessageId, setShowActionModal)}
+                style={styles.reactionButton}
+              >
                 <Text style={styles.reactionEmoji}>{emoji}</Text>
               </TouchableOpacity>
             ))}
@@ -810,12 +343,12 @@ const ChatDetail = () => {
 
       <Modal visible={showImageModal} transparent animationType="fade">
         <View style={styles.imageModalContainer}>
-          <TouchableOpacity style={styles.imageModalOverlay} onPress={closeImageModal} />
+          <TouchableOpacity style={styles.imageModalOverlay} onPress={() => closeImageModal(setShowImageModal, setAllImageUris, setInitialImageIndex, setCurrentImageIndex)} />
           <View style={styles.imageModalContent}>
             <FlatList
               ref={imageFlatListRef}
               data={allImageUris}
-              renderItem={renderImageItem}
+              renderItem={RenderImageItem}
               keyExtractor={(item, index) => index.toString()}
               horizontal
               pagingEnabled
@@ -836,7 +369,7 @@ const ChatDetail = () => {
                 {currentImageIndex + 1}/{allImageUris.length}
               </Text>
             )}
-            <TouchableOpacity style={styles.closeImageButton} onPress={closeImageModal}>
+            <TouchableOpacity style={styles.closeImageButton} onPress={() => closeImageModal(setShowImageModal, setAllImageUris, setInitialImageIndex, setCurrentImageIndex)}>
               <Ionicons name="close" size={30} color="white" />
             </TouchableOpacity>
           </View>
@@ -851,7 +384,7 @@ const ChatDetail = () => {
           <View style={[styles.actionModalContent, isDark && styles.darkActionModalContent]}>
             <FlatList
               data={getActionItems()}
-              renderItem={renderActionItem}
+              renderItem={({ item }) => <RenderActionItem item={item} />}
               keyExtractor={(item) => item.label}
               contentContainerStyle={styles.actionListContent}
             />
@@ -870,7 +403,7 @@ const ChatDetail = () => {
             </Text>
             <FlatList
               data={mockChats}
-              renderItem={renderChatItem}
+              renderItem={({ item }) => <RenderChatItem item={item} forwardMessage={() => forwardMessage(item.id, actionMessage, setShowForwardModal, setShowActionModal)} />}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.chatListContent}
             />
@@ -884,11 +417,10 @@ const ChatDetail = () => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal hiển thị thông tin người dùng */}
       <Modal visible={showUserInfoModal} transparent animationType="fade">
         <TouchableOpacity
           style={styles.userInfoModalContainer}
-          onPress={closeUserInfoModal}
+          onPress={() => closeUserInfoModal(setShowUserInfoModal, setSelectedUser)}
         >
           <View style={[styles.userInfoModalContent, isDark && styles.darkUserInfoModalContent]}>
             {selectedUser && (
@@ -911,7 +443,7 @@ const ChatDetail = () => {
                 </View>
                 <TouchableOpacity
                   style={styles.closeUserInfoButton}
-                  onPress={closeUserInfoModal}
+                  onPress={() => closeUserInfoModal(setShowUserInfoModal, setSelectedUser)}
                 >
                   <Text style={styles.closeUserInfoText}>Đóng</Text>
                 </TouchableOpacity>
@@ -924,7 +456,7 @@ const ChatDetail = () => {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={80}>
         <View style={styles.inputContainer}>
           {editingMessageId && (
-            <TouchableOpacity onPress={cancelEdit} style={styles.inputIcon}>
+            <TouchableOpacity onPress={() => cancelEdit(setEditingMessageId, setEditText, setInputText)} style={styles.inputIcon}>
               <Ionicons name="close-circle-outline" size={26} color="#ef4444" />
             </TouchableOpacity>
           )}
@@ -935,7 +467,7 @@ const ChatDetail = () => {
             <Ionicons name="document-attach-outline" size={26} color="#3b82f6" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={isRecording ? stopRecording : startRecording}
+            onPress={isRecording ? () => stopRecording(recording, setRecording, setIsRecording) : () => startRecording(setRecording, setIsRecording)}
             style={styles.inputIcon}
           >
             <Ionicons
@@ -953,10 +485,10 @@ const ChatDetail = () => {
               setInputText(text);
               setIsTyping(text.length > 0);
             }}
-            onSubmitEditing={() => sendMessage(inputText)}
+            onSubmitEditing={() => sendMessage(inputText, [], [], setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles)}
             returnKeyType="send"
           />
-          <TouchableOpacity onPress={() => sendMessage(inputText)} style={styles.sendButton}>
+          <TouchableOpacity onPress={() => sendMessage(inputText, [], [], setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles)} style={styles.sendButton}>
             <Ionicons name={editingMessageId ? "save" : "send"} size={20} color="white" />
           </TouchableOpacity>
         </View>
@@ -964,455 +496,5 @@ const ChatDetail = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  darkContainer: {
-    backgroundColor: "#111827",
-  },
-  header: {
-    padding: 12,
-    backgroundColor: "#3b82f6",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 18,
-    marginLeft: 12,
-    flex: 1,
-  },
-  headerIcons: {
-    flexDirection: "row",
-  },
-  headerIcon: {
-    marginHorizontal: 6,
-  },
-  messageRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    marginVertical: 4,
-    paddingHorizontal: 10,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 6,
-  },
-  messageContainer: {
-    padding: 10,
-    borderRadius: 16,
-    maxWidth: "75%",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  myMessage: {
-    backgroundColor: "#E1F5FE",
-    borderTopRightRadius: 0,
-    alignSelf: "flex-end",
-    marginLeft: 50,
-  },
-  otherMessage: {
-    backgroundColor: "#e5e7eb",
-    borderTopLeftRadius: 0,
-    alignSelf: "flex-start",
-    marginRight: 50,
-  },
-  myMessageText: {
-    color: "black",
-    fontSize: 16,
-  },
-  otherMessageText: {
-    color: "#111827",
-    fontSize: 16,
-  },
-  senderName: {
-    fontWeight: "bold",
-    fontSize: 13,
-    marginBottom: 4,
-    color: "#374151",
-  },
-  metaInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    marginTop: 4,
-  },
-  timestamp: {
-    fontSize: 10,
-    color: "#6b7280",
-  },
-  readIcon: {
-    marginLeft: 4,
-  },
-  imageContainer: {
-    marginBottom: 6,
-  },
-  singleImage: {
-    width: 180,
-    height: 180,
-    borderRadius: 10,
-  },
-  imageGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    width: Dimensions.get("window").width * 0.65,
-  },
-  gridImage: {
-    width: Dimensions.get("window").width * 0.65 / 3 - 8,
-    height: Dimensions.get("window").width * 0.65 / 3 - 8,
-    borderRadius: 10,
-    marginRight: 6,
-    marginBottom: 6,
-  },
-  fileContainer: {
-    marginBottom: 6,
-  },
-  fileItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    marginBottom: 4,
-  },
-  fileIcon: {
-    marginRight: 8,
-  },
-  fileText: {
-    fontSize: 14,
-    color: "#374151",
-  },
-  audioContainer: {
-    marginBottom: 6,
-  },
-  audioButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-  },
-  audioIcon: {
-    marginRight: 8,
-  },
-  audioText: {
-    fontSize: 14,
-    color: "#374151",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    padding: 8,
-    backgroundColor: "white",
-  },
-  inputIcon: {
-    marginHorizontal: 6,
-  },
-  textInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#f3f4f6",
-    fontSize: 16,
-  },
-  darkTextInput: {
-    backgroundColor: "#1f2937",
-    color: "white",
-  },
-  sendButton: {
-    marginLeft: 8,
-    padding: 10,
-    backgroundColor: "#3b82f6",
-    borderRadius: 25,
-  },
-  editedLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontStyle: "italic",
-  },
-  reactionText: {
-    fontSize: 18,
-    marginTop: 4,
-    textAlign: "right",
-  },
-  imageModalContainer: {
-    flex: 1,
-    backgroundColor: "#000000cc",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imageModalOverlay: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  imageModalContent: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fullScreenImageContainer: {
-    width: Dimensions.get("window").width,
-    height: "80%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fullScreenImage: {
-    width: "100%",
-    height: "100%",
-  },
-  closeImageButton: {
-    position: "absolute",
-    top: 40,
-    right: 20,
-    backgroundColor: "#00000066",
-    borderRadius: 20,
-    padding: 8,
-  },
-  imageCounter: {
-    position: "absolute",
-    bottom: 20,
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    backgroundColor: "#00000066",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  actionModalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#00000066",
-  },
-  actionModalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    width: 250,
-    maxHeight: 300,
-    padding: 10,
-  },
-  darkActionModalContent: {
-    backgroundColor: "#1f2937",
-  },
-  actionListContent: {
-    padding: 10,
-  },
-  actionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-  },
-  actionIcon: {
-    marginRight: 10,
-  },
-  actionText: {
-    fontSize: 16,
-    color: "#374151",
-  },
-  destructiveText: {
-    color: "#ef4444",
-  },
-  darkActionText: {
-    color: "#d1d5db",
-  },
-  forwardModalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#00000066",
-  },
-  forwardModalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    width: 300,
-    maxHeight: 400,
-    padding: 20,
-  },
-  darkForwardModalContent: {
-    backgroundColor: "#1f2937",
-  },
-  forwardModalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#374151",
-  },
-  darkForwardModalTitle: {
-    color: "#d1d5db",
-  },
-  chatListContent: {
-    paddingVertical: 10,
-  },
-  chatItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-  },
-  chatAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  chatName: {
-    fontSize: 16,
-    color: "#374151",
-  },
-  darkChatName: {
-    color: "#d1d5db",
-  },
-  cancelForwardButton: {
-    marginTop: 10,
-    alignItems: "center",
-  },
-  cancelForwardText: {
-    fontSize: 16,
-    color: "#3b82f6",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "#f9fafb",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  darkSearchContainer: {
-    backgroundColor: "#1f2937",
-  },
-  searchInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#f3f4f6",
-    fontSize: 16,
-    marginRight: 10,
-  },
-  darkSearchInput: {
-    color: "white",
-    backgroundColor: "#374151",
-  },
-  cancelSearchButton: {
-    paddingHorizontal: 10,
-  },
-  cancelSearchText: {
-    fontSize: 16,
-    color: "#3b82f6",
-  },
-  typingIndicator: {
-    marginLeft: 16,
-    marginBottom: 4,
-    color: "#4b5563",
-    fontStyle: "italic",
-  },
-  darkTypingIndicator: {
-    color: "#d1d5db",
-  },
-  reactionModalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#00000066",
-  },
-  reactionModalContent: {
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 12,
-    flexDirection: "row",
-  },
-  reactionButton: {
-    marginHorizontal: 6,
-  },
-  reactionEmoji: {
-    fontSize: 24,
-  },
-  flatListContent: {
-    padding: 10,
-  },
-  // Styles cho modal thông tin người dùng
-  userInfoModalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#00000066",
-  },
-  userInfoModalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    width: 300,
-    padding: 20,
-    alignItems: "center",
-  },
-  darkUserInfoModalContent: {
-    backgroundColor: "#1f2937",
-  },
-  userInfoAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 12,
-  },
-  userInfoName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  darkUserInfoName: {
-    color: "#d1d5db",
-  },
-  userInfoDetail: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 4,
-  },
-  userInfoIcon: {
-    marginRight: 8,
-  },
-  userInfoText: {
-    fontSize: 16,
-    color: "#374151",
-  },
-  darkUserInfoText: {
-    color: "#d1d5db",
-  },
-  closeUserInfoButton: {
-    marginTop: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: "#3b82f6",
-    borderRadius: 8,
-  },
-  closeUserInfoText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});
 
 export default ChatDetail;
