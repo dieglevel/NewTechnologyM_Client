@@ -90,7 +90,7 @@ const RenderMessageItem: React.FC<Props> = ({
           setActionMessage(item);
           setShowActionModal(true);
         }}
-        onPress={() => handleRecallMessage(item.id, isMyMessage, setMessages, setShowActionModal)}
+        // onPress={() => handleRecallMessage(item.id, isMyMessage, setMessages, setShowActionModal)}
         activeOpacity={0.8}
         style={[
           styles.messageContainer,

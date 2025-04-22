@@ -8,8 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Dimensions,
   Image,
+  Alert,
+  Dimensions,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -17,12 +18,25 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
 import { useColorScheme } from "react-native";
+import { Audio } from "expo-av";
 import RenderMessageItem from "./render-message-item";
 import RenderChatItem from "./render-chat-item";
 import RenderImageItem from "./render-image-item";
 import RenderActionItem from "./render-action-item";
 import { startRecording, stopRecording } from "./audio-utils";
-import { copyMessage, handleEditMessage, sendMessage, toggleSearchBar, handleRecallMessage, handleReactionSelect, closeImageModal, forwardMessage, cancelEdit } from "./message-utils";
+import {
+  sendMessage,
+  toggleSearchBar,
+  handleReactionSelect,
+  handleRecallMessage,
+  handleEditMessage,
+  cancelEdit,
+  forwardMessage,
+  openImageModal,
+  closeImageModal,
+  copyMessage,
+  Message,
+} from "./message-utils";
 import { showUserInfo, closeUserInfoModal } from "./user-utils";
 import styles from "./styles";
 
@@ -40,22 +54,7 @@ const ChatDetail = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const [messages, setMessages] = useState<
-    {
-      id: string;
-      text: string;
-      sender: string;
-      time: string;
-      read?: boolean;
-      avatar: string;
-      senderName: string;
-      reaction: string | null;
-      images?: string[] | null;
-      files?: string[] | null;
-      audio?: string | null;
-      isEdited?: boolean;
-    }[]
-  >([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       text: "Xin chào!",
@@ -76,14 +75,27 @@ const ChatDetail = () => {
       reaction: null,
     },
   ]);
+  // Ghi chú: Bạn có thể thay thế dữ liệu mock trên bằng API để lấy danh sách tin nhắn từ server
+  // Ví dụ:
+  // useEffect(() => {
+  //   const fetchMessages = async () => {
+  //     try {
+  //       const response = await axios.get(`https://your-api-domain.com/api/chats/${chatId}/messages`);
+  //       setMessages(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching messages:", error);
+  //     }
+  //   };
+  //   fetchMessages();
+  // }, [chatId]);
 
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState<any>(null);
-  const [sound, setSound] = useState<any>(null);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
@@ -94,7 +106,7 @@ const ChatDetail = () => {
   const [initialImageIndex, setInitialImageIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [actionMessage, setActionMessage] = useState<any>(null);
+  const [actionMessage, setActionMessage] = useState<Message | null>(null);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -110,7 +122,7 @@ const ChatDetail = () => {
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      alert("Quyền truy cập bị từ chối. Vui lòng cấp quyền truy cập vào thư viện ảnh.");
+      Alert.alert("Quyền truy cập bị từ chối", "Vui lòng cấp quyền truy cập vào thư viện ảnh.");
       return;
     }
 
@@ -123,7 +135,16 @@ const ChatDetail = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const imageUris = result.assets.map((asset) => asset.uri);
       setSelectedImages(imageUris);
-      sendMessage("", imageUris, [], setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+      sendMessage("", imageUris, [], null, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+      // Ghi chú: Sau khi gửi hình ảnh cục bộ, bạn có thể tích hợp API để gửi tin nhắn chứa hình ảnh lên server
+      // Ví dụ:
+      // const payload = {
+      //   chatId: chatId,
+      //   senderId: "me",
+      //   images: imageUris,
+      //   timestamp: new Date().toISOString(),
+      // };
+      // await axios.post("https://your-api-domain.com/api/messages", payload);
     }
   };
 
@@ -148,7 +169,7 @@ const ChatDetail = () => {
         uploadFiles(files);
       }
     } catch (error) {
-      alert("Lỗi: Không thể chọn file. Vui lòng thử lại.");
+      Alert.alert("Lỗi", "Không thể chọn file. Vui lòng thử lại.");
       console.error("Error in pickDocument:", error);
     }
   };
@@ -167,6 +188,7 @@ const ChatDetail = () => {
 
         console.log("Uploading file:", file);
 
+        // Ghi chú: Thay thế URL này bằng API thực tế của bạn để tải file lên server
         const response = await axios.post(
           "https://your-api-domain.com/api/file-cloud/upload-single-file",
           formData,
@@ -186,13 +208,79 @@ const ChatDetail = () => {
 
       if (uploadedUrls.length > 0) {
         console.log("Uploaded URLs:", uploadedUrls);
-        sendMessage("", [], uploadedUrls, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+        sendMessage("", [], uploadedUrls, null, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+        // Ghi chú: Sau khi gửi file cục bộ, bạn có thể tích hợp API để gửi tin nhắn chứa file lên server
+        // Ví dụ:
+        // const payload = {
+        //   chatId: chatId,
+        //   senderId: "me",
+        //   files: uploadedUrls,
+        //   timestamp: new Date().toISOString(),
+        // };
+        // await axios.post("https://your-api-domain.com/api/messages", payload);
       } else {
-        alert("Lỗi: Không thể tải file lên server.");
+        Alert.alert("Lỗi", "Không thể tải file lên server.");
       }
     } catch (error) {
-      alert("Lỗi: Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
       console.error("Error in uploadFiles:", error);
+    }
+  };
+
+  // const handleStopRecording = async () => {
+  //   const uri = await stopRecording(recording, setRecording, setIsRecording);
+  //   if (uri) {
+  //     const audioFile = {
+  //       uri: uri,
+  //       name: `recording_${Date.now()}.m4a`,
+  //       type: "audio/m4a",
+  //     };
+  //     uploadAudio(audioFile);
+  //   }
+  // };
+
+  const uploadAudio = async (audioFile: { uri: string; name: string; type: string }) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", {
+        uri: audioFile.uri,
+        name: audioFile.name,
+        type: audioFile.type,
+      } as any);
+
+      console.log("Uploading audio:", audioFile);
+
+      // Ghi chú: Thay thế URL này bằng API thực tế của bạn để tải file âm thanh lên server
+      const response = await axios.post(
+        "https://your-api-domain.com/api/file-cloud/upload-single-file",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Upload audio response:", response.data);
+
+      if (response.data && response.data.url) {
+        const audioUrl = response.data.url;
+        sendMessage("", [], [], audioUrl, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+        // Ghi chú: Sau khi gửi âm thanh cục bộ, bạn có thể tích hợp API để gửi tin nhắn chứa âm thanh lên server
+        // Ví dụ:
+        // const payload = {
+        //   chatId: chatId,
+        //   senderId: "me",
+        //   audio: audioUrl,
+        //   timestamp: new Date().toISOString(),
+        // };
+        // await axios.post("https://your-api-domain.com/api/messages", payload);
+      } else {
+        Alert.alert("Lỗi", "Không thể tải file âm thanh lên server.");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file âm thanh. Vui lòng thử lại.");
+      console.error("Error in uploadAudio:", error);
     }
   };
 
@@ -208,6 +296,12 @@ const ChatDetail = () => {
           setSelectedMessageId(actionMessage.id);
           setShowReactionPicker(true);
           setShowActionModal(false);
+          // Ghi chú: Bạn có thể tích hợp API để gửi phản ứng lên server
+          // Ví dụ (trong handleReactionSelect trong message-utils.tsx):
+          // await axios.post("https://your-api-domain.com/api/messages/reaction", {
+          //   messageId: selectedMessageId,
+          //   reaction: emoji,
+          // });
         },
       },
       {
@@ -231,17 +325,32 @@ const ChatDetail = () => {
           icon: "pencil-outline",
           label: "Chỉnh sửa",
           onPress: () => handleEditMessage(actionMessage.id, actionMessage.text, setEditingMessageId, setEditText, setInputText, setShowActionModal),
+          // Ghi chú: Bạn có thể tích hợp API để gửi tin nhắn đã chỉnh sửa lên server
+          // Ví dụ (trong sendMessage trong message-utils.tsx khi editingMessageId tồn tại):
+          // await axios.put(`https://your-api-domain.com/api/messages/${editingMessageId}`, {
+          //   text: text,
+          // });
         },
         {
           icon: "trash-outline",
           label: "Thu hồi",
           onPress: () => handleRecallMessage(actionMessage.id, isMyMessage, setMessages, setShowActionModal),
-        }
+          // Ghi chú: Bạn có thể tích hợp API để gửi yêu cầu thu hồi tin nhắn lên server
+          // Ví dụ (trong handleRecallMessage trong message-utils.tsx):
+          // await axios.delete(`https://your-api-domain.com/api/messages/${id}`);
+        },
       );
     }
 
     return items;
   };
+
+  // Tối ưu hóa FlatList: Cuộn đến tin nhắn mới nhất khi có tin nhắn mới
+  useEffect(() => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
 
   return (
     <View style={[styles.container, isDark && styles.darkContainer]}>
@@ -314,6 +423,9 @@ const ChatDetail = () => {
           />
         )}
         contentContainerStyle={styles.flatListContent}
+        initialNumToRender={10} // Tối ưu hóa hiệu suất
+        maxToRenderPerBatch={10}
+        windowSize={5}
       />
 
       {isTyping && !showSearchBar && (
@@ -403,10 +515,32 @@ const ChatDetail = () => {
             </Text>
             <FlatList
               data={mockChats}
-              renderItem={({ item }) => <RenderChatItem item={item} forwardMessage={() => forwardMessage(item.id, actionMessage, setShowForwardModal, setShowActionModal)} />}
+              renderItem={({ item }) => (
+                <RenderChatItem
+                  item={item}
+                  forwardMessage={() => {
+                    if (actionMessage) {
+                      forwardMessage(item.id, actionMessage, setShowForwardModal, setShowActionModal);
+                    }
+                  }}
+                />
+              )}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.chatListContent}
             />
+            {/* Ghi chú: Thay thế mockChats bằng API để lấy danh sách cuộc trò chuyện thực tế */}
+            {/* Ví dụ: */}
+            {/* useEffect(() => {
+              const fetchChats = async () => {
+                try {
+                  const response = await axios.get("https://your-api-domain.com/api/chats");
+                  setChats(response.data);
+                } catch (error) {
+                  console.error("Error fetching chats:", error);
+                }
+              };
+              fetchChats();
+            }, []); */}
             <TouchableOpacity
               style={styles.cancelForwardButton}
               onPress={() => setShowForwardModal(false)}
@@ -467,7 +601,13 @@ const ChatDetail = () => {
             <Ionicons name="document-attach-outline" size={26} color="#3b82f6" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={isRecording ? () => stopRecording(recording, setRecording, setIsRecording) : () => startRecording(setRecording, setIsRecording)}
+            onPress={() => {
+              if (isRecording) {
+                // handleStopRecording();
+              } else {
+                startRecording(setRecording, setIsRecording);
+              }
+            }}
             style={styles.inputIcon}
           >
             <Ionicons
@@ -485,10 +625,24 @@ const ChatDetail = () => {
               setInputText(text);
               setIsTyping(text.length > 0);
             }}
-            onSubmitEditing={() => sendMessage(inputText, [], [], setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles)}
+            onSubmitEditing={() => {
+              sendMessage(inputText, [], [], null, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+              // Ghi chú: Sau khi gửi tin nhắn cục bộ, bạn có thể tích hợp API để gửi tin nhắn lên server
+              // Ví dụ:
+              // const payload = {
+              //   chatId: chatId,
+              //   senderId: "me",
+              //   content: inputText,
+              //   timestamp: new Date().toISOString(),
+              // };
+              // await axios.post("https://your-api-domain.com/api/messages", payload);
+            }}
             returnKeyType="send"
           />
-          <TouchableOpacity onPress={() => sendMessage(inputText, [], [], setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles)} style={styles.sendButton}>
+          <TouchableOpacity onPress={() => {
+            sendMessage(inputText, [], [], null, setMessages, editingMessageId, setEditingMessageId, setEditText, setInputText, setIsTyping, setSelectedImages, setSelectedFiles);
+            // Ghi chú: Sau khi gửi tin nhắn cục bộ, bạn có thể tích hợp API để gửi tin nhắn lên server (tương tự như trên)
+          }} style={styles.sendButton}>
             <Ionicons name={editingMessageId ? "save" : "send"} size={20} color="white" />
           </TouchableOpacity>
         </View>

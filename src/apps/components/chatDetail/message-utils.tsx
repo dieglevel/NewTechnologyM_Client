@@ -2,7 +2,6 @@ import { Alert } from "react-native";
 import Clipboard from "@react-native-clipboard/clipboard";
 import axios from "axios";
 
-// Định nghĩa kiểu Message để sử dụng cho messages
 interface Message {
   id: string;
   text: string;
@@ -18,31 +17,47 @@ interface Message {
   isEdited?: boolean;
 }
 
+interface FileObject {
+  uri: string;
+  name: string;
+  type: string;
+}
+
 const sendMessage = (
   text: string = "",
   images: string[] = [],
   files: string[] = [],
-  setMessages: (messages: ((prev: Message[]) => Message[]) | Message[]) => void,
+  audio: string | null = null,
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   editingMessageId: string | null,
   setEditingMessageId: (id: string | null) => void,
   setEditText: (text: string) => void,
   setInputText: (text: string) => void,
   setIsTyping: (typing: boolean) => void,
   setSelectedImages: (images: string[]) => void,
-  setSelectedFiles: (files: { uri: string; name: string; type: string }[]) => void
+  setSelectedFiles: (files: FileObject[]) => void
 ) => {
   const trimmedText = text.trim();
-  if (trimmedText === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
+  if (!trimmedText && images.length === 0 && files.length === 0 && !audio) {
+    return;
+  }
 
   if (editingMessageId) {
-    setMessages((prev: Message[]) => {
-          const updatedMessages = prev.map((msg) =>
-            msg.id === editingMessageId
-              ? { ...msg, text: text || "", isEdited: true }
-              : msg
-          );
-          return updatedMessages;
-        });
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === editingMessageId
+          ? { ...msg, text: trimmedText, isEdited: true }
+          : msg
+      )
+    );
+        // Ghi chú: Gửi API cập nhật tin nhắn đã chỉnh sửa
+    // axios.put(`/api/messages/${editingMessageId}`, {
+    //   text,
+    //   images,
+    //   files,
+    //   audio,
+    //   editedAt: new Date().toISOString(),
+    // });
     setEditingMessageId(null);
     setEditText("");
   } else {
@@ -50,24 +65,31 @@ const sendMessage = (
       hour: "2-digit",
       minute: "2-digit",
     });
-    setMessages((prev: Message[]) => {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: text || "",
-        sender: "me",
-        time: currentTime,
-        read: true,
-        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-        senderName: "Tôi",
-        images: images || null,
-        files: files || null,
-        audio: null,
-        reaction: null,
-      };
-      return [...prev, newMessage];
-    });
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text: trimmedText,
+      sender: "me",
+      time: currentTime,
+      read: true,
+      avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+      senderName: "Tôi",
+      images: images.length > 0 ? images : null,
+      files: files.length > 0 ? files : null,
+      audio: audio || null,
+      reaction: null,
+    };
+    setMessages((prev) => [...prev, newMessage]);
   }
-
+   // Ghi chú: Gửi API tạo tin nhắn mới
+    // axios.post("/api/messages", {
+    //   chatId: "your-chat-id",
+    //   senderId: "me",
+    //   content: text,
+    //   images,
+    //   files,
+    //   audio,
+    //   timestamp: new Date().toISOString(),
+    // });
   setInputText("");
   setIsTyping(false);
   setSelectedImages([]);
@@ -93,12 +115,9 @@ const forwardMessage = async (
     if (actionMessage.images) payload.images = actionMessage.images;
     if (actionMessage.files) payload.files = actionMessage.files;
     if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
-
-    const response = await axios.post("/api/message", payload, {
-      headers: {
-        // Authorization: `Bearer ${yourToken}`,
-      },
-    });
+    // Ghi chú: Gửi API để chuyển tiếp tin nhắn
+    // axios.post("/api/message/forward", payload);
+    const response = await axios.post("/api/message", payload);
 
     console.log("Forward message response:", response.data);
     Alert.alert("Thành công", "Tin nhắn đã được chuyển tiếp!");
@@ -113,18 +132,23 @@ const forwardMessage = async (
 const handleReactionSelect = (
   emoji: string,
   selectedMessageId: string | null,
-  setMessages: (messages: ((prev: Message[]) => Message[]) | Message[]) => void,
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   setShowReactionPicker: (show: boolean) => void,
   setSelectedMessageId: (id: string | null) => void,
   setShowActionModal: (show: boolean) => void
 ) => {
   if (!selectedMessageId) return;
 
-  setMessages((prev: Message[]) => 
-    prev.map((msg) => 
+  setMessages((prev) =>
+    prev.map((msg) =>
       msg.id === selectedMessageId ? { ...msg, reaction: emoji } : msg
     )
   );
+  // Ghi chú: Gửi API để lưu phản ứng lên server
+  // axios.post("/api/messages/reaction", {
+  //   messageId: selectedMessageId,
+  //   reaction: emoji,
+  // });
   setShowReactionPicker(false);
   setSelectedMessageId(null);
   setShowActionModal(false);
@@ -133,7 +157,7 @@ const handleReactionSelect = (
 const handleRecallMessage = (
   id: string,
   isMyMessage: boolean,
-  setMessages: (messages: Message[]) => void,
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
   setShowActionModal: (show: boolean) => void
 ) => {
   if (!isMyMessage) {
@@ -146,23 +170,26 @@ const handleRecallMessage = (
     {
       text: "Thu hồi",
       style: "destructive",
-    //   onPress: () => {
-    //     setMessages((prev: Message[]) =>
-    //       prev.map((msg) =>
-    //         msg.id === id
-    //           ? {
-    //               ...msg,
-    //               text: "Tin nhắn đã được thu hồi",
-    //               images: null,
-    //               files: null,
-    //               audio: null,
-    //               reaction: null,
-    //             }
-    //           : msg
-    //       )
-    //     );
-    //     setShowActionModal(false);
-    //   },
+      onPress: () => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === id
+              ? {
+                  ...msg,
+                  text: "Tin nhắn đã được thu hồi",
+                  images: null,
+                  files: null,
+                  audio: null,
+                  reaction: null,
+                }
+              : msg
+          )
+        );
+        // Ghi chú: Gửi API để thu hồi tin nhắn khỏi server
+        // axios.delete(`/api/messages/${id}`);
+
+        setShowActionModal(false);
+      },
     },
   ]);
 };
@@ -202,7 +229,7 @@ const openImageModal = (
 ) => {
   const allImages: string[] = [];
   messages.forEach((msg) => {
-    if (msg.images && msg.images.length > 0) {
+    if (msg.images) {
       allImages.push(...msg.images);
     }
   });
@@ -210,7 +237,7 @@ const openImageModal = (
   let globalIndex = 0;
   let found = false;
   for (const msg of messages) {
-    if (msg.images && msg.images.length > 0) {
+    if (msg.images) {
       for (let i = 0; i < msg.images.length; i++) {
         if (msg.images[i] === messageImages[selectedIndex]) {
           globalIndex += i;
@@ -272,5 +299,5 @@ export {
   openImageModal,
   closeImageModal,
   copyMessage,
-  toggleSearchBar,
+  toggleSearchBar, Message,
 };
