@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
 import { useColorScheme } from "react-native";
+import { Audio } from "expo-av";
 import RenderMessageItem from "./render-message-item";
 import RenderChatItem from "./render-chat-item";
 import RenderImageItem from "./render-image-item";
