@@ -77,7 +77,7 @@ export const RegisterScreen = ({ route }: any) => {
             phoneNumber={"0" + phone}
             onContinue={() => {
               setIsModalVisible(false);
-              navigation.navigate("OTP", { phone: "0" + phone });
+              navigation.navigate("OTP", { identifier: "0" + phone, type: "phone" });
             }}
             onChangeNumber={() => {
               setIsModalVisible(false);

@@ -1,28 +1,12 @@
-import { Alert } from "react-native";
-import Clipboard from "@react-native-clipboard/clipboard";
+import { Alert, Clipboard } from "react-native";
 import axios from "axios";
-
-// Định nghĩa kiểu Message để sử dụng cho messages
-interface Message {
-  id: string;
-  text: string;
-  sender: string;
-  time: string;
-  read?: boolean;
-  avatar: string;
-  senderName: string;
-  reaction: string | null;
-  images?: string[] | null;
-  files?: string[] | null;
-  audio?: string | null;
-  isEdited?: boolean;
-}
+import { IMessage } from "@/types/implement";
 
 const sendMessage = (
   text: string = "",
   images: string[] = [],
   files: string[] = [],
-  setMessages: (messages: ((prev: Message[]) => Message[]) | Message[]) => void,
+  setMessages: React.Dispatch<React.SetStateAction<IMessage[] | undefined>>,
   editingMessageId: string | null,
   setEditingMessageId: (id: string | null) => void,
   setEditText: (text: string) => void,
@@ -35,9 +19,9 @@ const sendMessage = (
   if (trimmedText === "" && (!images || images.length === 0) && (!files || files.length === 0)) return;
 
   if (editingMessageId) {
-    setMessages((prev: Message[]) => {
-          const updatedMessages = prev.map((msg) =>
-            msg.id === editingMessageId
+    setMessages((prev) => {
+          const updatedMessages = prev?.map((msg) =>
+            msg._id === editingMessageId
               ? { ...msg, text: text || "", isEdited: true }
               : msg
           );
@@ -50,22 +34,20 @@ const sendMessage = (
       hour: "2-digit",
       minute: "2-digit",
     });
-    setMessages((prev: Message[]) => {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: text || "",
-        sender: "me",
-        time: currentTime,
-        read: true,
-        avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-        senderName: "Tôi",
-        images: images || null,
-        files: files || null,
-        audio: null,
-        reaction: null,
-      };
-      return [...prev, newMessage];
-    });
+    // setMessages((prev: IMessage[]) => {
+    //   const newMessage: IMessage = {
+    //     content: text || "",
+        
+    //     read: true,
+    //     avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
+    //     senderName: "Tôi",
+    //     images: images || null,
+    //     files: files || null,
+    //     audio: null,
+    //     reaction: null,
+    //   };
+    //   return [...prev, newMessage];
+    // });
   }
 
   setInputText("");
@@ -76,7 +58,7 @@ const sendMessage = (
 
 const forwardMessage = async (
   targetChatId: string,
-  actionMessage: Message,
+  actionMessage: IMessage,
   setShowForwardModal: (show: boolean) => void,
   setShowActionModal: (show: boolean) => void
 ) => {

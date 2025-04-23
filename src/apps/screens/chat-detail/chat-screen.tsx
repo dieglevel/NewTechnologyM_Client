@@ -11,44 +11,38 @@ import { store } from "@/libs/redux/redux.config";
 import { getMessageByRoomId } from "@/services/chat";
 
 export const ChatScreen = () => {
-  const route = useRoute<ChatScreenRouteProp>();
-  const isFocused = useIsFocused();
+	const route = useRoute<ChatScreenRouteProp>();
+	const isFocused = useIsFocused();
 
-  useEffect(() => {
+	useEffect(() => {
+		const fetchMessageApi = async () => {
+			try {
+				const response = await getMessageByRoomId(route.params.room.id || "");
+				console.log(route.params.room.id);
+				if (response.statusCode === 200 && response.data) {
+					console.log("message", response.data);
+					store.dispatch(initMessage({ messages: response.data, roomId: route.params.room.id || "" }));
+				}
+			} catch (error) {
+				console.error("Error fetching messages:", error);
+			}
+		};
 
-    const fetchMessageApi = async () => {
-      try{
-        const response = await getMessageByRoomId(route.params.room.id);
-        console.log(route.params.room.id);
-        if (response.statusCode === 200 && response.data) {
-          console.log("message", response.data);
-          store.dispatch(initMessage({ messages: response.data , roomId: route.params.room.id }));
+		socketService.emit(SocketEmit.getMessageByChatRoom, {
+			roomId: route.params.room.id,
+		});
 
-        }
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    }
+		socketService.on(SocketOn.getMessageByChatRoom, async (data) => {
+			console.log("message socket", data);
+			// store.dispatch(setMessage({ messages: data, roomId: route.params.room.id }));
+		});
 
+		fetchMessageApi();
+	}, [isFocused]);
 
-
-    socketService.emit(SocketEmit.getMessageByChatRoom, {
-      roomId: route.params.room.id,
-    });
-
-    socketService.on(SocketOn.getMessageByChatRoom, async (data) => {
-
-      console.log("message socket", data);
-      // store.dispatch(setMessage({ messages: data, roomId: route.params.room.id }));
-    });
-
-    fetchMessageApi();
-
-  },[isFocused])
-
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ChatDetail />
-    </SafeAreaView>
-  );
+	return (
+		<SafeAreaView style={{ flex: 1 }}>
+			<ChatDetail room={route.params.room} />
+		</SafeAreaView>
+	);
 };

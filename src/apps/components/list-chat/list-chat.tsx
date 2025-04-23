@@ -22,7 +22,7 @@ const ChatItem = ({ item }: IChatItem) => {
 	useEffect(() => {
 		const fetchDetailRoom = async () => {
 			try {
-				const response = await getProfileFromAnotherUser(item.lastMessage.accountId);
+				const response = await getProfileFromAnotherUser(item.lastMessage?.accountId || "");
 				if (response.statusCode === 200) {
 					setDetailRoom(response.data ?? undefined);
 				}
@@ -47,7 +47,7 @@ const ChatItem = ({ item }: IChatItem) => {
 
 			<View style={styles.chatContent}>
 				<Text style={styles.chatName}>{item.name}</Text>
-				<Text style={styles.chatMessage}>{item.lastMessage.content}</Text>
+				<Text style={styles.chatMessage}>{item.lastMessage?.content}</Text>
 			</View>
 			{/* <Text style={styles.chatTime}>{item.lastMessage. ?? ""}</Text> */}
 		</TouchableOpacity>
@@ -114,7 +114,7 @@ export const ListChat = () => {
 
 			<FlatList
 				data={room}
-				keyExtractor={(item) => item.id}
+				keyExtractor={(item) => item.id? item.id : ""}
 				renderItem={({ item }) => <ChatItem item={item} />}
 				style={styles.chatList}
 			/>
