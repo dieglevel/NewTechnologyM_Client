@@ -369,7 +369,7 @@ const ChatDetail = () => {
           <TouchableOpacity style={styles.headerIcon} onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}>
             <Ionicons name="search-outline" size={22} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIcon}>
+          <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate("ChatInfoScreen")}>
             <Feather name="info" size={22} color="white" />
           </TouchableOpacity>
         </View>

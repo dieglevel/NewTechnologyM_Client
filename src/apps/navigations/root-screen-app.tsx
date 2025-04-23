@@ -6,9 +6,9 @@ import {
 	UserDetailScreen,
 	QrScreen,
 	ForgotPasswordScreen,
-
 	UpdateProfileScreen,
-	UpdatePasswordScreen
+	UpdatePasswordScreen,
+	
   } from "@/apps/screens";
   
 import { Stack } from "@/libs/navigation";
@@ -21,6 +21,7 @@ import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-se
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import { MMKV } from "react-native-mmkv";
+import ChatInfo from "../components/chatInfo/chat-info";
 
 export const RootScreenApp = () => {
 	useEffect(() => {
@@ -128,6 +129,13 @@ export const RootScreenApp = () => {
 					}}
 					name="Qr"
 					component={QrScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="ChatInfoScreen"
+					component={ChatInfo}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>
