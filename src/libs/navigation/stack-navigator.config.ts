@@ -26,6 +26,7 @@ export type RootStackParamList = {
   ForgotPasswordComponent: undefined;
   Qr: undefined;
   RequestFriendScreen: undefined;
+  ChatInfoScreen: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

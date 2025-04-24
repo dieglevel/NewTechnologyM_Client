@@ -21,6 +21,7 @@ import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import { MMKV } from "react-native-mmkv";
 import RequestFriendScreen from "../screens/request-friend/request-friend-screen";
+import ChatInfo from "../components/chatInfo/chat-info";
 
 export const RootScreenApp = () => {
 	useEffect(() => {
@@ -137,6 +138,13 @@ export const RootScreenApp = () => {
 				name="RequestFriendScreen"
 				component={RequestFriendScreen}
 			/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="ChatInfoScreen"
+					component={ChatInfo}
+				/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
