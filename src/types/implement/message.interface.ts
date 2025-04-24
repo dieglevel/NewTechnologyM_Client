@@ -2,14 +2,16 @@ import { BaseEntity } from "../base-entity";
 
 
 export interface IMessage {
-	_id?: string;
+	_id: string;
 	accountId?: string;
 	room_id?: string;
 	content?: string;
-	file?: IMessageFile[];
+	files?: IMessageFile[];
 	isDeleted?: boolean;
    createdAt?: Date;
    updatedAt?: Date;
+	sticker?: string;
+	
 }
 
 export interface IMessageFile{

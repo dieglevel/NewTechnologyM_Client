@@ -17,7 +17,6 @@ import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native"
 import axios from "axios";
 import { useColorScheme } from "react-native";
 import { Audio } from "expo-av";
-import RenderMessageItem from "./render-message-item";
 import RenderChatItem from "./render-chat-item";
 import RenderImageItem from "./render-image-item";
 import RenderActionItem from "./render-action-item";
@@ -48,8 +47,9 @@ import { socketService } from "@/libs/socket/socket";
 import { SocketEmit, SocketOn } from "@/constants/socket";
 import Header from "./header/chat-header";
 import Footer from "./footer/chat-footer";
+import RenderMessageItem from "./body/render-message-item";
 
-
+const ITEM_HEIGHT = 60;
 
 const ChatDetail = () => {
 	const navigation = useNavigation();
@@ -96,7 +96,7 @@ const ChatDetail = () => {
 			try {
 				const response = await getMessageByRoomId(selectedRoom?.id || "");
 				if (response.statusCode === 200 && response.data) {
-
+					console.log("Messages fetched:", response.data);
 					setMessages(response.data);
 				}
 			} catch (error) {
@@ -116,7 +116,6 @@ const ChatDetail = () => {
 
 	useEffect(() => {
 
-		socketService.connect();
 
 		socketService.emit(SocketEmit.joinRoom, {
 			room_id: selectedRoom?.id || "",
@@ -235,14 +234,20 @@ const ChatDetail = () => {
 
 			<FlatList
 				ref={flatListRef}
-				data={showSearchBar ? filteredMessages : messages}
-				onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-				keyExtractor={(item: IMessage) =>
-					item._id?.toString() || ""
+				data={showSearchBar ? filteredMessages : messages.slice().reverse()}
+				keyExtractor={(item: IMessage, index) =>
+					index.toString()
 				}
-				initialNumToRender={10}
-				maxToRenderPerBatch={10}
+				initialNumToRender={20}
+				maxToRenderPerBatch={20}
 				windowSize={5}
+				removeClippedSubviews
+				getItemLayout={(_, index) => ({
+				  length: ITEM_HEIGHT,
+				  offset: ITEM_HEIGHT * index,
+				  index,
+				})}
+				inverted
 				renderItem={({ item }) => (
 					<RenderMessageItem
 						item={item}

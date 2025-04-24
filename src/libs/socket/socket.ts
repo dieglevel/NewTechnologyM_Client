@@ -59,10 +59,6 @@ class SocketService {
       });
       // ---------------------------------------------------------------------------------------------------------------------------------------------
 
-
-      this.socket.emit(SocketEmit.myListRoom, {
-         lastUpdatedAt: "2025-04-10T06:14:28.148+00:00",
-      });
       this.socket.on(SocketOn.myListRoom, (data: IRoom[]) => {
          console.log("My list room updated:", data);
          store.dispatch(initRoom(data));

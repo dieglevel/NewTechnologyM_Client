@@ -1,5 +1,6 @@
 import { images } from "@/assets/images";
 import { ErrorResponse } from "@/libs/axios/axios.config";
+import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { setSelectedRoom } from "@/libs/redux";
 import { RootState } from "@/libs/redux/redux.config";
@@ -13,50 +14,52 @@ import { useDispatch, useSelector } from "react-redux";
 
 interface IChatItem {
 	item: IRoom;
+	myUserId: string;
 }
 
-const ChatItem = ({ item }: IChatItem) => {
+const ChatItem = ({ item, myUserId }: IChatItem) => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
 
-	const [detailRoom, setDetailRoom] = useState<IDetailInformation>();
-
 	const dispatch = useDispatch();
-
-	useEffect(() => {
-		const fetchDetailRoom = async () => {
-			try {
-				const response = await getProfileFromAnotherUser(item.lastMessage?.accountId || "");
-				if (response.statusCode === 200) {
-					setDetailRoom(response.data ?? undefined);
-				}
-			} catch (error) {
-				const e = error as ErrorResponse;
-			}
-		};
-		fetchDetailRoom();
-	}, []);
 
 	const handlePress = () => {
 		dispatch(setSelectedRoom(item));
 		navigation.navigate("ChatScreen", { room: item });
 	};
 
+	const renderImage = () => {
+		if (item.type === "single") {
+			const account = item.detailRoom.find((detail) => {
+				return detail.id !== myUserId;
+			});
+
+
+			return (
+				<Image
+					source={account?.avatar ? { uri: account?.avatar } : images.avatarDefault}
+					style={styles.avatarContainer}
+				/>
+			);
+		} else {
+			return (
+				<Image
+					source={item.avatar ? { uri: item?.avatar } : images.group}
+					style={[, { width: 30, height: 30 }]}
+				/>
+			);
+		}
+	};
 
 	return (
 		<TouchableOpacity
 			style={styles.chatItemContainer}
 			onPress={handlePress}
 		>
-			<View style={styles.avatarContainer}>
-				<Image
-					source={detailRoom?.avatarUrl ? { uri: detailRoom?.avatarUrl } : images.avatarDefault}
-					style={styles.avatarContainer}
-				/>
-			</View>
+			<View style={styles.avatarContainer}>{renderImage()}</View>
 
 			<View style={styles.chatContent}>
 				<Text style={styles.chatName}>{item.name}</Text>
-				<Text style={styles.chatMessage}>{item.lastMessage?.content}</Text>
+				<Text style={styles.chatMessage}>{item.latestMessage ? item.latestMessage.content : ""}</Text>
 			</View>
 			{/* <Text style={styles.chatTime}>{item.lastMessage. ?? ""}</Text> */}
 		</TouchableOpacity>
@@ -68,28 +71,16 @@ export const ListChat = () => {
 	const { room } = useSelector((state: RootState) => state.room);
 
 	const [searchText, setSearchText] = useState<string>("");
+	const [myUserId, setMyUserId] = useState<string>("");
 
-	// useEffect(() => {
-	//     const fetchRoom = async () => {
-	//         try{
-	//             const reponse = await
-	//         }
-	//         catch (error) {
-
-	//         }
-	//     }
-	// },[])
-
-	// const [filteredData, setFilteredData] = useState<IChatItem[]>(rawChatData);
-
-	// useEffect(() => {
-	// 	const text = searchText.toLowerCase();
-	// 	const filtered = rawChatData.filter(
-	// 		(chat) => chat.item.name.toLowerCase().includes(text) || chat.item.message.toLowerCase().includes(text),
-	// 	);
-	// 	setFilteredData(filtered);
-	// }, [searchText]);
-
+	useEffect(() => {
+		const getMyId = async () => {
+			const value = await getSecure(ExpoSecureStoreKeys.UserId);
+			setMyUserId(value ?? "");
+			return;
+		};
+		getMyId();
+	}, []);
 	return (
 		<View style={styles.container}>
 			<View style={styles.searchBar}>
@@ -123,8 +114,13 @@ export const ListChat = () => {
 
 			<FlatList
 				data={room}
-				keyExtractor={(item) => (item.id ? item.id : "")}
-				renderItem={({ item }) => <ChatItem item={item} />}
+				keyExtractor={(item) => item.id}
+				renderItem={({ item }) => (
+					<ChatItem
+						item={item}
+						myUserId={myUserId}
+					/>
+				)}
 				style={styles.chatList}
 			/>
 		</View>
@@ -168,10 +164,11 @@ const styles = StyleSheet.create({
 	avatarContainer: {
 		width: 48,
 		height: 48,
-		borderRadius: 24,
-		backgroundColor: "#ef4444",
+		borderRadius: 999,
 		alignItems: "center",
 		justifyContent: "center",
+		borderWidth: 1,	
+		borderColor: "#3b82f6",
 	},
 	avatarText: {
 		color: "white",

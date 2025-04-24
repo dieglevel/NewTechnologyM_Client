@@ -86,7 +86,7 @@ export const LoginScreen = () => {
 			const response = await getMyListRoom();
 			if (response?.statusCode === 200) {
 				// console.log("response: ", response.data);
-				store.dispatch(initRoom(response?.data || []));
+				store.dispatch(initRoom(response?.data?.listRoomResponse || []));
 			}
 		}
 		catch (error) {

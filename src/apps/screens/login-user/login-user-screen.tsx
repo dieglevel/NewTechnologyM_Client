@@ -9,7 +9,7 @@ import Toast from "react-native-toast-message";
 
 export const LoginUserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
-	const [identifier, setIdentifier] = useState<string>("ldmhieudev@yopmail.com");
+	const [identifier, setIdentifier] = useState<string>("dieglevel@yopmail.com");
 	const [password, setPassword] = useState<string>("admin");
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 

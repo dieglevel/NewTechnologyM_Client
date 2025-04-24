@@ -6,7 +6,7 @@ import { IRoom } from "@/types/implement";
 
 export const getMyListRoom = async () => {
    try{
-      const response = await api.get<BaseResponse<IRoom[]>>("/chatroom-merge/my-list-room");
+      const response = await api.get<BaseResponse<{listRoomResponse: IRoom[]}>>("/chatroom-merge/my-list-room");
       return response.data;
    }
    catch (error) {

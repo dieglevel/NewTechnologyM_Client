@@ -2,12 +2,10 @@ import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 // import { handleRecallMessage, handleEditMessage, openImageModal, copyMessage } from "./message-utils";
-import { playAudio } from "./audio-utils";
-import styles from "./styles";
 import { IDetailInformation, IMessage } from "@/types/implement";
 import { useAppSelector } from "@/libs/redux/redux.config";
 import { images } from "@/assets/images";
-import { handleRecallMessage } from "./message-utils";
+import styles from "../styles";
 
 interface Props {
 	item: IMessage;
@@ -66,11 +64,14 @@ const RenderMessageItem: React.FC<Props> = ({
 }) => {
 	const isMyMessage = item.accountId === myUserId;
 
+	const { selectedRoom } = useAppSelector((state) => state.selectedRoom);
+
 	const renderFile = () => {
-		const file = item.file;
+		const file = item.files;
 		file?.forEach((file, index) => {
-			// check if is image
+
 			if (file.data.type.startsWith("image/")) {
+				console.log("File is an image:", file.url);
 				return (
 					<TouchableOpacity
 						key={index}
@@ -86,12 +87,26 @@ const RenderMessageItem: React.FC<Props> = ({
 							// );
 						}}
 					>
-						<Image source={{ uri: file.url }} />
+						<Image
+							source={{ uri: file.url }}
+							style={{ width: 100, height: 100, objectFit: "contain" }}
+						/>
 					</TouchableOpacity>
 				);
 			}
 		});
 		return <></>;
+	};
+
+	const renderAvatar = () => {
+		const account = selectedRoom?.detailRoom.find((account) => account.id === item.accountId);
+
+		return (
+			<Image
+				source={account?.avatar ? { uri: account.avatar } : images.avatarDefault}
+				style={styles.avatar}
+			/>
+		);
 	};
 
 	return (
@@ -112,14 +127,7 @@ const RenderMessageItem: React.FC<Props> = ({
 						})
 					}
 				>
-					<Image
-						source={
-							detailInformation?.avatarUrl
-								? { uri: detailInformation?.avatarUrl }
-								: images.avatarDefault
-						}
-						style={styles.avatar}
-					/>
+					{renderAvatar()}
 				</TouchableOpacity>
 			)}
 			<TouchableOpacity
@@ -138,8 +146,15 @@ const RenderMessageItem: React.FC<Props> = ({
 					},
 				]}
 			>
-				<Text style={styles.senderName}>{item.content}</Text>
 				{renderFile()}
+				{item.sticker ? (
+					<Image
+						source={{ uri: item.sticker }}
+						style={{ width: 100, height: 100, objectFit: "contain" }}
+					/>
+				) : (
+					<Text style={styles.senderName}>{item.content}</Text>
+				)}
 				{/* {item.file && item.file.length > 0 && (
 					<View style={styles.imageContainer}>
 						{item.images.length === 1 ? (
