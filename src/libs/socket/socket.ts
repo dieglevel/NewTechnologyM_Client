@@ -2,7 +2,7 @@ import { io, Socket } from "socket.io-client";
 import { SocketEmit, SocketOn } from "@/constants/socket";
 import { IDetailInformation, IFriend, IRequestFriend, IRoom, ISendedFriend } from "@/types/implement";
 import { ExpoSecureStoreKeys, getSecure } from "../expo-secure-store/expo-secure-store";
-import { deleteMyListFriend, deleteRequestFriend, deleteSendedFriend, fetchDetailInformation, initRoom, setDetailInformation, setMyListFriend, setRequestFriend, setSendedFriend } from "../redux/stores";
+import { deleteMyListFriend, deleteRequestFriend, deleteSendedFriend, fetchDetailInformation, initRoom, setDetailInformation, setMyListFriend, setRequestFriend, setRoom, setSendedFriend } from "../redux/stores";
 import { store } from "../redux/redux.config";
 import NetInfo from "@react-native-community/netinfo"; // Thêm dòng này
 
@@ -57,6 +57,17 @@ class SocketService {
       this.socket.on(SocketOn.updateUserDetailInformation, (data: IDetailInformation) => {
          store.dispatch(setDetailInformation(data));
       });
+      // ---------------------------------------------------------------------------------------------------------------------------------------------
+
+      // this.socket.on(SocketOn.myRoom, (data: {
+      //    behavior: string, room: IRoom, accountOwner: {
+      //       id: string,
+      //    }[]
+      // }) => {
+      //    const room = [data.room];
+      //    store.dispatch(setRoom(room));
+      // });
+
       // ---------------------------------------------------------------------------------------------------------------------------------------------
 
       this.socket.on(SocketOn.myListRoom, (data: IRoom[]) => {

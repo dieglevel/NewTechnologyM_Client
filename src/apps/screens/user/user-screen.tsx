@@ -9,10 +9,14 @@ import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-se
 import { deleteItemAsync } from "expo-secure-store";
 import { api } from "@/libs/axios/axios.config";
 import { socketService } from "@/libs/socket/socket";
-import { detailInformationStorage, messageStorage, requestFriendStorage, roomStorage, sendedFriendStorage } from "@/libs/mmkv/mmkv";
+import { detailInformationStorage, messageStorage, myListFriendStorage, requestFriendStorage, roomStorage, sendedFriendStorage } from "@/libs/mmkv/mmkv";
+import { store } from "@/libs/redux/redux.config";
+import { useDispatch } from "react-redux";
+import { clearDetailInformationReducer } from "@/libs/redux";
 
 export const UserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
+	const dispatch = useDispatch()
 
 	const handleLogout = async () => {
 		deleteItemAsync(ExpoSecureStoreKeys.AccessToken);
@@ -20,11 +24,15 @@ export const UserScreen = () => {
 		api.defaults.headers.common["Authorization"] = undefined;
 		api.defaults.headers.common["ip-device"] = undefined;
 
+		//reset redux state
+		dispatch(clearDetailInformationReducer())
+
 		socketService.disconnect();
 		detailInformationStorage.clearAll();
 		sendedFriendStorage.clearAll();
 		requestFriendStorage.clearAll();
 		sendedFriendStorage.clearAll();
+		myListFriendStorage.clearAll();
 		roomStorage.clearAll();
 		messageStorage.clearAll();
 
@@ -36,6 +44,7 @@ export const UserScreen = () => {
 		sendedFriendStorage.clearAll();
 		requestFriendStorage.clearAll();
 		sendedFriendStorage.clearAll();
+		myListFriendStorage.clearAll();
 		roomStorage.clearAll();
 		messageStorage.clearAll();
 		alert("MMKV has been reset.");

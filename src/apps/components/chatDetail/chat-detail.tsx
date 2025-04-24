@@ -123,7 +123,8 @@ const ChatDetail = () => {
 		socketService.on(SocketOn.joinRoom, (data: any) => {
 		});
 
-		socketService.on(SocketOn.sendMessage, (data: IMessageResponse) => {
+		socketService.on(SocketOn.sendMessage, (data: any) => {
+			console.log("Received message:", data);
 			setMessages((prev) => {
 
 				return [...prev, data.message];

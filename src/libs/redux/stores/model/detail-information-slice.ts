@@ -58,7 +58,18 @@ const initialState: State = {
 const detailInformationSlice = createSlice({
   name: "detail-information",
   initialState,
-  reducers: {},
+  reducers: {
+    setDetailInformationReducer: (state, action: PayloadAction<IDetailInformation>) => {
+      state.detailInformation = action.payload;
+    },
+    clearDetailInformationReducer: (state) => {
+      state.detailInformation = null;
+      state.status = "idle";
+    },
+    setDetailInformationStatusReducer: (state, action: PayloadAction<"idle" | "loading" | "succeeded" | "failed">) => {
+      state.status = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDetailInformation.pending, (state) => {
@@ -98,4 +109,5 @@ const detailInformationSlice = createSlice({
   },
 });
 
+export const { setDetailInformationReducer, clearDetailInformationReducer, setDetailInformationStatusReducer } = detailInformationSlice.actions;
 export const DetailInformationReducer = detailInformationSlice.reducer;

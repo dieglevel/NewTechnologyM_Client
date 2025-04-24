@@ -10,4 +10,5 @@ export class SocketOn {
 	public static readonly sendMessage = "S_sendMessage";
 	public static readonly getRevokeMessage = "S_revokeMessage";
 	public static readonly forwardMessage = "S_forwardMessage";
+	public static readonly myRoom = "S_MyRoom";
 }

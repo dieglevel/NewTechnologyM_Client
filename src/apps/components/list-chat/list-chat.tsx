@@ -2,12 +2,13 @@ import { images } from "@/assets/images";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
 import { StackScreenNavigationProp } from "@/libs/navigation";
-import { setSelectedRoom } from "@/libs/redux";
-import { RootState } from "@/libs/redux/redux.config";
+import { initRoom, setSelectedRoom } from "@/libs/redux";
+import { RootState, store } from "@/libs/redux/redux.config";
 import { getProfileFromAnotherUser } from "@/services/auth";
+import { getMyListRoom } from "@/services/room";
 import { IDetailInformation, IRoom } from "@/types/implement";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
 import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, Image } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,7 +28,7 @@ const ChatItem = ({ item, myUserId }: IChatItem) => {
 		navigation.navigate("ChatScreen", { room: item });
 	};
 
-	const renderImage = () => {
+	const renderAvatar = () => {
 		if (item.type === "single") {
 			const account = item.detailRoom.find((detail) => {
 				return detail.id !== myUserId;
@@ -47,18 +48,30 @@ const ChatItem = ({ item, myUserId }: IChatItem) => {
 					style={[, { width: 30, height: 30 }]}
 				/>
 			);
+		
 		}
 	};
+
+	const renderName = () => {
+		if (item.type === "single") {
+			const account = item.detailRoom.find((detail) => {
+				return detail.id !== myUserId;
+			});
+			return account?.fullName || "Unknown User";
+		} else {
+			return item.name || "Group Chat";
+		}
+	}
 
 	return (
 		<TouchableOpacity
 			style={styles.chatItemContainer}
 			onPress={handlePress}
 		>
-			<View style={styles.avatarContainer}>{renderImage()}</View>
+			<View style={styles.avatarContainer}>{renderAvatar()}</View>
 
 			<View style={styles.chatContent}>
-				<Text style={styles.chatName}>{item.name}</Text>
+				<Text style={styles.chatName}>{renderName()}</Text>
 				<Text style={styles.chatMessage}>{item.latestMessage ? item.latestMessage.content : ""}</Text>
 			</View>
 			{/* <Text style={styles.chatTime}>{item.lastMessage. ?? ""}</Text> */}
@@ -73,14 +86,26 @@ export const ListChat = () => {
 	const [searchText, setSearchText] = useState<string>("");
 	const [myUserId, setMyUserId] = useState<string>("");
 
+	const isFocused = useIsFocused();
+
 	useEffect(() => {
 		const getMyId = async () => {
 			const value = await getSecure(ExpoSecureStoreKeys.UserId);
 			setMyUserId(value ?? "");
 			return;
 		};
+		const fetchedRoom = async () => {
+			const response = await getMyListRoom();
+			if (response?.statusCode === 200 && response.data) {
+				// console.log("response: ", response.data);
+				store.dispatch(initRoom(response?.data.listRoomResponse || []));
+			}
+		}
+		fetchedRoom();
+
+
 		getMyId();
-	}, []);
+	}, [isFocused]);
 	return (
 		<View style={styles.container}>
 			<View style={styles.searchBar}>
