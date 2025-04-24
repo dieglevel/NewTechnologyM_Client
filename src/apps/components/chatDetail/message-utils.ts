@@ -1,138 +1,130 @@
 import { Alert, Clipboard } from "react-native";
-import axios from "axios";
-import { IMessage } from "@/types/implement";
+import { IMessage, IRoom } from "@/types/implement";
+import Toast from "react-native-toast-message";
 
-const sendMessage = (
+import { sendMessage as apiSendMessage } from "@/services/message";
+import { socketService } from "@/libs/socket/socket";
+import { ErrorResponse } from "@/libs/axios/axios.config";
+import { SocketEmit, SocketOn } from "@/constants/socket";
+import { store } from "@/libs/redux/redux.config";
+
+const sendMessage = async (
+  roomId: string,
   text: string = "",
-  images: string[] = [],
-  files: string[] = [],
-  setMessages: React.Dispatch<React.SetStateAction<IMessage[] | undefined>>,
-  editingMessageId: string | null,
-  setEditingMessageId: (id: string | null) => void,
-  setEditText: (text: string) => void,
   setInputText: (text: string) => void,
-  setIsTyping: (typing: boolean) => void,
   setSelectedImages: (images: string[]) => void,
-  setSelectedFiles: (files: FileObject[]) => void
+  setSelectedFiles: React.Dispatch<React.SetStateAction<{
+    uri: string;
+    name: string;
+    type: string;
+  }[]>>
 ) => {
-  const trimmedText = text.trim();
-  if (!trimmedText && images.length === 0 && files.length === 0 && !audio) {
+  if (!text.trim()) {
     return;
   }
 
-  if (editingMessageId) {
-    setMessages((prev) => {
-          const updatedMessages = prev?.map((msg) =>
-            msg._id === editingMessageId
-              ? { ...msg, text: text || "", isEdited: true }
-              : msg
-          );
-          return updatedMessages;
-        });
-    setEditingMessageId(null);
-    setEditText("");
-  } else {
-    const currentTime = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    // setMessages((prev: IMessage[]) => {
-    //   const newMessage: IMessage = {
-    //     content: text || "",
-        
-    //     read: true,
-    //     avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-    //     senderName: "Tôi",
-    //     images: images || null,
-    //     files: files || null,
-    //     audio: null,
-    //     reaction: null,
-    //   };
-    //   return [...prev, newMessage];
-    // });
-  }
-   // Ghi chú: Gửi API tạo tin nhắn mới
-    // axios.post("/api/messages", {
-    //   chatId: "your-chat-id",
-    //   senderId: "me",
-    //   content: text,
-    //   images,
-    //   files,
-    //   audio,
-    //   timestamp: new Date().toISOString(),
-    // });
-  setInputText("");
-  setIsTyping(false);
-  setSelectedImages([]);
-  setSelectedFiles([]);
-};
-
-const forwardMessage = async (
-  targetChatId: string,
-  actionMessage: IMessage,
-  setShowForwardModal: (show: boolean) => void,
-  setShowActionModal: (show: boolean) => void
-) => {
-  if (!actionMessage) return;
-
-  try {
-    const payload: any = {
-      chatId: targetChatId,
-      senderId: "me",
-      content: actionMessage.text || "",
-      timestamp: new Date().toISOString(),
-    };
-
-    if (actionMessage.images) payload.images = actionMessage.images;
-    if (actionMessage.files) payload.files = actionMessage.files;
-    if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
-    // Ghi chú: Gửi API để chuyển tiếp tin nhắn
-    // axios.post("/api/message/forward", payload);
-    const response = await axios.post("/api/message", payload);
-
-    console.log("Forward message response:", response.data);
-    Alert.alert("Thành công", "Tin nhắn đã được chuyển tiếp!");
-    setShowForwardModal(false);
-    setShowActionModal(false);
+  try{
+    const response = await apiSendMessage({ roomId, content: text, type: "message" });
+    if (response.statusCode === 200) {
+    }
   } catch (error) {
-    Alert.alert("Lỗi", "Không thể chuyển tiếp tin nhắn. Vui lòng thử lại.");
-    console.error("Error in forwardMessage:", error);
+    const e = error as ErrorResponse;
+    Toast.show({
+      type: "error",
+      text1: "Có lỗi xảy ra khi gửi tin nhắn",
+    })
   }
+  finally{
+    setInputText("");
+    setSelectedImages([]);
+    setSelectedFiles([]);
+  }
+
+
 };
 
-const handleReactionSelect = (
-  emoji: string,
-  selectedMessageId: string | null,
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  setShowReactionPicker: (show: boolean) => void,
-  setSelectedMessageId: (id: string | null) => void,
-  setShowActionModal: (show: boolean) => void
-) => {
-  if (!selectedMessageId) return;
+// const forwardMessage = async (
+//   targetChatId: string,
+//   actionMessage: IMessage,
+//   setShowForwardModal: (show: boolean) => void,
+//   setShowActionModal: (show: boolean) => void
+// ) => {
+//   if (!actionMessage) return;
 
-  setMessages((prev) =>
-    prev.map((msg) =>
-      msg.id === selectedMessageId ? { ...msg, reaction: emoji } : msg
-    )
-  );
-  // Ghi chú: Gửi API để lưu phản ứng lên server
-  // axios.post("/api/messages/reaction", {
-  //   messageId: selectedMessageId,
-  //   reaction: emoji,
-  // });
-  setShowReactionPicker(false);
-  setSelectedMessageId(null);
-  setShowActionModal(false);
-};
+//   try {
+//     const payload: any = {
+//       chatId: targetChatId,
+//       senderId: "me",
+//       content: actionMessage.text || "",
+//       timestamp: new Date().toISOString(),
+//     };
+
+//     if (actionMessage.images) payload.images = actionMessage.images;
+//     if (actionMessage.files) payload.files = actionMessage.files;
+//     if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
+//     // Ghi chú: Gửi API để chuyển tiếp tin nhắn
+//     // axios.post("/api/message/forward", payload);
+//     const response = await axios.post("/api/message", payload);
+
+//     console.log("Forward message response:", response.data);
+//     if (response.status === 200) {
+//       Toast.show({
+//         type: "success",
+//         text1: "Chuyển tiếp tin nhắn thành công",
+//       });
+//     } else {
+//       Toast.show({
+//         type: "error",
+//         text1: "Chuyển tiếp tin nhắn thất bại",
+//       });
+//     }
+//     setShowForwardModal(false);
+//     setShowActionModal(false);
+//   } catch (error) {
+//     Toast.show({
+//       type: "error",
+//       text1: "Có lỗi xảy ra khi chuyển tiếp tin nhắn",
+//     });
+//     console.error("Error in forwardMessage:", error);
+//   }
+// };
+
+// const handleReactionSelect = (
+//   emoji: string,
+//   selectedMessageId: string | null,
+//   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>,
+//   setShowReactionPicker: (show: boolean) => void,
+//   setSelectedMessageId: (id: string | null) => void,
+//   setShowActionModal: (show: boolean) => void
+// ) => {
+//   if (!selectedMessageId) return;
+
+//   setMessages((prev) =>
+//     prev.map((msg) =>
+//       msg._id === selectedMessageId ? { ...msg, reaction: emoji } : msg
+//     )
+//   );
+//   // Ghi chú: Gửi API để lưu phản ứng lên server
+//   // axios.post("/api/messages/reaction", {
+//   //   messageId: selectedMessageId,
+//   //   reaction: emoji,
+//   // });
+//   setShowReactionPicker(false);
+//   setSelectedMessageId(null);
+//   setShowActionModal(false);
+// };
 
 const handleRecallMessage = (
   id: string,
   isMyMessage: boolean,
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+  setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>,
   setShowActionModal: (show: boolean) => void
 ) => {
   if (!isMyMessage) {
-    Alert.alert("Lỗi", "Chỉ có thể thu hồi tin nhắn của bạn!");
+    Toast.show({
+      type: "error",
+      text1: "Chỉ có thể thu hồi tin nhắn của chính mình",
+    });
     return;
   }
 
@@ -143,16 +135,16 @@ const handleRecallMessage = (
       style: "destructive",
       onPress: () => {
         setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === id
+          prev?.map((msg) =>
+            msg._id === id
               ? {
-                  ...msg,
-                  text: "Tin nhắn đã được thu hồi",
-                  images: null,
-                  files: null,
-                  audio: null,
-                  reaction: null,
-                }
+                ...msg,
+                text: "Tin nhắn đã được thu hồi",
+                images: null,
+                files: null,
+                audio: null,
+                reaction: null,
+              }
               : msg
           )
         );
@@ -189,43 +181,43 @@ const cancelEdit = (
   setInputText("");
 };
 
-const openImageModal = (
-  messageImages: string[],
-  selectedIndex: number,
-  messages: Message[],
-  setAllImageUris: (uris: string[]) => void,
-  setInitialImageIndex: (index: number) => void,
-  setCurrentImageIndex: (index: number) => void,
-  setShowImageModal: (show: boolean) => void
-) => {
-  const allImages: string[] = [];
-  messages.forEach((msg) => {
-    if (msg.images) {
-      allImages.push(...msg.images);
-    }
-  });
+// const openImageModal = (
+//   messageImages: string[],
+//   selectedIndex: number,
+//   messages: IMessage[],
+//   setAllImageUris: (uris: string[]) => void,
+//   setInitialImageIndex: (index: number) => void,
+//   setCurrentImageIndex: (index: number) => void,
+//   setShowImageModal: (show: boolean) => void
+// ) => {
+//   const allImages: string[] = [];
+//   messages.forEach((msg) => {
+//     if (msg.images) {
+//       allImages.push(...msg.images);
+//     }
+//   });
 
-  let globalIndex = 0;
-  let found = false;
-  for (const msg of messages) {
-    if (msg.images) {
-      for (let i = 0; i < msg.images.length; i++) {
-        if (msg.images[i] === messageImages[selectedIndex]) {
-          globalIndex += i;
-          found = true;
-          break;
-        }
-        globalIndex++;
-      }
-      if (found) break;
-    }
-  }
+//   let globalIndex = 0;
+//   let found = false;
+//   for (const msg of messages) {
+//     if (msg.images) {
+//       for (let i = 0; i < msg.images.length; i++) {
+//         if (msg.images[i] === messageImages[selectedIndex]) {
+//           globalIndex += i;
+//           found = true;
+//           break;
+//         }
+//         globalIndex++;
+//       }
+//       if (found) break;
+//     }
+//   }
 
-  setAllImageUris(allImages);
-  setInitialImageIndex(globalIndex);
-  setCurrentImageIndex(globalIndex);
-  setShowImageModal(true);
-};
+//   setAllImageUris(allImages);
+//   setInitialImageIndex(globalIndex);
+//   setCurrentImageIndex(globalIndex);
+//   setShowImageModal(true);
+// };
 
 const closeImageModal = (
   setShowImageModal: (show: boolean) => void,
@@ -244,10 +236,17 @@ const copyMessage = (
   setShowActionModal: (show: boolean) => void
 ) => {
   if (text === "Tin nhắn đã được thu hồi") {
-    Alert.alert("Không thể sao chép");
+    Toast.show({
+      type: "error",
+      text1: "Không thể sao chép tin nhắn đã thu hồi",
+    });
     return;
   }
   Clipboard.setString(text);
+  Toast.show({
+    type: "success",
+    text1: "Sao chép thành công",
+  })
   setShowActionModal(false);
 };
 
@@ -262,13 +261,14 @@ const toggleSearchBar = (
 
 export {
   sendMessage,
-  forwardMessage,
-  handleReactionSelect,
+  // forwardMessage,
+  // handleReactionSelect,
   handleRecallMessage,
   handleEditMessage,
-  cancelEdit,
-  openImageModal,
-  closeImageModal,
+  // cancelEdit,
+  // openImageModal,
+  // closeImageModal,
   copyMessage,
-  toggleSearchBar, Message,
+  toggleSearchBar,
+  // Message,
 };

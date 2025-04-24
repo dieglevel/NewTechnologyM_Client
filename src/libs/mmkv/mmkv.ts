@@ -1,4 +1,3 @@
-import { getMessageByRoomId } from './../../services/chat';
 import { IDetailInformation, IFriend, IMessage, IRequestFriend, IRoom, ISendedFriend } from '@/types/implement';
 import { MMKV } from 'react-native-mmkv';
 

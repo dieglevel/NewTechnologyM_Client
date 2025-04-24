@@ -12,9 +12,8 @@ import {
 	Image,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from "expo-document-picker";
+import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
+
 import axios from "axios";
 import { useColorScheme } from "react-native";
 import { Audio } from "expo-av";
@@ -26,95 +25,58 @@ import { startRecording, stopRecording } from "./audio-utils";
 import {
 	copyMessage,
 	handleEditMessage,
+	handleRecallMessage,
+	// copyMessage,
+	// handleEditMessage,
 	sendMessage,
 	toggleSearchBar,
-	handleRecallMessage,
-	handleReactionSelect,
-	closeImageModal,
-	forwardMessage,
-	cancelEdit,
+	// handleRecallMessage,
+	// handleReactionSelect,
+	// closeImageModal,
+	// forwardMessage,
+	// cancelEdit,
 } from "./message-utils";
-import { showUserInfo, closeUserInfoModal } from "./user-utils";
+import { showUserInfo, closeUserInfoModal } from "./user-modal";
 import styles from "./styles";
 import { ChatScreenRouteProp } from "@/libs/navigation";
 import { IMessage, IRoom } from "@/types/implement";
+import { api, ErrorResponse } from "@/libs/axios/axios.config";
+import { getMessageByRoomId, IMessageResponse } from "@/services/message";
+import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
+import { store, useAppSelector } from "@/libs/redux/redux.config";
+import { socketService } from "@/libs/socket/socket";
+import { SocketEmit, SocketOn } from "@/constants/socket";
+import Header from "./header/chat-header";
+import Footer from "./footer/chat-footer";
 
-const REACTIONS = ["❤️", "😂", "👍", "😮", "😢", "😡"];
-const mockChats = [
-	{ id: "chat1", name: "Nhóm bạn", avatar: "https://example.com/avatar1.png" },
-	{ id: "chat2", name: "Gia đình", avatar: "https://example.com/avatar2.png" },
-	{ id: "chat3", name: "Công việc", avatar: "https://example.com/avatar3.png" },
-];
 
-interface Props {
-  room: IRoom
-}
 
-const ChatDetail = ({room}: Props) => {
+const ChatDetail = () => {
 	const navigation = useNavigation();
-	const colorScheme = useColorScheme();
 	const isDark = false;
 
-	// const [messages, setMessages] = useState<
-	// 	{
-	// 		id: string;
-	// 		text: string;
-	// 		sender: string;
-	// 		time: string;
-	// 		read?: boolean;
-	// 		avatar: string;
-	// 		senderName: string;
-	// 		reaction: string | null;
-	// 		images?: string[] | null;
-	// 		files?: string[] | null;
-	// 		audio?: string | null;
-	// 		isEdited?: boolean;
-	// 	}[]
-	// >([
-	// 	{
-	// 		id: "1",
-	// 		text: "Xin chào!",
-	// 		sender: "me",
-	// 		time: "10:00",
-	// 		read: true,
-	// 		avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-	// 		senderName: "Tôi",
-	// 		reaction: null,
-	// 	},
-	// 	{
-	// 		id: "2",
-	// 		text: "Chào bạn!",
-	// 		sender: "other",
-	// 		time: "10:01",
-	// 		avatar: "https://tse4.mm.bing.net/th?id=OIP.3AiVQskb9C_qFJB52BzF7QHaHa&pid=Api&P=0&h=180",
-	// 		senderName: "Minh",
-	// 		reaction: null,
-	// 	},
-	// ]);
+	const [myUserId, setMyUserId] = useState<string | null>(null);
+	const { detailInformation } = useAppSelector((state) => state.detailInformation);
+	const {selectedRoom} = useAppSelector((state) => state.selectedRoom)
 
-	const [messages, setMessages] = useState<IMessage[]>(); // Updated to IMessage[]
+	const [messages, setMessages] = useState<IMessage[]>([]);
 
-	const [inputText, setInputText] = useState("");
-	const [isTyping, setIsTyping] = useState(false);
-	const [selectedImages, setSelectedImages] = useState<string[]>([]);
-	const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
-	const [isRecording, setIsRecording] = useState(false);
-	const [recording, setRecording] = useState<any>(null);
-	const [sound, setSound] = useState<any>(null);
-	const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
 	const [showReactionPicker, setShowReactionPicker] = useState(false);
 	const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
 	const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-	const [editText, setEditText] = useState("");
+
 	const [showImageModal, setShowImageModal] = useState(false);
 	const [allImageUris, setAllImageUris] = useState<string[]>([]);
 	const [initialImageIndex, setInitialImageIndex] = useState(0);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
 	const [showActionModal, setShowActionModal] = useState(false);
-	const [actionMessage, setActionMessage] = useState<any>(null);
+	const [actionMessage, setActionMessage] = useState<IMessage | null>(null);
 	const [showForwardModal, setShowForwardModal] = useState(false);
+
 	const [searchQuery, setSearchQuery] = useState("");
 	const [showSearchBar, setShowSearchBar] = useState(false);
+
 	const [showUserInfoModal, setShowUserInfoModal] = useState(false);
 	const [selectedUser, setSelectedUser] = useState<{
 		name: string;
@@ -124,132 +86,75 @@ const ChatDetail = ({room}: Props) => {
 	} | null>(null);
 	const flatListRef = useRef<FlatList>(null);
 	const imageFlatListRef = useRef<FlatList>(null);
+	
+	const isFocused = useIsFocused();
 
-	const filteredMessages = messages?.filter((msg) => msg.content?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-	const pickImages = async () => {
-		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-		if (status !== "granted") {
-			alert("Quyền truy cập bị từ chối. Vui lòng cấp quyền truy cập vào thư viện ảnh.");
-			return;
-		}
+	useEffect(() => {
+		
+		const fetchMessages = async () => {
+			try {
+				const response = await getMessageByRoomId(selectedRoom?.id || "");
+				if (response.statusCode === 200 && response.data) {
 
-		let result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ImagePicker.MediaTypeOptions.Images,
-			allowsMultipleSelection: true,
-			quality: 0.5,
+					setMessages(response.data);
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+			}
+		};
+
+		const getUserId = async () => {
+			const userId = await getSecure(ExpoSecureStoreKeys.UserId);
+			if (userId) {
+				setMyUserId(userId);
+			}
+		};
+		fetchMessages();
+		getUserId();
+	},[])
+
+	useEffect(() => {
+
+		socketService.connect();
+
+		socketService.emit(SocketEmit.joinRoom, {
+			room_id: selectedRoom?.id || "",
+		});
+		socketService.on(SocketOn.joinRoom, (data: any) => {
 		});
 
-		if (!result.canceled && result.assets && result.assets.length > 0) {
-			const imageUris = result.assets.map((asset) => asset.uri);
-			setSelectedImages(imageUris);
-			sendMessage(
-				"",
-				imageUris,
-				[],
-				setMessages,
-				editingMessageId,
-				setEditingMessageId,
-				setEditText,
-				setInputText,
-				setIsTyping,
-				setSelectedImages,
-				setSelectedFiles,
-			);
-		}
-	};
+		socketService.on(SocketOn.sendMessage, (data: IMessageResponse) => {
+			setMessages((prev) => {
 
-	const pickDocument = async () => {
-		try {
-			const result = await DocumentPicker.getDocumentAsync({
-				type: [
-					"application/pdf",
-					"application/msword",
-					"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-				],
-				multiple: true,
+				return [...prev, data.message];
 			});
+		});
 
-			if (!result.canceled) {
-				const files = result.assets.map((asset) => ({
-					uri: asset.uri,
-					name: asset.name,
-					type: asset.mimeType || "application/octet-stream",
-				}));
-				setSelectedFiles(files);
-				uploadFiles(files);
-			}
-		} catch (error) {
-			alert("Lỗi: Không thể chọn file. Vui lòng thử lại.");
-			// console.error("Error in pickDocument:", error);
-		}
+		return () => {
+			socketService.off(SocketOn.sendMessage);
+			socketService.off(SocketOn.joinRoom);
+		};
+	}, [isFocused]);
+
+	const scrollToBottom = () => {
+		flatListRef.current?.scrollToEnd({ animated: true });
 	};
 
-	const uploadFiles = async (files: { uri: string; name: string; type: string }[]) => {
-		try {
-			const uploadedUrls: string[] = [];
-
-			for (const file of files) {
-				const formData = new FormData();
-				formData.append("file", {
-					uri: file.uri,
-					name: file.name,
-					type: file.type,
-				} as any);
-
-				// console.log("Uploading file:", file);
-
-				const response = await axios.post(
-					"https://your-api-domain.com/api/file-cloud/upload-single-file",
-					formData,
-					{
-						headers: {
-							"Content-Type": "multipart/form-data",
-						},
-					},
-				);
-
-				// console.log("Upload response:", response.data);
-
-				if (response.data && response.data.url) {
-					uploadedUrls.push(response.data.url);
-				}
-			}
-
-			if (uploadedUrls.length > 0) {
-				// console.log("Uploaded URLs:", uploadedUrls);
-				sendMessage(
-					"",
-					[],
-					uploadedUrls,
-					setMessages,
-					editingMessageId,
-					setEditingMessageId,
-					setEditText,
-					setInputText,
-					setIsTyping,
-					setSelectedImages,
-					setSelectedFiles,
-				);
-			} else {
-				alert("Lỗi: Không thể tải file lên server.");
-			}
-		} catch (error) {
-			alert("Lỗi: Đã xảy ra lỗi khi tải file. Vui lòng thử lại.");
-			// console.error("Error in uploadFiles:", error);
-		}
-	};
+	const filteredMessages = messages?.filter((msg) =>
+		msg.content?.toLowerCase().includes(searchQuery.toLowerCase()),
+	);
 
 	const getActionItems = () => {
 		if (!actionMessage) return [];
 
-		const isMyMessage = actionMessage.sender === "me";
+		const isMyMessage = actionMessage._id === myUserId;
 		const items = [
 			{
 				icon: "heart-outline",
 				label: "Thêm Reaction",
 				onPress: () => {
-					setSelectedMessageId(actionMessage.id);
+					setSelectedMessageId(actionMessage._id ?? "");
 					setShowReactionPicker(true);
 					setShowActionModal(false);
 				},
@@ -257,7 +162,7 @@ const ChatDetail = ({room}: Props) => {
 			{
 				icon: "copy-outline",
 				label: "Sao chép",
-				onPress: () => copyMessage(actionMessage.text, setShowActionModal),
+				onPress: () => copyMessage(actionMessage.content ?? "", setShowActionModal),
 			},
 			{
 				icon: "share-outline",
@@ -269,78 +174,45 @@ const ChatDetail = ({room}: Props) => {
 			},
 		];
 
-		if (isMyMessage && actionMessage.text !== "Tin nhắn đã được thu hồi") {
-			items.push(
-				{
-					icon: "pencil-outline",
-					label: "Chỉnh sửa",
-					onPress: () =>
-						handleEditMessage(
-							actionMessage.id,
-							actionMessage.text,
-							setEditingMessageId,
-							setEditText,
-							setInputText,
-							setShowActionModal,
-						),
-				},
-				{
-					icon: "trash-outline",
-					label: "Thu hồi",
-					onPress: () =>
-						handleRecallMessage(actionMessage.id, isMyMessage, setMessages, setShowActionModal),
-				},
-			);
-		}
+		// if (isMyMessage && actionMessage.content !== "Tin nhắn đã được thu hồi") {
+		// 	items.push(
+		// 		{
+		// 			icon: "pencil-outline",
+		// 			label: "Chỉnh sửa",
+		// 			onPress: () =>
+		// 				handleEditMessage(
+		// 					actionMessage._id || "",
+		// 					actionMessage.content || "",
+		// 					setEditingMessageId,
+		// 					setEditText,
+		// 					setInputText,
+		// 					setShowActionModal,
+		// 				),
+		// 		},
+		// 		{
+		// 			icon: "trash-outline",
+		// 			label: "Thu hồi",
+		// 			onPress: () =>
+		// 				handleRecallMessage(
+		// 					actionMessage._id || "",
+		// 					isMyMessage,
+		// 					setMessages,
+		// 					setShowActionModal,
+		// 				),
+		// 		},
+		// 	);
+		// }
 
 		return items;
 	};
 
 	return (
 		<View style={[styles.container, isDark && styles.darkContainer]}>
-			<View style={styles.header}>
-				<TouchableOpacity onPress={() => navigation.goBack()}>
-					<Ionicons
-						name="arrow-back"
-						size={24}
-						color="white"
-					/>
-				</TouchableOpacity>
-				<Text style={styles.headerText}>{room.name}</Text>
-				{/* <View style={styles.headerIcons}>
-					<TouchableOpacity style={styles.headerIcon}>
-						<Ionicons
-							name="call-outline"
-							size={22}
-							color="white"
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.headerIcon}>
-						<Ionicons
-							name="videocam-outline"
-							size={22}
-							color="white"
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={styles.headerIcon}
-						onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}
-					>
-						<Ionicons
-							name="search-outline"
-							size={22}
-							color="white"
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.headerIcon}>
-						<Feather
-							name="info"
-							size={22}
-							color="white"
-						/>
-					</TouchableOpacity>
-				</View> */}
-			</View>
+			<Header
+				showSearchBar={showSearchBar}
+				setShowSearchBar={setShowSearchBar}
+				setSearchQuery={setSearchQuery}
+			/>
 
 			{showSearchBar && (
 				<View style={[styles.searchContainer, isDark && styles.darkSearchContainer]}>
@@ -363,41 +235,29 @@ const ChatDetail = ({room}: Props) => {
 
 			<FlatList
 				ref={flatListRef}
-				data={searchQuery ? filteredMessages : messages}
-				keyExtractor={(item) => item.id}
+				data={showSearchBar ? filteredMessages : messages}
+				onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+				keyExtractor={(item: IMessage) =>
+					item._id?.toString() || ""
+				}
+				initialNumToRender={10}
+				maxToRenderPerBatch={10}
+				windowSize={5}
 				renderItem={({ item }) => (
 					<RenderMessageItem
 						item={item}
+						myUserId={myUserId}
+						setMessages={setMessages}
+						detailInformation={detailInformation}
 						setActionMessage={setActionMessage}
 						setShowActionModal={setShowActionModal}
-						messages={messages}
-						setMessages={setMessages}
-						setSelectedMessageId={setSelectedMessageId}
-						setShowReactionPicker={setShowReactionPicker}
-						setShowForwardModal={setShowForwardModal}
-						setEditingMessageId={setEditingMessageId}
-						setEditText={setEditText}
-						setInputText={setInputText}
-						setShowImageModal={setShowImageModal}
-						setAllImageUris={setAllImageUris}
-						setInitialImageIndex={setInitialImageIndex}
-						setCurrentImageIndex={setCurrentImageIndex}
 						showUserInfo={(user) => showUserInfo(user, setSelectedUser, setShowUserInfoModal)}
 						setShowUserInfoModal={setShowUserInfoModal}
-						setSelectedUser={setSelectedUser}
-						sound={sound}
-						setSound={setSound}
-						playingAudioId={playingAudioId}
-						setPlayingAudioId={setPlayingAudioId}
 						isDark={isDark}
 					/>
 				)}
 				contentContainerStyle={styles.flatListContent}
 			/>
-
-			{isTyping && !showSearchBar && (
-				<Text style={[styles.typingIndicator, isDark && styles.darkTypingIndicator]}>Đang gõ...</Text>
-			)}
 
 			<Modal
 				visible={showReactionPicker}
@@ -409,7 +269,7 @@ const ChatDetail = ({room}: Props) => {
 					onPress={() => setShowReactionPicker(false)}
 				>
 					<View style={styles.reactionModalContent}>
-						{REACTIONS.map((emoji) => (
+						{/* {REACTIONS.map((emoji) => (
 							<TouchableOpacity
 								key={emoji}
 								onPress={() =>
@@ -426,7 +286,7 @@ const ChatDetail = ({room}: Props) => {
 							>
 								<Text style={styles.reactionEmoji}>{emoji}</Text>
 							</TouchableOpacity>
-						))}
+						))} */}
 					</View>
 				</TouchableOpacity>
 			</Modal>
@@ -439,14 +299,14 @@ const ChatDetail = ({room}: Props) => {
 				<View style={styles.imageModalContainer}>
 					<TouchableOpacity
 						style={styles.imageModalOverlay}
-						onPress={() =>
-							closeImageModal(
-								setShowImageModal,
-								setAllImageUris,
-								setInitialImageIndex,
-								setCurrentImageIndex,
-							)
-						}
+						// onPress={() =>
+						// 	closeImageModal(
+						// 		setShowImageModal,
+						// 		setAllImageUris,
+						// 		setInitialImageIndex,
+						// 		setCurrentImageIndex,
+						// 	)
+						// }
 					/>
 					<View style={styles.imageModalContent}>
 						<FlatList
@@ -477,14 +337,14 @@ const ChatDetail = ({room}: Props) => {
 						)}
 						<TouchableOpacity
 							style={styles.closeImageButton}
-							onPress={() =>
-								closeImageModal(
-									setShowImageModal,
-									setAllImageUris,
-									setInitialImageIndex,
-									setCurrentImageIndex,
-								)
-							}
+							// onPress={() =>
+							// 	closeImageModal(
+							// 		setShowImageModal,
+							// 		setAllImageUris,
+							// 		setInitialImageIndex,
+							// 		setCurrentImageIndex,
+							// 	)
+							// }
 						>
 							<Ionicons
 								name="close"
@@ -529,7 +389,7 @@ const ChatDetail = ({room}: Props) => {
 						<Text style={[styles.forwardModalTitle, isDark && styles.darkForwardModalTitle]}>
 							Chọn cuộc trò chuyện
 						</Text>
-						<FlatList
+						{/* <FlatList
 							data={mockChats}
 							renderItem={({ item }) => (
 								<RenderChatItem
@@ -546,7 +406,7 @@ const ChatDetail = ({room}: Props) => {
 							)}
 							keyExtractor={(item) => item.id}
 							contentContainerStyle={styles.chatListContent}
-						/>
+						/> */}
 						<TouchableOpacity
 							style={styles.cancelForwardButton}
 							onPress={() => setShowForwardModal(false)}
@@ -612,109 +472,12 @@ const ChatDetail = ({room}: Props) => {
 				</TouchableOpacity>
 			</Modal>
 
-			<KeyboardAvoidingView
-				behavior={Platform.OS === "ios" ? "padding" : undefined}
-				keyboardVerticalOffset={80}
-			>
-				<View style={styles.inputContainer}>
-					{editingMessageId && (
-						<TouchableOpacity
-							onPress={() => cancelEdit(setEditingMessageId, setEditText, setInputText)}
-							style={styles.inputIcon}
-						>
-							<Ionicons
-								name="close-circle-outline"
-								size={26}
-								color="#ef4444"
-							/>
-						</TouchableOpacity>
-					)}
-					<TouchableOpacity
-						onPress={pickImages}
-						style={styles.inputIcon}
-					>
-						<Ionicons
-							name="image-outline"
-							size={26}
-							color="#3b82f6"
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						onPress={pickDocument}
-						style={styles.inputIcon}
-					>
-						<Ionicons
-							name="document-attach-outline"
-							size={26}
-							color="#3b82f6"
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity
-						onPress={
-							isRecording
-								? () => stopRecording(recording, setRecording, setIsRecording)
-								: () => startRecording(setRecording, setIsRecording)
-						}
-						style={styles.inputIcon}
-					>
-						<Ionicons
-							name={isRecording ? "stop-circle-outline" : "mic-outline"}
-							size={26}
-							color={isRecording ? "#ef4444" : "#3b82f6"}
-						/>
-					</TouchableOpacity>
-					<TextInput
-						style={[styles.textInput, isDark && styles.darkTextInput]}
-						placeholder={editingMessageId ? "Chỉnh sửa tin nhắn..." : "Nhập tin nhắn..."}
-						placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-						value={inputText}
-						onChangeText={(text) => {
-							setInputText(text);
-							setIsTyping(text.length > 0);
-						}}
-						onSubmitEditing={() =>
-							sendMessage(
-								inputText,
-								[],
-								[],
-								setMessages,
-								editingMessageId,
-								setEditingMessageId,
-								setEditText,
-								setInputText,
-								setIsTyping,
-								setSelectedImages,
-								setSelectedFiles,
-							)
-						}
-						returnKeyType="send"
-					/>
-					<TouchableOpacity
-						onPress={() =>
-							sendMessage(
-								inputText,
-								[],
-								[],
-								setMessages,
-								editingMessageId,
-								setEditingMessageId,
-								setEditText,
-								setInputText,
-								setIsTyping,
-								setSelectedImages,
-								setSelectedFiles,
-							)
-						}
-						style={styles.sendButton}
-					>
-						<Ionicons
-							name={editingMessageId ? "save" : "send"}
-							size={20}
-							color="white"
-						/>
-					</TouchableOpacity>
-				</View>
-			</KeyboardAvoidingView>
+			<Footer
+				isDark={isDark}
+				editingMessageId={editingMessageId}
+				setEditingMessageId={setEditingMessageId}
+				setMessages={setMessages}
+			/>
 		</View>
 	);
 };

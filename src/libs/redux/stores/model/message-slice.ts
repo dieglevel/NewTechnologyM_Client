@@ -45,7 +45,9 @@ export const setMessage = createAsyncThunk(
 		const existingMessages = messageStorage.getAll().filter((message) => message.room_id === roomId);
 		// If there are existing messages, delete the first one
 		if (existingMessages.length > 0) {
-			messageStorage.delete(existingMessages[0].message_id);
+			if (existingMessages[0].message_id) {
+				messageStorage.delete(existingMessages[0].message_id);
+			}
 		}
 		messageStorage.setMany(messages);
 		return messages;
@@ -57,7 +59,9 @@ export const setOneMessage = createAsyncThunk(
 	async (message: IMessage) => {
 		const messageStorageData = messageStorage.getAll().filter((m) => m.room_id === message.room_id);
 		if (messageStorageData.length > 0) {
-			messageStorage.delete(messageStorageData[0].message_id);
+			if (messageStorageData[0].message_id) {
+				messageStorage.delete(messageStorageData[0].message_id);
+			}
 		}
 		messageStorage.set(message);
 		return message;
@@ -67,7 +71,9 @@ export const setOneMessage = createAsyncThunk(
 export const deleteMessage = createAsyncThunk(`${thunkDB}${thunkAction.delete}${thunkName}`, async (id: string) => {
 	const messageStorageData = messageStorage.getAll().filter((m) => m.message_id === id);
 	if (messageStorageData.length > 0) {
-		messageStorage.delete(messageStorageData[0].message_id);
+		if (messageStorageData[0].message_id) {
+			messageStorage.delete(messageStorageData[0].message_id);
+		}
 	}
 	return id;
 });

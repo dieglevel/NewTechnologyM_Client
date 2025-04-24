@@ -1,11 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
-import { DetailInformationReducer } from "./stores/detail-information-slice";
-import { MyListFriendReducer } from "./stores/friend-slice";
-import { RequestFriendReducer } from "./stores/request-friend-slice";
-import { SendedFriendReducer } from "./stores";
-import { RoomReducer } from "./stores/list-room-slice";
-import { MessageReducer } from "./stores/message-slice";
+import { DetailInformationReducer, MessageReducer, MyListFriendReducer, RequestFriendReducer, RoomReducer, SendedFriendReducer } from "./stores/model";
+import { SelectedRoomReducer } from "./stores";
+
 
 export const store = configureStore({
 	reducer: {
@@ -15,6 +12,7 @@ export const store = configureStore({
 		sendedFriend: SendedFriendReducer,
 		room: RoomReducer,
 		message: MessageReducer,
+		selectedRoom: SelectedRoomReducer
 	},
 });
 

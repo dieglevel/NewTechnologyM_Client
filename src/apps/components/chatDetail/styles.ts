@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   messageRow: {
     flexDirection: "row",
     alignItems: "flex-end",
-    marginVertical: 4,
+    marginVertical: 10,
     paddingHorizontal: 10,
   },
   avatar: {
@@ -41,8 +41,9 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   messageContainer: {
-    padding: 10,
-    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
     maxWidth: "75%",
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -52,15 +53,14 @@ const styles = StyleSheet.create({
   },
   myMessage: {
     backgroundColor: "#E1F5FE",
-    borderTopRightRadius: 0,
     alignSelf: "flex-end",
     marginLeft: 50,
   },
   otherMessage: {
     backgroundColor: "#e5e7eb",
-    borderTopLeftRadius: 0,
     alignSelf: "flex-start",
     marginRight: 50,
+
   },
   myMessageText: {
     color: "black",

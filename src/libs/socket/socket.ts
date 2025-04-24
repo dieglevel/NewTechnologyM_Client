@@ -2,11 +2,9 @@ import { io, Socket } from "socket.io-client";
 import { SocketEmit, SocketOn } from "@/constants/socket";
 import { IDetailInformation, IFriend, IRequestFriend, IRoom, ISendedFriend } from "@/types/implement";
 import { ExpoSecureStoreKeys, getSecure } from "../expo-secure-store/expo-secure-store";
-import { deleteMyListFriend, deleteSendedFriend, fetchDetailInformation, setDetailInformation, setMyListFriend, setSendedFriend } from "../redux/stores";
+import { deleteMyListFriend, deleteRequestFriend, deleteSendedFriend, fetchDetailInformation, initRoom, setDetailInformation, setMyListFriend, setRequestFriend, setSendedFriend } from "../redux/stores";
 import { store } from "../redux/redux.config";
 import NetInfo from "@react-native-community/netinfo"; // Thêm dòng này
-import { deleteRequestFriend, setRequestFriend } from "../redux/stores/request-friend-slice";
-import { initRoom } from "../redux/stores/list-room-slice";
 
 class SocketService {
    private static instance: SocketService;

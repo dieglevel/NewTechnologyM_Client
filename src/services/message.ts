@@ -6,13 +6,13 @@ import { IRoom } from "@/types/implement/room.interface";
 interface ISend {
 	accountId?: string;
 	roomId: string;
-	content: string;
-	type: string;
+	content?: string;
+	type: "message" | "sticker";
 	files?: File[]; // multipleFiles
 	sticker?: string;
 }
 
-interface IResponse {
+export interface IMessageResponse {
 	message: IMessage;
 	room: IRoom;
 }
@@ -22,7 +22,7 @@ export const sendMessage = async (data: ISend) => {
 		const formData = new FormData();
 
 		formData.append("roomId", data.roomId);
-		formData.append("content", data.content);
+		formData.append("content", data.content ?? "");
 		formData.append("type", data.type);
 
 		if (data.accountId) {
@@ -39,13 +39,13 @@ export const sendMessage = async (data: ISend) => {
 			});
 		}
 
-		const response = await api.post<BaseResponse<IResponse>>("/message", formData, {
+		const response = await api.post<BaseResponse<IMessageResponse>>("/message", formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
 			},
 		});
 
-		console.log("response: ", response.data);
+		// console.log("response: ", response.data);
 
 		return response.data;
 	} catch (error) {
@@ -56,7 +56,17 @@ export const sendMessage = async (data: ISend) => {
 export const getMessageByRoomId = async (roomId: string) => {
 	try {
 		const response = await api.get<BaseResponse<IMessage[]>>(`/message/get-all-message-of-room/${roomId}`);
+		// console.log("response: ", response.data);
+		return response.data;
+	} catch (error) {
+		throw error as ErrorResponse;
+	}
+};
 
+export const forwardMessage = async ({ messageId, roomId, senderId }: { messageId: string; roomId: string; senderId: string }) => {
+	try {
+		const response = await api.post<BaseResponse<IMessage>>("/message/forward", { messageId, roomId, senderId });
+		// console.log("response: ", response.data);
 		return response.data;
 	} catch (error) {
 		throw error as ErrorResponse;

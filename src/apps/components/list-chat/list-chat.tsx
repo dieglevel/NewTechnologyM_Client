@@ -1,6 +1,7 @@
 import { images } from "@/assets/images";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { StackScreenNavigationProp } from "@/libs/navigation";
+import { setSelectedRoom } from "@/libs/redux";
 import { RootState } from "@/libs/redux/redux.config";
 import { getProfileFromAnotherUser } from "@/services/auth";
 import { IDetailInformation, IRoom } from "@/types/implement";
@@ -8,7 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
 import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, Image } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface IChatItem {
 	item: IRoom;
@@ -18,6 +19,8 @@ const ChatItem = ({ item }: IChatItem) => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
 
 	const [detailRoom, setDetailRoom] = useState<IDetailInformation>();
+
+	const dispatch = useDispatch();
 
 	useEffect(() => {
 		const fetchDetailRoom = async () => {
@@ -33,10 +36,16 @@ const ChatItem = ({ item }: IChatItem) => {
 		fetchDetailRoom();
 	}, []);
 
+	const handlePress = () => {
+		dispatch(setSelectedRoom(item));
+		navigation.navigate("ChatScreen", { room: item });
+	};
+
+
 	return (
 		<TouchableOpacity
 			style={styles.chatItemContainer}
-			onPress={() => navigation.navigate("ChatScreen", { room: item })}
+			onPress={handlePress}
 		>
 			<View style={styles.avatarContainer}>
 				<Image
@@ -114,7 +123,7 @@ export const ListChat = () => {
 
 			<FlatList
 				data={room}
-				keyExtractor={(item) => item.id? item.id : ""}
+				keyExtractor={(item) => (item.id ? item.id : "")}
 				renderItem={({ item }) => <ChatItem item={item} />}
 				style={styles.chatList}
 			/>

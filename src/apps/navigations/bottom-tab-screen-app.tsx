@@ -2,10 +2,8 @@ import { ContactsScreen, HomeScreen, ListChatScreen, UserScreen } from "@/apps/s
 import { Message, Profile } from "@/assets/svgs";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { StackScreenNavigationProp, Tab } from "@/libs/navigation";
+import { initRequestFriend, initSendedFriend } from "@/libs/redux";
 import { store } from "@/libs/redux/redux.config";
-import { initMyListFriend } from "@/libs/redux/stores/friend-slice";
-import { initRequestFriend } from "@/libs/redux/stores/request-friend-slice";
-import { initSendedFriend } from "@/libs/redux/stores/sended-friend-slice";
 import { socketService } from "@/libs/socket/socket";
 import { getAccountApi } from "@/services/auth";
 import { getListFriend, getListResponseFriend, getListSended } from "@/services/friend";
@@ -16,22 +14,19 @@ import { Text } from "react-native";
 export const BottomTabScreenApp = () => {
 	const navigator = useNavigation<StackScreenNavigationProp>();
 
-
 	useEffect(() => {
 		const getDetailInformation = async () => {
-			const response  = await getAccountApi();
+			const response = await getAccountApi();
 			if (response.statusCode === 200) {
 				const data = response.data?.detailInformation;
 				// console.log("data", data);
-				if (!data?.fullName && !data?.dateOfBirth && !data?.avatarUrl && !data?.thumbnailUrl ) {
-					navigator.push("UpdateProfileScreen")
+				if (!data?.fullName && !data?.dateOfBirth && !data?.avatarUrl && !data?.thumbnailUrl) {
+					navigator.push("UpdateProfileScreen");
 				}
 			}
-		}
+		};
 		getDetailInformation();
-	},[])
-
-
+	}, []);
 
 	useEffect(() => {
 		const fetch = async () => {

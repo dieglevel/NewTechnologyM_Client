@@ -1,5 +1,5 @@
-import { requestFriendStorage } from './../../mmkv/mmkv';
 // idbSlice.ts
+import { requestFriendStorage } from "@/libs/mmkv";
 import { IRequestFriend } from "@/types/implement";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 

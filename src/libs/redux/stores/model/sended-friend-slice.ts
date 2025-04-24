@@ -1,4 +1,4 @@
-import { sendedFriendStorage } from './../../mmkv/mmkv';
+import { sendedFriendStorage } from "@/libs/mmkv";
 import { ISendedFriend } from "@/types/implement";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
