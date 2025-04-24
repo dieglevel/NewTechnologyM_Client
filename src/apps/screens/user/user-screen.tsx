@@ -9,14 +9,22 @@ import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-se
 import { deleteItemAsync } from "expo-secure-store";
 import { api } from "@/libs/axios/axios.config";
 import { socketService } from "@/libs/socket/socket";
-import { detailInformationStorage, messageStorage, myListFriendStorage, requestFriendStorage, roomStorage, sendedFriendStorage } from "@/libs/mmkv/mmkv";
+import {
+	detailInformationStorage,
+	messageStorage,
+	myListFriendStorage,
+	requestFriendStorage,
+	roomStorage,
+	sendedFriendStorage,
+} from "@/libs/mmkv/mmkv";
 import { store } from "@/libs/redux/redux.config";
 import { useDispatch } from "react-redux";
 import { clearDetailInformationReducer } from "@/libs/redux";
+import { MMKV } from "react-native-mmkv";
 
 export const UserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
-	const dispatch = useDispatch()
+	const dispatch = useDispatch();
 
 	const handleLogout = async () => {
 		deleteItemAsync(ExpoSecureStoreKeys.AccessToken);
@@ -25,7 +33,7 @@ export const UserScreen = () => {
 		api.defaults.headers.common["ip-device"] = undefined;
 
 		//reset redux state
-		dispatch(clearDetailInformationReducer())
+		dispatch(clearDetailInformationReducer());
 
 		socketService.disconnect();
 		detailInformationStorage.clearAll();
@@ -36,8 +44,10 @@ export const UserScreen = () => {
 		roomStorage.clearAll();
 		messageStorage.clearAll();
 
-		navigation.reset({routes: [{ name: "Login" }]});
-	}
+		new MMKV().clearAll();
+
+		navigation.reset({ routes: [{ name: "Login" }] });
+	};
 
 	const handleResetMMKV = async () => {
 		detailInformationStorage.clearAll();
@@ -47,8 +57,40 @@ export const UserScreen = () => {
 		myListFriendStorage.clearAll();
 		roomStorage.clearAll();
 		messageStorage.clearAll();
+
+		new MMKV().clearAll();
+		store.replaceReducer(() => ({
+			detailInformation: {
+				detailInformation: null,
+				status: "idle",
+			},
+			myListFriend: {
+				myListFriend: null,
+				status: "idle",
+			},
+			requestFriend: {
+				requestFriends: null,
+				status: "idle",
+			},
+			sendedFriend: {
+				sendedFriends: null,
+				status: "idle",
+			},
+			room: {
+				room: null,
+				status: "idle",
+			},
+			message: {
+				message: null,
+				status: "idle",
+			},
+			selectedRoom: {
+				selectedRoom: null,
+			},
+		}));
+
 		alert("MMKV has been reset.");
-	}
+	};
 
 	return (
 		<SafeAreaView style={{ flex: 1 }}>

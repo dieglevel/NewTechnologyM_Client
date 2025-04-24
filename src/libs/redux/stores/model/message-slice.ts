@@ -45,8 +45,8 @@ export const setMessage = createAsyncThunk(
 		const existingMessages = messageStorage.getAll().filter((message) => message.room_id === roomId);
 		// If there are existing messages, delete the first one
 		if (existingMessages.length > 0) {
-			if (existingMessages[0].message_id) {
-				messageStorage.delete(existingMessages[0].message_id);
+			if (existingMessages[0]._id) {
+				messageStorage.delete(existingMessages[0]._id);
 			}
 		}
 		messageStorage.setMany(messages);
@@ -59,8 +59,8 @@ export const setOneMessage = createAsyncThunk(
 	async (message: IMessage) => {
 		const messageStorageData = messageStorage.getAll().filter((m) => m.room_id === message.room_id);
 		if (messageStorageData.length > 0) {
-			if (messageStorageData[0].message_id) {
-				messageStorage.delete(messageStorageData[0].message_id);
+			if (messageStorageData[0]._id) {
+				messageStorage.delete(messageStorageData[0]._id);
 			}
 		}
 		messageStorage.set(message);
@@ -69,10 +69,10 @@ export const setOneMessage = createAsyncThunk(
 );
 
 export const deleteMessage = createAsyncThunk(`${thunkDB}${thunkAction.delete}${thunkName}`, async (id: string) => {
-	const messageStorageData = messageStorage.getAll().filter((m) => m.message_id === id);
+	const messageStorageData = messageStorage.getAll().filter((m) => m._id === id);
 	if (messageStorageData.length > 0) {
-		if (messageStorageData[0].message_id) {
-			messageStorage.delete(messageStorageData[0].message_id);
+		if (messageStorageData[0]._id) {
+			messageStorage.delete(messageStorageData[0]._id);
 		}
 	}
 	return id;
@@ -131,7 +131,7 @@ const messageSlice = createSlice({
 				if (action.payload) {
 					if (state.message) {
 						action.payload.forEach((newMessage) => {
-							const index = state.message!.findIndex((m) => m.message_id === newMessage.message_id);
+							const index = state.message!.findIndex((m) => m._id === newMessage._id);
 							if (index >= 0) {
 								state.message![index] = newMessage;
 							} else {
@@ -156,7 +156,7 @@ const messageSlice = createSlice({
 
 				if (newMessage) {
 					if (state.message) {
-						const index = state.message.findIndex((m) => m.message_id === newMessage.message_id);
+						const index = state.message.findIndex((m) => m._id === newMessage._id);
 						if (index >= 0) {
 							state.message![index] = newMessage;
 						} else {
@@ -177,7 +177,7 @@ const messageSlice = createSlice({
 			.addCase(deleteMessage.fulfilled, (state, action: PayloadAction<string>) => {
 				state.status = "succeeded";
 				if (state.message) {
-					state.message = state.message.filter((m) => m.message_id !== action.payload);
+					state.message = state.message.filter((m) => m._id !== action.payload);
 				}
 			})
 			.addCase(deleteMessage.rejected, (state) => {

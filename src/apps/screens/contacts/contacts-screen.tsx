@@ -12,17 +12,19 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "@/apps/components";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { RootStackParamList, StackScreenNavigationProp } from "@/libs/navigation";
 import { useSelector } from "react-redux";
-import { RootState } from "@/libs/redux/redux.config";
+import { RootState, store } from "@/libs/redux/redux.config";
 import { IFriend } from "@/types/implement";
-import { sendRequestFriend, unFriend } from "@/services/friend";
+import { getListFriend, getListResponseFriend, getListSended, sendRequestFriend, unFriend } from "@/services/friend";
 import Toast from "react-native-toast-message";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import Delete from "@/assets/svgs/delete";
 import { ISearchAccount } from "@/types/implement/response";
 import { findAccount } from "@/services/auth";
+import { use } from "i18next";
+import { initMyListFriend, initRequestFriend, initSendedFriend } from "@/libs/redux";
 
 // // Phân nhóm liên hệ theo chữ cái đầu
 // const groupContacts = (contacts: IFriend[]) => {
@@ -212,9 +214,45 @@ export const ContactsScreen = () => {
 	const [search, setSearch] = useState<string>("");
 	const [searchResult, setSearchResult] = useState<ISearchAccount[]>([]);
 
-	useEffect(() => {
-		console.log("myListFriend", myListFriend);
-	}, [myListFriend]);
+	const isFocused = useIsFocused();
+
+	  useEffect(() => {
+			const fetch = async () => {
+			  try {
+				 const response = await getListFriend();
+				 if (response?.statusCode === 200) {
+					// console.log("response: ", response.data);
+					store.dispatch(initMyListFriend(response?.data || []));
+				 }
+			  } catch (error) {
+				 const e = error as ErrorResponse;
+			  }
+	  
+			  try {
+				 const response = await getListResponseFriend();
+				 if (response?.statusCode === 200) {
+					// console.log("response: ", response.data);
+					store.dispatch(initRequestFriend(response.data || []));
+				 }
+			  } catch (error) {
+				 const e = error as ErrorResponse;
+			  }
+	  
+			  try {
+				 const response = await getListSended();
+				 if (response?.statusCode === 200) {
+					// console.log("response: ", response.data);
+					store.dispatch(initSendedFriend(response.data || []));
+				 }
+			  } catch (error) {
+				 const e = error as ErrorResponse;
+			  }
+			};
+	  
+			fetch();
+		 }, [isFocused]);
+	
+
 
 	const [refreshing, setRefreshing] = useState<boolean>(false);
 
@@ -244,6 +282,8 @@ export const ContactsScreen = () => {
 			clearTimeout(timeoutId);
 		};
 	}, [search]);
+
+	
 
 	// const filtered = useMemo(() => {
 	// 	return myListFriend?.filter((contact) =>

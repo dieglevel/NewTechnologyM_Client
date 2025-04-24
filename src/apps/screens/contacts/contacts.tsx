@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,11 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
+import { getListFriend, getListResponseFriend, getListSended } from "@/services/friend";
+import { initMyListFriend, initRequestFriend, initSendedFriend } from "@/libs/redux";
+import { store } from "@/libs/redux/redux.config";
+import { ErrorResponse } from "@/libs/axios/axios.config";
 
 const contacts = [
   { id: "1", name: "Advertisement And Edu" },
@@ -37,6 +42,7 @@ const Tabs = ["Bạn bè", "Nhóm", "OA"];
 const ContactsScreen = () => {
   const [activeTab, setActiveTab] = useState("Bạn bè");
   const [searchQuery, setSearchQuery] = useState("");
+  const isFocused  = useIsFocused();
 
   const filteredContacts = contacts.filter((contact) =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase())
