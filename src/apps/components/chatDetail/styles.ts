@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginLeft: 12,
     flex: 1,
+  
   },
   headerIcons: {
     flexDirection: "row",

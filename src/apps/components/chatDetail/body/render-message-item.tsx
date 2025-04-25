@@ -68,8 +68,7 @@ const RenderMessageItem: React.FC<Props> = ({
 
 	const renderFile = () => {
 		const file = item.files;
-		file?.forEach((file, index) => {
-
+		return file?.map((file, index) => {
 			if (file.data.type.startsWith("image/")) {
 				console.log("File is an image:", file.url);
 				return (
@@ -88,14 +87,18 @@ const RenderMessageItem: React.FC<Props> = ({
 						}}
 					>
 						<Image
-							source={{ uri: file.url }}
-							style={{ width: 100, height: 100, objectFit: "contain" }}
+							source={{
+								uri: file.url,
+							}}
+							resizeMode={"cover"}
+							style={{ width: 200, height: 200 }}
+							width={300}
+							height={300}
 						/>
 					</TouchableOpacity>
 				);
 			}
 		});
-		return <></>;
 	};
 
 	const renderAvatar = () => {

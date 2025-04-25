@@ -10,6 +10,7 @@ import {
 	Modal,
 	Dimensions,
 	Image,
+	ActivityIndicator,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
@@ -48,6 +49,7 @@ import { SocketEmit, SocketOn } from "@/constants/socket";
 import Header from "./header/chat-header";
 import Footer from "./footer/chat-footer";
 import RenderMessageItem from "./body/render-message-item";
+import { colors } from "@/constants";
 
 const ITEM_HEIGHT = 60;
 
@@ -55,9 +57,11 @@ const ChatDetail = () => {
 	const navigation = useNavigation();
 	const isDark = false;
 
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+
 	const [myUserId, setMyUserId] = useState<string | null>(null);
 	const { detailInformation } = useAppSelector((state) => state.detailInformation);
-	const {selectedRoom} = useAppSelector((state) => state.selectedRoom)
+	const { selectedRoom } = useAppSelector((state) => state.selectedRoom);
 
 	const [messages, setMessages] = useState<IMessage[]>([]);
 
@@ -86,12 +90,10 @@ const ChatDetail = () => {
 	} | null>(null);
 	const flatListRef = useRef<FlatList>(null);
 	const imageFlatListRef = useRef<FlatList>(null);
-	
+
 	const isFocused = useIsFocused();
 
-
 	useEffect(() => {
-		
 		const fetchMessages = async () => {
 			try {
 				const response = await getMessageByRoomId(selectedRoom?.id || "");
@@ -101,6 +103,8 @@ const ChatDetail = () => {
 				}
 			} catch (error) {
 				const e = error as ErrorResponse;
+			} finally {
+				setIsLoading(false);
 			}
 		};
 
@@ -112,21 +116,17 @@ const ChatDetail = () => {
 		};
 		fetchMessages();
 		getUserId();
-	},[])
+	}, []);
 
 	useEffect(() => {
-
-
 		socketService.emit(SocketEmit.joinRoom, {
 			room_id: selectedRoom?.id || "",
 		});
-		socketService.on(SocketOn.joinRoom, (data: any) => {
-		});
+		socketService.on(SocketOn.joinRoom, (data: any) => {});
 
 		socketService.on(SocketOn.sendMessage, (data: any) => {
 			console.log("Received message:", data);
 			setMessages((prev) => {
-
 				return [...prev, data.message];
 			});
 		});
@@ -141,9 +141,7 @@ const ChatDetail = () => {
 		flatListRef.current?.scrollToEnd({ animated: true });
 	};
 
-	const filteredMessages = messages?.filter((msg) =>
-		msg.content?.toLowerCase().includes(searchQuery.toLowerCase()),
-	);
+	const filteredMessages = messages?.filter((msg) => msg.content?.toLowerCase().includes(searchQuery.toLowerCase()));
 
 	const getActionItems = () => {
 		if (!actionMessage) return [];
@@ -209,6 +207,7 @@ const ChatDetail = () => {
 	return (
 		<View style={[styles.container, isDark && styles.darkContainer]}>
 			<Header
+				myUserId={myUserId}
 				showSearchBar={showSearchBar}
 				setShowSearchBar={setShowSearchBar}
 				setSearchQuery={setSearchQuery}
@@ -233,37 +232,54 @@ const ChatDetail = () => {
 				</View>
 			)}
 
-			<FlatList
-				ref={flatListRef}
-				data={showSearchBar ? filteredMessages : messages.slice().reverse()}
-				keyExtractor={(item: IMessage, index) =>
-					index.toString()
-				}
-				initialNumToRender={20}
-				maxToRenderPerBatch={20}
-				windowSize={5}
-				removeClippedSubviews
-				getItemLayout={(_, index) => ({
-				  length: ITEM_HEIGHT,
-				  offset: ITEM_HEIGHT * index,
-				  index,
-				})}
-				inverted
-				renderItem={({ item }) => (
-					<RenderMessageItem
-						item={item}
-						myUserId={myUserId}
-						setMessages={setMessages}
-						detailInformation={detailInformation}
-						setActionMessage={setActionMessage}
-						setShowActionModal={setShowActionModal}
-						showUserInfo={(user) => showUserInfo(user, setSelectedUser, setShowUserInfoModal)}
-						setShowUserInfoModal={setShowUserInfoModal}
-						isDark={isDark}
+			{isLoading ? (
+				<View style={{ flex: 1, justifyContent: "center" }}>
+					<ActivityIndicator
+						size={"large"}
+						color={colors.brand}
 					/>
-				)}
-				contentContainerStyle={styles.flatListContent}
-			/>
+				</View>
+			) : (
+				<>
+					{(messages.length <= 0 )? (
+						<View style={{flex: 1, justifyContent: "center"}}>
+							<Text style={{textAlign: "center", fontWeight: "bold"}}>Chưa có tin nhắn nào</Text>
+						</View>
+					) : (
+						<FlatList
+							ref={flatListRef}
+							data={showSearchBar ? filteredMessages : messages.slice().reverse()}
+							keyExtractor={(item: IMessage, index) => index.toString()}
+							initialNumToRender={20}
+							maxToRenderPerBatch={20}
+							windowSize={5}
+							removeClippedSubviews
+							getItemLayout={(_, index) => ({
+								length: ITEM_HEIGHT,
+								offset: ITEM_HEIGHT * index,
+								index,
+							})}
+							inverted
+							renderItem={({ item }) => (
+								<RenderMessageItem
+									item={item}
+									myUserId={myUserId}
+									setMessages={setMessages}
+									detailInformation={detailInformation}
+									setActionMessage={setActionMessage}
+									setShowActionModal={setShowActionModal}
+									showUserInfo={(user) =>
+										showUserInfo(user, setSelectedUser, setShowUserInfoModal)
+									}
+									setShowUserInfoModal={setShowUserInfoModal}
+									isDark={isDark}
+								/>
+							)}
+							contentContainerStyle={styles.flatListContent}
+						/>
+					)}
+				</>
+			)}
 
 			<Modal
 				visible={showReactionPicker}
