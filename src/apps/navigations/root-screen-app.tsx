@@ -8,6 +8,7 @@ import {
 	ForgotPasswordScreen,
 	UpdateProfileScreen,
 	UpdatePasswordScreen,
+	ListChatScreen,
 } from "@/apps/screens";
 
 import { Stack } from "@/libs/navigation";
@@ -145,6 +146,14 @@ export const RootScreenApp = () => {
 					name="ChatInfoScreen"
 					component={ChatInfo}
 				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="ListChatScreen"
+					component={ListChatScreen}
+				/>
+
 			</Stack.Navigator>
 		</NavigationContainer>
 	);

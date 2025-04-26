@@ -61,3 +61,5 @@ api.interceptors.response.use(
 		return Promise.reject(errorResponse);
 	},
 );
+
+export { BaseResponse };

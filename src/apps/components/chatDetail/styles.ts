@@ -278,6 +278,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#00000066",
   },
+    forwardRoomAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 10,
+    },
+    forwardRoomName: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#000", // Adjust color based on your theme
+      marginLeft: 10,
+    },
+    forwardRoomItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: "#ccc", // Adjust color based on your theme
+    },
+    forwardModalCloseText: {
+      color: "blue",
+      fontSize: 16,
+      textAlign: "center",
+      marginTop: 10,
+    },
   forwardModalContent: {
     backgroundColor: "white",
     borderRadius: 12,
@@ -287,6 +312,15 @@ const styles = StyleSheet.create({
   },
   darkForwardModalContent: {
     backgroundColor: "#1f2937",
+  },
+  noRoomsText: {
+    fontSize: 16,
+    color: "#6b7280",
+    textAlign: "center",
+    marginTop: 20,
+  },
+  darkNoRoomsText: {
+    color: "#9ca3af",
   },
   forwardModalTitle: {
     fontSize: 18,

@@ -2,23 +2,48 @@ import { Alert, Clipboard } from "react-native";
 import { IMessage, IRoom } from "@/types/implement";
 import Toast from "react-native-toast-message";
 
-import { sendMessage as apiSendMessage, revokeMessage } from "@/services/message";
+import { sendMessage as apiSendMessage, forwardMessage, revokeMessage } from "@/services/message";
 import { socketService } from "@/libs/socket/socket";
-import { ErrorResponse } from "@/libs/axios/axios.config";
+import { ErrorResponse, BaseResponse } from "@/libs/axios/axios.config";
 import { SocketEmit, SocketOn } from "@/constants/socket";
 import { store } from "@/libs/redux/redux.config";
+import { api } from "@/libs/axios/axios.config";
+import { getMyListRoom } from "@/services/room";
 
+// Hàm lấy danh sách phòng
+const getRooms = async (): Promise<IRoom[]> => {
+  try {
+    const response = await getMyListRoom();
+    console.log("response", response);
+    if (response.statusCode === 200) {
+      return response.data?.listRoomResponse ?? [];
+    }
+    return [];
+  } catch (error) {
+    const e = error as ErrorResponse;
+    Toast.show({
+      type: 'error',
+      text1: 'Có lỗi xảy ra khi tải danh sách phòng',
+    });
+    return [];
+  }
+};
+
+
+// Hàm gửi tin nhắn
 const sendMessage = async (
   roomId: string,
   sticker: string | undefined,
   text: string | undefined,
   setInputText: (text: string) => void,
   setSelectedImages: (images: string[]) => void,
-  setSelectedFiles: React.Dispatch<React.SetStateAction<{
-    uri: string;
-    name: string;
-    type: string;
-  }[]>>
+  setSelectedFiles: React.Dispatch<
+    React.SetStateAction<{
+      uri: string;
+      name: string;
+      type: string;
+    }[]>
+  >
 ) => {
   if (!sticker) {
     if (!text?.trim()) {
@@ -29,22 +54,25 @@ const sendMessage = async (
   try {
     const response = await apiSendMessage({ roomId, content: text, type: "message", sticker });
     if (response.statusCode === 200) {
-      // Gửi thành công
+      socketService.emit(SocketEmit.sendMessage, {
+        roomId,
+        message: response.data,
+      });
     }
   } catch (error) {
     const e = error as ErrorResponse;
     Toast.show({
       type: "error",
       text1: "Có lỗi xảy ra khi gửi tin nhắn",
-    })
-  }
-  finally {
+    });
+  } finally {
     setInputText("");
     setSelectedImages([]);
     setSelectedFiles([]);
   }
 };
 
+// Hàm thu hồi tin nhắn
 const handleRecallMessage = (
   id: string,
   isMyMessage: boolean,
@@ -73,8 +101,7 @@ const handleRecallMessage = (
               text1: "Đã thu hồi tin nhắn",
             });
           }
-        }
-        catch (error) {
+        } catch (error) {
           const e = error as ErrorResponse;
           Toast.show({
             type: "success",
@@ -87,6 +114,7 @@ const handleRecallMessage = (
   ]);
 };
 
+// Hàm chỉnh sửa tin nhắn
 const handleEditMessage = (
   id: string,
   text: string,
@@ -101,6 +129,7 @@ const handleEditMessage = (
   setShowActionModal(false);
 };
 
+// Hàm hủy chỉnh sửa
 const cancelEdit = (
   setEditingMessageId: (id: string | null) => void,
   setEditText: (text: string) => void,
@@ -111,6 +140,7 @@ const cancelEdit = (
   setInputText("");
 };
 
+// Hàm đóng modal hình ảnh
 const closeImageModal = (
   setShowImageModal: (show: boolean) => void,
   setAllImageUris: (uris: string[]) => void,
@@ -123,6 +153,7 @@ const closeImageModal = (
   setCurrentImageIndex(0);
 };
 
+// Hàm sao chép tin nhắn
 const copyMessage = (
   text: string,
   setShowActionModal: (show: boolean) => void
@@ -143,6 +174,7 @@ const copyMessage = (
   setShowActionModal(false);
 };
 
+// Hàm hiển thị/ẩn thanh tìm kiếm
 const toggleSearchBar = (
   showSearchBar: boolean,
   setShowSearchBar: (show: boolean) => void,
@@ -152,7 +184,69 @@ const toggleSearchBar = (
   setSearchQuery("");
 };
 
+// Hàm chuyển tiếp tin nhắn
+const pushforwardMessage = async ({
+  messageId,
+  roomId,
+  senderId,
+  targetRoomId,
+}: {
+  messageId: string;
+  roomId: string;
+  senderId: string;
+  targetRoomId: string;
+}) => {
+  try {
+    // Gọi lại hàm forwardMessage để chuyển tiếp tin nhắn
+    const response = await forwardMessage({ messageId, roomId, senderId });
+
+  } catch (error) {
+    const e = error as ErrorResponse;
+    throw new Error(e.message || "Lỗi khi gọi API chuyển tiếp tin nhắn");
+  }
+};
+
+// Hàm xử lý chuyển tiếp tin nhắn
+const handleForwardMessage = async (
+  messageId: string,
+  roomId: string,
+  senderId: string,
+  targetRoomId: string,
+  setShowActionModal: (show: boolean) => void
+) => {
+  if (!targetRoomId) {
+    Toast.show({
+      type: "error",
+      text1: "Vui lòng chọn phòng để chuyển tiếp",
+    });
+    return;
+  }
+
+  try {
+    const forwardedMessage = await pushforwardMessage({ messageId, roomId, senderId, targetRoomId });
+
+    Toast.show({
+      type: "success",
+      text1: "Tin nhắn đã được chuyển tiếp thành công",
+    });
+
+    socketService.emit(SocketEmit.sendMessage, {
+      roomId: targetRoomId,
+      message: forwardedMessage,
+    });
+  } catch (error) {
+    const e = error as ErrorResponse;
+    Toast.show({
+      type: "error",
+      text1: e.message || "Có lỗi xảy ra khi chuyển tiếp tin nhắn",
+    });
+  } finally {
+    setShowActionModal(false);
+  }
+};
+
 export {
+  getRooms,
   sendMessage,
   handleRecallMessage,
   handleEditMessage,
@@ -160,4 +254,6 @@ export {
   closeImageModal,
   copyMessage,
   toggleSearchBar,
+  pushforwardMessage,
+  handleForwardMessage,
 };

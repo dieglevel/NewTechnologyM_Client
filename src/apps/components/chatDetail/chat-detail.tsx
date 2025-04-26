@@ -1,16 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	FlatList,
-	KeyboardAvoidingView,
-	Platform,
-	Modal,
-	Dimensions,
-	Image,
-	ActivityIndicator,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
+  Dimensions,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
@@ -23,18 +23,13 @@ import RenderImageItem from "./render-image-item";
 import RenderActionItem from "./render-action-item";
 import { startRecording, stopRecording } from "./audio-utils";
 import {
-	copyMessage,
-	handleEditMessage,
-	handleRecallMessage,
-	// copyMessage,
-	// handleEditMessage,
-	sendMessage,
-	toggleSearchBar,
-	// handleRecallMessage,
-	// handleReactionSelect,
-	// closeImageModal,
-	// forwardMessage,
-	// cancelEdit,
+  copyMessage,
+  handleEditMessage,
+  handleRecallMessage,
+  sendMessage,
+  toggleSearchBar,
+  handleForwardMessage,
+  getRooms,
 } from "./message-utils";
 import { showUserInfo, closeUserInfoModal } from "./user-modal";
 import styles from "./styles";
@@ -43,7 +38,7 @@ import { IMessage, IRoom } from "@/types/implement";
 import { api, ErrorResponse } from "@/libs/axios/axios.config";
 import { getMessageByRoomId, IMessageResponse } from "@/services/message";
 import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
-import { store, useAppSelector } from "@/libs/redux/redux.config";
+import { store, useAppDispatch, useAppSelector } from "@/libs/redux/redux.config";
 import { socketService } from "@/libs/socket/socket";
 import { SocketEmit, SocketOn } from "@/constants/socket";
 import Header from "./header/chat-header";
@@ -54,496 +49,533 @@ import { colors } from "@/constants";
 const ITEM_HEIGHT = 60;
 
 const ChatDetail = () => {
-	const navigation = useNavigation();
-	const isDark = false;
+  const navigation = useNavigation();
+  const isDark = false;
 
-	const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingRooms, setIsLoadingRooms] = useState<boolean>(false); // Thêm trạng thái loading cho rooms
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+  const { detailInformation } = useAppSelector((state) => state.detailInformation);
+  const { selectedRoom } = useAppSelector((state) => state.selectedRoom);
 
-	const [myUserId, setMyUserId] = useState<string | null>(null);
-	const { detailInformation } = useAppSelector((state) => state.detailInformation);
-	const { selectedRoom } = useAppSelector((state) => state.selectedRoom);
+  const [messages, setMessages] = useState<IMessage[]>([]);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [allImageUris, setAllImageUris] = useState<string[]>([]);
+  const [initialImageIndex, setInitialImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionMessage, setActionMessage] = useState<IMessage | null>(null);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [showUserInfoModal, setShowUserInfoModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{
+    name: string;
+    avatar: string;
+    status?: string;
+    phone?: string;
+  } | null>(null);
+  const [isForwarding, setIsForwarding] = useState(false);
 
-	const [messages, setMessages] = useState<IMessage[]>([]);
+  const flatListRef = useRef<FlatList>(null);
+  const imageFlatListRef = useRef<FlatList>(null);
+  const isFocused = useIsFocused();
 
-	const [showReactionPicker, setShowReactionPicker] = useState(false);
-	const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
-	const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const response = await getMessageByRoomId(selectedRoom?.id || "");
+        if (response.statusCode === 200 && response.data) {
+          setMessages(response.data);
+        }
+      } catch (error) {
+        const e = error as ErrorResponse;
+        console.error("Error fetching messages:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-	const [showImageModal, setShowImageModal] = useState(false);
-	const [allImageUris, setAllImageUris] = useState<string[]>([]);
-	const [initialImageIndex, setInitialImageIndex] = useState(0);
-	const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const getUserId = async () => {
+      const userId = await getSecure(ExpoSecureStoreKeys.UserId);
+      if (userId) {
+        setMyUserId(userId);
+      }
+    };
 
-	const [showActionModal, setShowActionModal] = useState(false);
-	const [actionMessage, setActionMessage] = useState<IMessage | null>(null);
-	const [showForwardModal, setShowForwardModal] = useState(false);
+    const fetchRooms = async () => {
+      setIsLoadingRooms(true);
+      try {
+        const roomsData = await getRooms();
+        console.log("Fetched rooms:", roomsData); // Log để kiểm tra dữ liệu
+        setRooms(roomsData || []);
+      } catch (error) {
+        console.error("Error fetching rooms:", error);
+        setRooms([]);
+      } finally {
+        setIsLoadingRooms(false);
+      }
+    };
 
-	const [searchQuery, setSearchQuery] = useState("");
-	const [showSearchBar, setShowSearchBar] = useState(false);
+    fetchMessages();
+    getUserId();
+    fetchRooms();
+  }, [isFocused]);
 
-	const [showUserInfoModal, setShowUserInfoModal] = useState(false);
-	const [selectedUser, setSelectedUser] = useState<{
-		name: string;
-		avatar: string;
-		status?: string;
-		phone?: string;
-	} | null>(null);
-	const flatListRef = useRef<FlatList>(null);
-	const imageFlatListRef = useRef<FlatList>(null);
+  useEffect(() => {
+    socketService.emit(SocketEmit.joinRoom, {
+      room_id: selectedRoom?.id || "",
+    });
+    socketService.on(SocketOn.joinRoom, (data: any) => {});
 
-	const isFocused = useIsFocused();
+    socketService.on(SocketOn.sendMessage, (data: any) => {
+      const { message, behavior } = data;
 
-	useEffect(() => {
-		const fetchMessages = async () => {
-			try {
-				const response = await getMessageByRoomId(selectedRoom?.id || "");
-				if (response.statusCode === 200 && response.data) {
-					setMessages(response.data);
-				}
-			} catch (error) {
-				const e = error as ErrorResponse;
-			} finally {
-				setIsLoading(false);
-			}
-		};
+      switch (behavior) {
+        case "add":
+          setMessages((prev) => [...prev, data.message]);
+          break;
+        case "update":
+          setMessages((prev) => {
+            const index = prev.findIndex((msg) => msg._id === message._id);
+            if (index !== -1) {
+              const updatedMessages = [...prev];
+              updatedMessages[index] = message;
+              return updatedMessages;
+            }
+            return prev;
+          });
+          break;
+        case "revoke":
+          setMessages((prev) => {
+            const index = prev.findIndex((msg) => msg._id === message._id);
+            if (index !== -1) {
+              const updatedMessages = [...prev];
+              updatedMessages[index] = {
+                ...updatedMessages[index],
+                content: "Tin nhắn đã được thu hồi",
+              };
+              return updatedMessages;
+            }
+            return prev;
+          });
+          break;
+        case "delete":
+          break;
+        default:
+          break;
+      }
+    });
 
-		const getUserId = async () => {
-			const userId = await getSecure(ExpoSecureStoreKeys.UserId);
-			if (userId) {
-				setMyUserId(userId);
-			}
-		};
-		fetchMessages();
-		getUserId();
-	}, []);
+    socketService.on(SocketOn.forwardMessage, (data: any) => {
+      const { message, toRoomId } = data;
+      if (toRoomId === selectedRoom?.id) {
+        setMessages((prev) => [...prev, message]);
+      }
+    });
 
-	useEffect(() => {
-		socketService.emit(SocketEmit.joinRoom, {
-			room_id: selectedRoom?.id || "",
-		});
-		socketService.on(SocketOn.joinRoom, (data: any) => {});
+    return () => {
+      socketService.off(SocketOn.sendMessage);
+      socketService.off(SocketOn.joinRoom);
+      socketService.off(SocketOn.forwardMessage);
+    };
+  }, [isFocused]);
 
-		socketService.on(SocketOn.sendMessage, (data: any) => {
-			const { message, behavior } = data;
+  const scrollToBottom = () => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  };
 
-			console.log("???????room: ", data);
+  const filteredMessages = messages?.filter((msg) => {
+    if (!msg.isRevoked) {
+      return msg.content?.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+  });
 
-			switch (behavior) {
-				case "add":
-					setMessages((prev) => {
-						return [...prev, data.message];
-					});
-					break;
-				case "update":
-					setMessages((prev) => {
-						const index = prev.findIndex((msg) => msg._id === message._id);
-						if (index !== -1) {
-							const updatedMessages = [...prev];
-							updatedMessages[index] = message;
-							return updatedMessages;
-						}
-						return prev;
-					});
-					break;
-				case "revoke":
-					setMessages((prev) => {
-						const index = prev.findIndex((msg) => msg._id === message._id);
-						if (index !== -1) {
-							const updatedMessages = [...prev];
-							updatedMessages[index] = {
-								...updatedMessages[index],
-								content: "Tin nhắn đã được thu hồi",
-							};
-							return updatedMessages;
-						}
-						return prev;
-					});
-					break;
-				case "delete":
-					// await dispatch(setRoom([room]));
-					break;
-				default:
-					break;
-			}
+  const getActionItems = () => {
+    if (!actionMessage) return [];
 
-		});
+    const isMyMessage = actionMessage.accountId === myUserId;
+    const items = [
+      {
+        icon: "heart-outline",
+        label: "Thêm Reaction",
+        onPress: () => {
+          setSelectedMessageId(actionMessage._id ?? "");
+          setShowReactionPicker(true);
+          setShowActionModal(false);
+        },
+      },
+      {
+        icon: "copy-outline",
+        label: "Sao chép",
+        onPress: () => copyMessage(actionMessage.content ?? "", setShowActionModal),
+      },
+      {
+        icon: "share-outline",
+        label: "Chuyển tiếp",
+        onPress: () => {
+          if (rooms.length === 0) {
+            alert("Không có cuộc trò chuyện nào để chuyển tiếp.");
+          } else {
+            setShowForwardModal(true);
+            setShowActionModal(false);
+          }
+        },
+      },
+    ];
 
-		return () => {
-			socketService.off(SocketOn.sendMessage);
-			socketService.off(SocketOn.joinRoom);
-		};
-	}, [isFocused]);
+    if (isMyMessage && actionMessage.content !== "Tin nhắn đã được thu hồi") {
+      items.push(
+        {
+          icon: "pencil-outline",
+          label: "Chỉnh sửa",
+          onPress: () =>
+            handleEditMessage(
+              actionMessage._id || "",
+              actionMessage.content || "",
+              setEditingMessageId,
+              setEditText,
+              setInputText,
+              setShowActionModal
+            ),
+        },
+        {
+          icon: "trash-outline",
+          label: "Thu hồi",
+          onPress: () =>
+            handleRecallMessage(
+              actionMessage._id || "",
+              isMyMessage,
+              setMessages,
+              setShowActionModal
+            ),
+        }
+      );
+    }
 
-	const scrollToBottom = () => {
-		flatListRef.current?.scrollToEnd({ animated: true });
-	};
+    return items;
+  };
 
-	const filteredMessages = messages?.filter((msg) => {
-		if (!msg.isRevoked){
-			return msg.content?.toLowerCase().includes(searchQuery.toLowerCase());
-		}
-	});
+  const RenderRoomItem = ({ item }: { item: IRoom }) => {
+    const renderAvatar = () => {
+      if (item.type === "single") {
+        const account = item.detailRoom.find((detail) => detail.id !== myUserId);
+        return (
+          <Image
+            source={account?.avatar ? { uri: account.avatar } : { uri: "default_avatar" }}
+            style={styles.forwardRoomAvatar}
+          />
+        );
+      } else {
+        return (
+          <Image
+            source={item.avatar ? { uri: item.avatar } : { uri: "default_group" }}
+            style={styles.forwardRoomAvatar}
+          />
+        );
+      }
+    };
 
-	const getActionItems = () => {
-		if (!actionMessage) return [];
+    const renderName = () => {
+      if (item.type === "single") {
+        const account = item.detailRoom.find((detail) => detail.id !== myUserId);
+        return account?.fullName || "Unknown User";
+      } else {
+        return item.name || "Group Chat";
+      }
+    };
 
-		const isMyMessage = actionMessage._id === myUserId;
-		const items = [
-			{
-				icon: "heart-outline",
-				label: "Thêm Reaction",
-				onPress: () => {
-					setSelectedMessageId(actionMessage._id ?? "");
-					setShowReactionPicker(true);
-					setShowActionModal(false);
-				},
-			},
-			{
-				icon: "copy-outline",
-				label: "Sao chép",
-				onPress: () => copyMessage(actionMessage.content ?? "", setShowActionModal),
-			},
-			{
-				icon: "share-outline",
-				label: "Chuyển tiếp",
-				onPress: () => {
-					setShowForwardModal(true);
-					setShowActionModal(false);
-				},
-			},
-		];
+    return (
+      <TouchableOpacity
+        style={styles.forwardRoomItem}
+        disabled={isForwarding}
+        onPress={async () => {
+          setIsForwarding(true);
+          try {
+            await handleForwardMessage(
+              actionMessage?._id || "",
+			  item.id,
+              myUserId || "",
+              item.id,
+              setShowActionModal
+            );
+            setShowForwardModal(false);
+          } catch (error) {
+            console.error("Lỗi khi chuyển tiếp tin nhắn:", error);
+          } finally {
+            setIsForwarding(false);
+          }
+        }}
+      >
+        {isForwarding && <ActivityIndicator size="small" color={colors.brand} />}
+        {renderAvatar()}
+        <Text style={styles.forwardRoomName}>{renderName()}</Text>
+      </TouchableOpacity>
+    );
+  };
 
-		// if (isMyMessage && actionMessage.content !== "Tin nhắn đã được thu hồi") {
-		// 	items.push(
-		// 		{
-		// 			icon: "pencil-outline",
-		// 			label: "Chỉnh sửa",
-		// 			onPress: () =>
-		// 				handleEditMessage(
-		// 					actionMessage._id || "",
-		// 					actionMessage.content || "",
-		// 					setEditingMessageId,
-		// 					setEditText,
-		// 					setInputText,
-		// 					setShowActionModal,
-		// 				),
-		// 		},
-		// 		{
-		// 			icon: "trash-outline",
-		// 			label: "Thu hồi",
-		// 			onPress: () =>
-		// 				handleRecallMessage(
-		// 					actionMessage._id || "",
-		// 					isMyMessage,
-		// 					setMessages,
-		// 					setShowActionModal,
-		// 				),
-		// 		},
-		// 	);
-		// }
+  return (
+    <View style={[styles.container, isDark && styles.darkContainer]}>
+      <Header
+        myUserId={myUserId}
+        showSearchBar={showSearchBar}
+        setShowSearchBar={setShowSearchBar}
+        setSearchQuery={setSearchQuery}
+      />
 
-		return items;
-	};
+      {showSearchBar && (
+        <View style={[styles.searchContainer, isDark && styles.darkSearchContainer]}>
+          <TextInput
+            style={[styles.searchInput, isDark && styles.darkSearchInput]}
+            placeholder="Tìm kiếm tin nhắn..."
+            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+          <TouchableOpacity
+            onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}
+            style={styles.cancelSearchButton}
+          >
+            <Text style={styles.cancelSearchText}>Hủy</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-	return (
-		<View style={[styles.container, isDark && styles.darkContainer]}>
-			<Header
-				myUserId={myUserId}
-				showSearchBar={showSearchBar}
-				setShowSearchBar={setShowSearchBar}
-				setSearchQuery={setSearchQuery}
-			/>
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size={"large"} color={colors.brand} />
+        </View>
+      ) : (
+        <>
+          {messages.length <= 0 ? (
+            <View style={{ flex: 1, justifyContent: "center" }}>
+              <Text style={{ textAlign: "center", fontWeight: "bold" }}>
+                Chưa có tin nhắn nào
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={searchQuery ? filteredMessages : messages.toReversed()}
+              keyExtractor={(item: IMessage, index) => item._id.toString()}
+              initialNumToRender={20}
+              maxToRenderPerBatch={20}
+              windowSize={5}
+              removeClippedSubviews
+              getItemLayout={(_, index) => ({
+                length: ITEM_HEIGHT,
+                offset: ITEM_HEIGHT * index,
+                index,
+              })}
+              inverted
+              renderItem={({ item }) => (
+                <RenderMessageItem
+                  key={item._id}
+                  item={item}
+                  myUserId={myUserId}
+                  setMessages={setMessages}
+                  detailInformation={detailInformation}
+                  setActionMessage={setActionMessage}
+                  setShowActionModal={setShowActionModal}
+                  showUserInfo={(user) =>
+                    showUserInfo(user, setSelectedUser, setShowUserInfoModal)
+                  }
+                  setShowUserInfoModal={setShowUserInfoModal}
+                  isDark={isDark}
+                />
+              )}
+              contentContainerStyle={styles.flatListContent}
+            />
+          )}
+        </>
+      )}
 
-			{showSearchBar && (
-				<View style={[styles.searchContainer, isDark && styles.darkSearchContainer]}>
-					<TextInput
-						style={[styles.searchInput, isDark && styles.darkSearchInput]}
-						placeholder="Tìm kiếm tin nhắn..."
-						placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
-						value={searchQuery}
-						onChangeText={setSearchQuery}
-						autoFocus
-					/>
-					<TouchableOpacity
-						onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}
-						style={styles.cancelSearchButton}
-					>
-						<Text style={styles.cancelSearchText}>Hủy</Text>
-					</TouchableOpacity>
-				</View>
-			)}
+      <Modal visible={showReactionPicker} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.reactionModalContainer}
+          onPress={() => setShowReactionPicker(false)}
+        >
+          <View style={styles.reactionModalContent}>
+            {/* Reaction picker content */}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-			{isLoading ? (
-				<View style={{ flex: 1, justifyContent: "center" }}>
-					<ActivityIndicator
-						size={"large"}
-						color={colors.brand}
-					/>
-				</View>
-			) : (
-				<>
-					{(messages.length <= 0 )? (
-						<View style={{flex: 1, justifyContent: "center"}}>
-							<Text style={{textAlign: "center", fontWeight: "bold"}}>Chưa có tin nhắn nào</Text>
-						</View>
-					) : (
-						<FlatList
-							ref={flatListRef}
-							data={searchQuery ? filteredMessages : messages.toReversed()}
-							keyExtractor={(item: IMessage, index) => item._id.toString()}
-							initialNumToRender={20}
-							maxToRenderPerBatch={20}
-							windowSize={5}
-							removeClippedSubviews
-							getItemLayout={(_, index) => ({
-								length: ITEM_HEIGHT,
-								offset: ITEM_HEIGHT * index,
-								index,
-							})}
-							inverted
-							renderItem={({ item }) => (
-								<RenderMessageItem
-								key={item._id}
-									item={item}
-									myUserId={myUserId}
-									setMessages={setMessages}
-									detailInformation={detailInformation}
-									setActionMessage={setActionMessage}
-									setShowActionModal={setShowActionModal}
-									showUserInfo={(user) =>
-										showUserInfo(user, setSelectedUser, setShowUserInfoModal)
-									}
-									setShowUserInfoModal={setShowUserInfoModal}
-									isDark={isDark}
-								/>
-							)}
-							contentContainerStyle={styles.flatListContent}
-						/>
-					)}
-				</>
-			)}
+      <Modal visible={showImageModal} transparent animationType="fade">
+        <View style={styles.imageModalContainer}>
+          <TouchableOpacity
+            style={styles.imageModalOverlay}
+            onPress={() => {
+              setShowImageModal(false);
+              setAllImageUris([]);
+              setInitialImageIndex(0);
+              setCurrentImageIndex(0);
+            }}
+          />
+          <View style={styles.imageModalContent}>
+            <FlatList
+              ref={imageFlatListRef}
+              data={allImageUris}
+              renderItem={RenderImageItem}
+              keyExtractor={(item, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              initialScrollIndex={initialImageIndex}
+              getItemLayout={(data, index) => ({
+                length: Dimensions.get("window").width,
+                offset: Dimensions.get("window").width * index,
+                index,
+              })}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x / Dimensions.get("window").width
+                );
+                setCurrentImageIndex(index);
+              }}
+            />
+            {allImageUris.length > 0 && (
+              <Text style={styles.imageCounter}>
+                {currentImageIndex + 1}/{allImageUris.length}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.closeImageButton}
+              onPress={() => {
+                setShowImageModal(false);
+                setAllImageUris([]);
+                setInitialImageIndex(0);
+                setCurrentImageIndex(0);
+              }}
+            >
+              <Ionicons name="close" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
-			<Modal
-				visible={showReactionPicker}
-				transparent
-				animationType="fade"
-			>
-				<TouchableOpacity
-					style={styles.reactionModalContainer}
-					onPress={() => setShowReactionPicker(false)}
-				>
-					<View style={styles.reactionModalContent}>
-						{/* {REACTIONS.map((emoji) => (
-							<TouchableOpacity
-								key={emoji}
-								onPress={() =>
-									handleReactionSelect(
-										emoji,
-										selectedMessageId,
-										setMessages,
-										setShowReactionPicker,
-										setSelectedMessageId,
-										setShowActionModal,
-									)
-								}
-								style={styles.reactionButton}
-							>
-								<Text style={styles.reactionEmoji}>{emoji}</Text>
-							</TouchableOpacity>
-						))} */}
-					</View>
-				</TouchableOpacity>
-			</Modal>
+      <Modal visible={showActionModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.actionModalContainer}
+          onPress={() => setShowActionModal(false)}
+        >
+          <View style={[styles.actionModalContent, isDark && styles.darkActionModalContent]}>
+            <FlatList
+              data={getActionItems()}
+              renderItem={({ item }) => <RenderActionItem item={item} />}
+              keyExtractor={(item) => item.label}
+              contentContainerStyle={styles.actionListContent}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-			<Modal
-				visible={showImageModal}
-				transparent
-				animationType="fade"
-			>
-				<View style={styles.imageModalContainer}>
-					<TouchableOpacity
-						style={styles.imageModalOverlay}
-						// onPress={() =>
-						// 	closeImageModal(
-						// 		setShowImageModal,
-						// 		setAllImageUris,
-						// 		setInitialImageIndex,
-						// 		setCurrentImageIndex,
-						// 	)
-						// }
-					/>
-					<View style={styles.imageModalContent}>
-						<FlatList
-							ref={imageFlatListRef}
-							data={allImageUris}
-							renderItem={RenderImageItem}
-							keyExtractor={(item, index) => index.toString()}
-							horizontal
-							pagingEnabled
-							showsHorizontalScrollIndicator={false}
-							initialScrollIndex={initialImageIndex}
-							getItemLayout={(data, index) => ({
-								length: Dimensions.get("window").width,
-								offset: Dimensions.get("window").width * index,
-								index,
-							})}
-							onMomentumScrollEnd={(event) => {
-								const index = Math.round(
-									event.nativeEvent.contentOffset.x / Dimensions.get("window").width,
-								);
-								setCurrentImageIndex(index);
-							}}
-						/>
-						{allImageUris.length > 0 && (
-							<Text style={styles.imageCounter}>
-								{currentImageIndex + 1}/{allImageUris.length}
-							</Text>
-						)}
-						<TouchableOpacity
-							style={styles.closeImageButton}
-							// onPress={() =>
-							// 	closeImageModal(
-							// 		setShowImageModal,
-							// 		setAllImageUris,
-							// 		setInitialImageIndex,
-							// 		setCurrentImageIndex,
-							// 	)
-							// }
-						>
-							<Ionicons
-								name="close"
-								size={30}
-								color="white"
-							/>
-						</TouchableOpacity>
-					</View>
-				</View>
-			</Modal>
+      <Modal visible={showForwardModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.forwardModalContainer}
+          onPress={() => setShowForwardModal(false)}
+        >
+          <View style={[styles.forwardModalContent, isDark && styles.darkForwardModalContent]}>
+            <Text style={[styles.forwardModalTitle, isDark && styles.darkForwardModalTitle]}>
+             Chọn cuộc trò chuyện
+            </Text>
+            {isLoadingRooms ? (
+              <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color={colors.brand} />
+              </View>
+            ) : rooms.length === 0 ? (
+              <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <Text style={[styles.noRoomsText, isDark && styles.darkNoRoomsText]}>
+                  Không có cuộc trò chuyện nào
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={rooms}
+                renderItem={ ({ item }) => (
+				  <RenderRoomItem item={item} />
+				)}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.chatListContent}
+              />
+            )}
+            <TouchableOpacity
+              style={styles.cancelForwardButton}
+              onPress={() => setShowForwardModal(false)}
+            >
+              <Text style={styles.cancelForwardText}>Hủy</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-			<Modal
-				visible={showActionModal}
-				transparent
-				animationType="fade"
-			>
-				<TouchableOpacity
-					style={styles.actionModalContainer}
-					onPress={() => setShowActionModal(false)}
-				>
-					<View style={[styles.actionModalContent, isDark && styles.darkActionModalContent]}>
-						<FlatList
-							data={getActionItems()}
-							renderItem={({ item }) => <RenderActionItem item={item} />}
-							keyExtractor={(item) => item.label}
-							contentContainerStyle={styles.actionListContent}
-						/>
-					</View>
-				</TouchableOpacity>
-			</Modal>
+      <Modal visible={showUserInfoModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.userInfoModalContainer}
+          onPress={() => closeUserInfoModal(setShowUserInfoModal, setSelectedUser)}
+        >
+          <View style={[styles.userInfoModalContent, isDark && styles.darkUserInfoModalContent]}>
+            {selectedUser && (
+              <>
+                <Image source={{ uri: selectedUser.avatar }} style={styles.userInfoAvatar} />
+                <Text style={[styles.userInfoName, isDark && styles.darkUserInfoName]}>
+                  {selectedUser.name}
+                </Text>
+                <View style={styles.userInfoDetail}>
+                  <Ionicons
+                    name="ellipse"
+                    size={16}
+                    color={selectedUser.status === "Đang hoạt động" ? "#22c55e" : "#6b7280"}
+                    style={styles.userInfoIcon}
+                  />
+                  <Text style={[styles.userInfoText, isDark && styles.darkUserInfoText]}>
+                    {selectedUser.status}
+                  </Text>
+                </View>
+                <View style={styles.userInfoDetail}>
+                  <Ionicons
+                    name="call-outline"
+                    size={16}
+                    color="#3b82f6"
+                    style={styles.userInfoIcon}
+                  />
+                  <Text style={[styles.userInfoText, isDark && styles.darkUserInfoText]}>
+                    {selectedUser.phone}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.closeUserInfoButton}
+                  onPress={() => closeUserInfoModal(setShowUserInfoModal, setSelectedUser)}
+                >
+                  <Text style={styles.closeUserInfoText}>Đóng</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-			<Modal
-				visible={showForwardModal}
-				transparent
-				animationType="fade"
-			>
-				<TouchableOpacity
-					style={styles.forwardModalContainer}
-					onPress={() => setShowForwardModal(false)}
-				>
-					<View style={[styles.forwardModalContent, isDark && styles.darkForwardModalContent]}>
-						<Text style={[styles.forwardModalTitle, isDark && styles.darkForwardModalTitle]}>
-							Chọn cuộc trò chuyện
-						</Text>
-						{/* <FlatList
-							data={mockChats}
-							renderItem={({ item }) => (
-								<RenderChatItem
-									item={item}
-									forwardMessage={() =>
-										forwardMessage(
-											item.id,
-											actionMessage,
-											setShowForwardModal,
-											setShowActionModal,
-										)
-									}
-								/>
-							)}
-							keyExtractor={(item) => item.id}
-							contentContainerStyle={styles.chatListContent}
-						/> */}
-						<TouchableOpacity
-							style={styles.cancelForwardButton}
-							onPress={() => setShowForwardModal(false)}
-						>
-							<Text style={styles.cancelForwardText}>Hủy</Text>
-						</TouchableOpacity>
-					</View>
-				</TouchableOpacity>
-			</Modal>
-
-			<Modal
-				visible={showUserInfoModal}
-				transparent
-				animationType="fade"
-			>
-				<TouchableOpacity
-					style={styles.userInfoModalContainer}
-					onPress={() => closeUserInfoModal(setShowUserInfoModal, setSelectedUser)}
-				>
-					<View style={[styles.userInfoModalContent, isDark && styles.darkUserInfoModalContent]}>
-						{selectedUser && (
-							<>
-								<Image
-									source={{ uri: selectedUser.avatar }}
-									style={styles.userInfoAvatar}
-								/>
-								<Text style={[styles.userInfoName, isDark && styles.darkUserInfoName]}>
-									{selectedUser.name}
-								</Text>
-								<View style={styles.userInfoDetail}>
-									<Ionicons
-										name="ellipse"
-										size={16}
-										color={
-											selectedUser.status === "Đang hoạt động" ? "#22c55e" : "#6b7280"
-										}
-										style={styles.userInfoIcon}
-									/>
-									<Text style={[styles.userInfoText, isDark && styles.darkUserInfoText]}>
-										{selectedUser.status}
-									</Text>
-								</View>
-								<View style={styles.userInfoDetail}>
-									<Ionicons
-										name="call-outline"
-										size={16}
-										color="#3b82f6"
-										style={styles.userInfoIcon}
-									/>
-									<Text style={[styles.userInfoText, isDark && styles.darkUserInfoText]}>
-										{selectedUser.phone}
-									</Text>
-								</View>
-								<TouchableOpacity
-									style={styles.closeUserInfoButton}
-									onPress={() => closeUserInfoModal(setShowUserInfoModal, setSelectedUser)}
-								>
-									<Text style={styles.closeUserInfoText}>Đóng</Text>
-								</TouchableOpacity>
-							</>
-						)}
-					</View>
-				</TouchableOpacity>
-			</Modal>
-
-			<Footer
-				isDark={isDark}
-				editingMessageId={editingMessageId}
-				setEditingMessageId={setEditingMessageId}
-				setMessages={setMessages}
-			/>
-		</View>
-	);
+      <Footer
+        isDark={isDark}
+        editingMessageId={editingMessageId}
+        setEditingMessageId={setEditingMessageId}
+        setMessages={setMessages}
+      />
+    </View>
+  );
 };
 
 export default ChatDetail;
+
+function setEditText(text: string): void {
+  throw new Error("Function not implemented.");
+}
+
+function setInputText(text: string): void {
+  throw new Error("Function not implemented.");
+}
