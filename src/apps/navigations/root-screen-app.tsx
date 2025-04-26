@@ -21,7 +21,7 @@ import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import { MMKV } from "react-native-mmkv";
 import RequestFriendScreen from "../screens/request-friend/request-friend-screen";
-import ChatInfo from "../components/chatInfo/chat-info";
+import ChatInfo from "../components/chat-info/chat-info";
 
 export const RootScreenApp = () => {
 	useEffect(() => {

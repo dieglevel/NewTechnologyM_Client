@@ -27,8 +27,9 @@ export const UserScreen = () => {
 	const dispatch = useDispatch();
 
 	const handleLogout = async () => {
-		deleteItemAsync(ExpoSecureStoreKeys.AccessToken);
-		deleteItemAsync(ExpoSecureStoreKeys.IpDevice);
+		await deleteItemAsync(ExpoSecureStoreKeys.AccessToken);
+		await deleteItemAsync(ExpoSecureStoreKeys.IpDevice);
+		await deleteItemAsync(ExpoSecureStoreKeys.UserId);
 		api.defaults.headers.common["Authorization"] = undefined;
 		api.defaults.headers.common["ip-device"] = undefined;
 
@@ -36,14 +37,6 @@ export const UserScreen = () => {
 		dispatch(clearDetailInformationReducer());
 
 		socketService.disconnect();
-		detailInformationStorage.clearAll();
-		sendedFriendStorage.clearAll();
-		requestFriendStorage.clearAll();
-		sendedFriendStorage.clearAll();
-		myListFriendStorage.clearAll();
-		roomStorage.clearAll();
-		messageStorage.clearAll();
-
 		new MMKV().clearAll();
 
 		navigation.reset({ routes: [{ name: "Login" }] });
@@ -59,35 +52,6 @@ export const UserScreen = () => {
 		messageStorage.clearAll();
 
 		new MMKV().clearAll();
-		store.replaceReducer(() => ({
-			detailInformation: {
-				detailInformation: null,
-				status: "idle",
-			},
-			myListFriend: {
-				myListFriend: null,
-				status: "idle",
-			},
-			requestFriend: {
-				requestFriends: null,
-				status: "idle",
-			},
-			sendedFriend: {
-				sendedFriends: null,
-				status: "idle",
-			},
-			room: {
-				room: null,
-				status: "idle",
-			},
-			message: {
-				message: null,
-				status: "idle",
-			},
-			selectedRoom: {
-				selectedRoom: null,
-			},
-		}));
 
 		alert("MMKV has been reset.");
 	};

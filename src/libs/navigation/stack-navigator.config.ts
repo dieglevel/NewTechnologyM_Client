@@ -27,6 +27,7 @@ export type RootStackParamList = {
   Qr: undefined;
   RequestFriendScreen: undefined;
   ChatInfoScreen: undefined;
+  
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

@@ -12,6 +12,7 @@ import {
 	View,
 	StyleSheet,
 	FlatList,
+	ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { texts } from "./handle";
@@ -37,18 +38,26 @@ export const LoginScreen = () => {
 	const [currentPage, setCurrentPage] = useState<number>(0);
 	const [imageSource, setImageSource] = useState<any>(texts[language].pages[0].image);
 
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+
 	useEffect(() => {
 		const checkToken = async () => {
 			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 
-			const accountResponse = await getAccountApi();
-			if (accountResponse.statusCode === 200) {
-				socketService.connect();
-				const temp = await fetch();
-				navigation.navigate("BottomTabScreenApp");
+			try{
+				const accountResponse = await getAccountApi();
+				if (accountResponse.statusCode === 200) {
+					socketService.connect();
+					// const temp = await fetch();
+					navigation.navigate("BottomTabScreenApp");
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+				setIsLoading(false);
 			}
 		};
 		checkToken();
+
 	}, []);
 
 	const fetch = async () => {
@@ -82,14 +91,13 @@ export const LoginScreen = () => {
 			const e = error as ErrorResponse;
 		}
 
-		try{
+		try {
 			const response = await getMyListRoom();
 			if (response?.statusCode === 200) {
 				// console.log("response: ", response.data);
 				store.dispatch(initRoom(response?.data?.listRoomResponse || []));
 			}
-		}
-		catch (error) {
+		} catch (error) {
 			const e = error as ErrorResponse;
 		}
 	};
@@ -139,81 +147,93 @@ export const LoginScreen = () => {
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-				<TouchableOpacity
-					onPress={() => setIsModalVisible(true)}
-					style={styles.languageButton}
-				>
-					<Text style={styles.languageText}>{language === "vi" ? "Tiếng Việt" : "English"}</Text>
-				</TouchableOpacity>
+				{isLoading ? (
+					<ActivityIndicator size={"large"} />
+				) : (
+					<>
+						<TouchableOpacity
+							onPress={() => setIsModalVisible(true)}
+							style={styles.languageButton}
+						>
+							<Text style={styles.languageText}>
+								{language === "vi" ? "Tiếng Việt" : "English"}
+							</Text>
+						</TouchableOpacity>
 
-				<Text style={styles.title}>Zalo</Text>
+						<Text style={styles.title}>Zalo</Text>
 
-				{isModalVisible && (
-					<Modal
-						visible={isModalVisible}
-						transparent={true}
-						animationType="fade"
-						onRequestClose={handlePressCloseModal}
-					>
-						<TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
-							<View style={styles.modalOverlay}>
-								<View style={styles.modalContent}>
-									<TouchableOpacity onPress={() => handlePressLanguage("vi")}>
-										<Text style={styles.modalOption}>
-											{language === "vi" ? "✓ Tiếng Việt" : "Tiếng Việt"}
-										</Text>
-									</TouchableOpacity>
-									<TouchableOpacity onPress={() => handlePressLanguage("en")}>
-										<Text style={styles.modalOption}>
-											{language === "en" ? "✓ English" : "English"}
-										</Text>
-									</TouchableOpacity>
-								</View>
+						{isModalVisible && (
+							<Modal
+								visible={isModalVisible}
+								transparent={true}
+								animationType="fade"
+								onRequestClose={handlePressCloseModal}
+							>
+								<TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
+									<View style={styles.modalOverlay}>
+										<View style={styles.modalContent}>
+											<TouchableOpacity onPress={() => handlePressLanguage("vi")}>
+												<Text style={styles.modalOption}>
+													{language === "vi" ? "✓ Tiếng Việt" : "Tiếng Việt"}
+												</Text>
+											</TouchableOpacity>
+											<TouchableOpacity onPress={() => handlePressLanguage("en")}>
+												<Text style={styles.modalOption}>
+													{language === "en" ? "✓ English" : "English"}
+												</Text>
+											</TouchableOpacity>
+										</View>
+									</View>
+								</TouchableWithoutFeedback>
+							</Modal>
+						)}
+
+						<View>
+							<Pressable onPress={handleImagePress}>
+								<Image
+									{...panResponder.panHandlers}
+									source={imageSource}
+									style={styles.image}
+									resizeMode="contain"
+								/>
+							</Pressable>
+
+							<Text style={styles.pageTitle}>{texts[language].pages[currentPage].title}</Text>
+							<Text style={styles.pageDescription}>
+								{texts[language].pages[currentPage].description}
+							</Text>
+
+							<View style={[styles.pagination]}>
+								{texts[language].pages.map((_, index) => (
+									<View
+										key={index}
+										style={[
+											styles.paginationDot,
+											currentPage === index && styles.paginationDotActive,
+										]}
+									/>
+								))}
 							</View>
-						</TouchableWithoutFeedback>
-					</Modal>
+
+							<View style={styles.buttonContainer}>
+								<TouchableOpacity
+									style={styles.loginButton}
+									onPress={handleLoginPress}
+								>
+									<Text style={styles.loginButtonText}>{texts[language].login}</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									style={styles.registerButton}
+									onPress={handleRegisterPress}
+								>
+									<Text style={styles.registerButtonText}>
+										{texts[language].createAccount}
+									</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+					</>
 				)}
-
-				<View>
-					<Pressable onPress={handleImagePress}>
-						<Image
-							{...panResponder.panHandlers}
-							source={imageSource}
-							style={styles.image}
-							resizeMode="contain"
-						/>
-					</Pressable>
-
-					<Text style={styles.pageTitle}>{texts[language].pages[currentPage].title}</Text>
-					<Text style={styles.pageDescription}>{texts[language].pages[currentPage].description}</Text>
-
-					<View style={[styles.pagination]}>
-						{texts[language].pages.map((_, index) => (
-							<View
-								key={index}
-								style={[
-									styles.paginationDot,
-									currentPage === index && styles.paginationDotActive,
-								]}
-							/>
-						))}
-					</View>
-
-					<View style={styles.buttonContainer}>
-						<TouchableOpacity
-							style={styles.loginButton}
-							onPress={handleLoginPress}
-						>
-							<Text style={styles.loginButtonText}>{texts[language].login}</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={styles.registerButton}
-							onPress={handleRegisterPress}
-						>
-							<Text style={styles.registerButtonText}>{texts[language].createAccount}</Text>
-						</TouchableOpacity>
-					</View>
-				</View>
 			</View>
 		</SafeAreaView>
 	);

@@ -72,3 +72,13 @@ export const forwardMessage = async ({ messageId, roomId, senderId }: { messageI
 		throw error as ErrorResponse;
 	}
 };
+
+export const revokeMessage = async ({ messageId }: { messageId: string }) => {
+	try {
+		const response = await api.delete<BaseResponse<IMessage>>(`/message/revoke/${messageId}`);
+		console.log("response: ", response.data);
+		return response.data;
+	} catch (error) {
+		throw error as ErrorResponse;
+	}
+};

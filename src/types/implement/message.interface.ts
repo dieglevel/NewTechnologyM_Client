@@ -8,20 +8,23 @@ export interface IMessage {
 	time: ReactNode;
 	audio: any;
 	isEdited: any;
-	id(id: any): unknown;
 	_id: string;
 	accountId?: string;
 	room_id?: string;
 	content?: string;
 	files?: IMessageFile[];
 	isDeleted?: boolean;
-   createdAt?: Date;
-   updatedAt?: Date;
+	createdAt?: Date;
+	updatedAt?: Date;
 	sticker?: string;
-	
+	roomId?: string;
+	isRevoked?: boolean;
+	hiddenWith?: string[];
+	type: "mixed" | "sticker" | "call";
+
 }
 
-export interface IMessageFile{
+export interface IMessageFile {
 	data: {
 		name: string;
 		type: string;

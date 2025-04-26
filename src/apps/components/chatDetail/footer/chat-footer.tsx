@@ -1,31 +1,54 @@
-import { KeyboardAvoidingView, Platform, TextInput, TouchableOpacity, View } from "react-native";
+import {
+	FlatList,
+	Image,
+	KeyboardAvoidingView,
+	Modal,
+	Platform,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import styles from "../styles";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { sendMessage } from "../message-utils";
 import { useAppSelector } from "@/libs/redux/redux.config";
 import { startRecording, stopRecording } from "../audio-utils";
 import { IMessage } from "@/types/implement";
+import GiphyApi from "@/libs/giphy";
+import { GifsResult } from "@giphy/js-fetch-api";
 
 interface Props {
-   isDark: boolean;
-   editingMessageId: string | null;
-   setEditingMessageId: (id: string | null) => void;
+	isDark: boolean;
+	editingMessageId: string | null;
+	setEditingMessageId: (id: string | null) => void;
 	setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
 }
 
-const Footer = ({isDark, editingMessageId, setEditingMessageId, setMessages}: Props) => {
+const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: Props) => {
 	const { selectedRoom } = useAppSelector((state) => state.selectedRoom);
 
-      const [inputText, setInputText] = useState("");
-   
+	const [inputText, setInputText] = useState("");
+
 	const [selectedImages, setSelectedImages] = useState<string[]>([]);
 	const [selectedFiles, setSelectedFiles] = useState<{ uri: string; name: string; type: string }[]>([]);
 
 	const [isRecording, setIsRecording] = useState<boolean>(false);
 	const [recording, setRecording] = useState<any>(null);
+
+	const [emoji, setEmoji] = useState<GifsResult>();
+	const [showEmoji, setShowEmoji] = useState<boolean>(false);
+
+	useEffect(() => {
+		const fetchGiphy = async () => {
+			const data = await GiphyApi.search("happy", { limit: 30, type: "stickers" });
+			setEmoji(data);
+		};
+		fetchGiphy();
+	}, []);
 
 	const uploadFiles = async (files: { uri: string; name: string; type: string }[]) => {
 		try {
@@ -146,6 +169,91 @@ const Footer = ({isDark, editingMessageId, setEditingMessageId, setMessages}: Pr
 			keyboardVerticalOffset={80}
 		>
 			<View style={styles.inputContainer}>
+				<Modal
+					visible={showEmoji}
+					transparent
+					animationType="fade"
+				>
+					<TouchableOpacity
+						style={[styles.reactionModalContainer, { width: "100%", height: "100%", padding: 30 }]}
+						onPress={() => {
+							setShowEmoji(false);
+						}}
+					>
+						<View
+							style={{
+								padding: 10,
+								flex: 1,
+								justifyContent: "center",
+								alignItems: "center",
+								width: "100%",
+								borderRadius: 10,
+								backgroundColor: isDark ? "#1f2937" : "white",
+							}}
+						>
+							<View
+								style={{
+									flexDirection: "row",
+									width: "100%",
+									alignItems: "center",
+									marginBottom: 10,
+								}}
+							>
+								<Feather
+									name="x"
+									size={24}
+									color={isDark ? "white" : "black"}
+									style={{ position: "absolute", top: 0, right: 0 }}
+									onPress={() => setShowEmoji(false)}
+								/>
+								<Text
+									style={[
+										{
+											color: isDark ? "white" : "black",
+											fontSize: 18,
+											fontWeight: "bold",
+										},
+										{ marginBottom: 10 },
+									]}
+								>
+									Chọn biểu tượng cảm xúc
+								</Text>
+							</View>
+							<FlatList
+								style={{
+									flex: 1,
+									width: "100%",
+								}}
+								data={emoji?.data}
+								keyExtractor={(item) => item.id.toString()}
+								contentContainerStyle={{flex: 1, justifyContent: "center", alignItems: "center" }}
+								renderItem={({ item }) => (
+									<TouchableOpacity
+										onPress={() => {
+											setInputText("");
+											sendMessage(
+												selectedRoom?.id || "",
+												item.images.fixed_width.url,
+												undefined,
+												setInputText,
+												setSelectedImages,
+												setSelectedFiles,
+											)
+											setShowEmoji(false);
+										}}
+									>
+										<Image
+											source={{ uri: item.images.fixed_width.url }}
+											style={{ width: 100, height: 100, margin: 2 }}
+										/>
+									</TouchableOpacity>
+								)}
+								numColumns={3}
+							/>
+						</View>
+					</TouchableOpacity>
+				</Modal>
+
 				{editingMessageId && (
 					<TouchableOpacity
 						// onPress={() => cancelEdit(setEditingMessageId, setEditText, setInputText)}
@@ -218,13 +326,24 @@ const Footer = ({isDark, editingMessageId, setEditingMessageId, setMessages}: Pr
 					returnKeyType="send"
 				/>
 				<TouchableOpacity
+					style={styles.inputIcon}
+					onPress={() => setShowEmoji(!showEmoji)}
+				>
+					<Ionicons
+						name="happy-outline"
+						size={26}
+						color="#3b82f6"
+					/>
+				</TouchableOpacity>
+				<TouchableOpacity
 					onPress={() =>
 						sendMessage(
 							selectedRoom?.id || "",
+							undefined,
 							inputText,
-                     setInputText,
-                     setSelectedImages,
-                     setSelectedFiles,
+							setInputText,
+							setSelectedImages,
+							setSelectedFiles,
 						)
 					}
 					style={styles.sendButton}

@@ -1,7 +1,8 @@
 import { Alert, Clipboard } from "react-native";
 import { IMessage, IRoom } from "@/types/implement";
 import Toast from "react-native-toast-message";
-import { sendMessage as apiSendMessage } from "@/services/message";
+
+import { sendMessage as apiSendMessage, revokeMessage } from "@/services/message";
 import { socketService } from "@/libs/socket/socket";
 import { ErrorResponse, BaseResponse } from "@/libs/axios/axios.config";
 import { SocketEmit, SocketOn } from "@/constants/socket";
@@ -29,7 +30,8 @@ const getRooms = async (): Promise<IRoom[]> => {
 // Hàm gửi tin nhắn
 const sendMessage = async (
   roomId: string,
-  text: string = "",
+  sticker: string | undefined,
+  text: string | undefined,
   setInputText: (text: string) => void,
   setSelectedImages: (images: string[]) => void,
   setSelectedFiles: React.Dispatch<React.SetStateAction<{
@@ -38,12 +40,14 @@ const sendMessage = async (
     type: string;
   }[]>>
 ) => {
-  if (!text.trim()) {
-    return;
+  if (!sticker) {
+    if (!text?.trim()) {
+      return;
+    }
   }
 
   try {
-    const response = await apiSendMessage({ roomId, content: text, type: "message" });
+    const response = await apiSendMessage({ roomId, content: text, type: "message", sticker });
     if (response.statusCode === 200) {
       socketService.emit(SocketEmit.sendMessage, {
         roomId,
@@ -55,8 +59,9 @@ const sendMessage = async (
     Toast.show({
       type: "error",
       text1: "Có lỗi xảy ra khi gửi tin nhắn",
-    });
-  } finally {
+    })
+  }
+  finally {
     setInputText("");
     setSelectedImages([]);
     setSelectedFiles([]);
@@ -85,39 +90,22 @@ const handleRecallMessage = (
       style: "destructive",
       onPress: async () => {
         try {
-          const response = await api.post<BaseResponse<any>>('/message/recall', { messageId: id });
-          if (response.data.statusCode === 200) {
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg._id === id
-                  ? {
-                      ...msg,
-                      content: "Tin nhắn đã được thu hồi",
-                      images: null,
-                      files: [],
-                      audio: null,
-                      reaction: null,
-                      isRevoked: true,
-                    }
-                  : msg
-              )
-            );
-
-            socketService.emit(SocketEmit.revokeMessage, { messageId: id });
+          const response = await revokeMessage({ messageId: id });
+          if (response.statusCode === 200) {
             Toast.show({
               type: "success",
               text1: "Đã thu hồi tin nhắn",
             });
           }
-        } catch (error) {
+        }
+        catch (error) {
           const e = error as ErrorResponse;
           Toast.show({
-            type: "error",
-            text1: "Có lỗi khi thu hồi tin nhắn",
+            type: "success",
+            text1: "Có lỗi xảy ra khi thu hồi tin nhắn",
           });
-        } finally {
-          setShowActionModal(false);
         }
+        setShowActionModal(false);
       },
     },
   ]);
