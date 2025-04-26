@@ -10,7 +10,8 @@ import { store } from "@/libs/redux/redux.config";
 
 const sendMessage = async (
   roomId: string,
-  text: string = "",
+  sticker: string | undefined,
+  text: string | undefined ,
   setInputText: (text: string) => void,
   setSelectedImages: (images: string[]) => void,
   setSelectedFiles: React.Dispatch<React.SetStateAction<{
@@ -19,12 +20,14 @@ const sendMessage = async (
     type: string;
   }[]>>
 ) => {
-  if (!text.trim()) {
-    return;
+  if (!sticker){
+    if (!text?.trim()){
+      return;
+    }
   }
 
-  try{
-    const response = await apiSendMessage({ roomId, content: text, type: "message" });
+  try {
+    const response = await apiSendMessage({ roomId, content: text, type: "message", sticker });
     if (response.statusCode === 200) {
     }
   } catch (error) {
@@ -34,7 +37,7 @@ const sendMessage = async (
       text1: "Có lỗi xảy ra khi gửi tin nhắn",
     })
   }
-  finally{
+  finally {
     setInputText("");
     setSelectedImages([]);
     setSelectedFiles([]);

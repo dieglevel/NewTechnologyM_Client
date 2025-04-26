@@ -63,13 +63,14 @@ const ChatItem = ({ item, myUserId }: IChatItem) => {
 
 	const renderMessage = () => {
 		const message = () => {
+			console.log(item.latestMessage);
 			if (item.latestMessage?.sticker) {
 				return "Đã gửi một nhãn dán";
 			}
 			if (item.latestMessage?.content) {
 				return item.latestMessage.content;
 			}
-			return null
+			return null;
 		};
 
 		const accountMessage = item.latestMessage?.accountId;
@@ -79,9 +80,7 @@ const ChatItem = ({ item, myUserId }: IChatItem) => {
 		});
 
 		// message
-		return message() !== null  && (
-			account ? (account?.fullName + ": " + message()) :  ("Bạn: " + message())
-		)
+		return message() !== null && (account ? account?.fullName + ": " + message() : "Bạn: " + message());
 	};
 
 	return (
@@ -169,9 +168,11 @@ export const ListChat = () => {
 						/>
 					)}
 					ListEmptyComponent={() => (
-						<Text style={{ color: "#6b7280", textAlign: "center" }}>
-							Không có cuộc trò chuyện nào
-						</Text>
+						<View style={{ flex: 1, justifyContent: "center", alignItems: "center", width:"100%" }}>
+							<Text style={{ color: "#6b7280", textAlign: "center" }}>
+								Không có cuộc trò chuyện nào
+							</Text>
+						</View>
 					)}
 					style={styles.chatList}
 					contentContainerStyle={{

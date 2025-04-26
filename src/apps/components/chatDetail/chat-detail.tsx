@@ -98,7 +98,6 @@ const ChatDetail = () => {
 			try {
 				const response = await getMessageByRoomId(selectedRoom?.id || "");
 				if (response.statusCode === 200 && response.data) {
-					console.log("Messages fetched:", response.data);
 					setMessages(response.data);
 				}
 			} catch (error) {

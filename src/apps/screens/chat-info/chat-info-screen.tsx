@@ -1,4 +1,4 @@
-import ChatInfo from "@/apps/components/chatInfo/chat-info";
+import ChatInfo from "@/apps/components/chat-info/chat-info";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const ChatInfoScreen = () => {

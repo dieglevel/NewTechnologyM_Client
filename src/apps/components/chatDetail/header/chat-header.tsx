@@ -29,6 +29,10 @@ const Header= ({ showSearchBar, setShowSearchBar, setSearchQuery, myUserId }: Pr
 		navigation.goBack();
 	}
 
+	const handleInformation = () => {
+		navigation.navigate("ChatInfoScreen")
+	}
+
 	const renderNameChat = () => {
 
 		if (selectedRoom?.type === "group") {
@@ -73,7 +77,7 @@ const Header= ({ showSearchBar, setShowSearchBar, setSearchQuery, myUserId }: Pr
 						color="white"
 					/>
 				</TouchableOpacity>
-				<TouchableOpacity style={styles.headerIcon}>
+				<TouchableOpacity style={styles.headerIcon} onPress={handleInformation}>
 					<Feather
 						name="info"
 						size={22}
