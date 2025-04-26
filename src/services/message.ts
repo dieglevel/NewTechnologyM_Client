@@ -66,7 +66,6 @@ export const getMessageByRoomId = async (roomId: string) => {
 export const forwardMessage = async ({ messageId, roomId, senderId }: { messageId: string; roomId: string; senderId: string }) => {
 	try {
 		const response = await api.post<BaseResponse<IMessage>>("/message/forward", { messageId, roomId, senderId });
-		// console.log("response: ", response.data);
 		return response.data;
 	} catch (error) {
 		throw error as ErrorResponse;

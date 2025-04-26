@@ -1,11 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import styles from "./styles";
+import { IRoom } from "@/types/implement";
 
 interface Props {
-  item: { id: string; name: string; avatar: string };
+  item: IRoom;
   forwardMessage: () => void;
   isDark?: boolean;
+
 }
 
 const RenderChatItem: React.FC<Props> = ({ item, forwardMessage, isDark }) => (

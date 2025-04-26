@@ -1,3 +1,4 @@
+import { ListChatScreen } from '@/apps/screens';
 import { UpdatePasswordComponent } from './../../apps/components/updatePassword/UpdatePasswordComponent';
 import { ForgotPasswordComponent } from '@/apps/components/forgotPassword/forgot-password';
 import { UpdatePasswordScreen } from './../../apps/screens/updatePassword/updatePasswordScreen';
@@ -27,7 +28,7 @@ export type RootStackParamList = {
   Qr: undefined;
   RequestFriendScreen: undefined;
   ChatInfoScreen: undefined;
-  
+  ListChatScreen: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
