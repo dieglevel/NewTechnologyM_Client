@@ -2,7 +2,7 @@ import { Alert, Clipboard } from "react-native";
 import { IMessage, IRoom } from "@/types/implement";
 import Toast from "react-native-toast-message";
 
-import { sendMessage as apiSendMessage } from "@/services/message";
+import { sendMessage as apiSendMessage, revokeMessage } from "@/services/message";
 import { socketService } from "@/libs/socket/socket";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { SocketEmit, SocketOn } from "@/constants/socket";
@@ -11,7 +11,7 @@ import { store } from "@/libs/redux/redux.config";
 const sendMessage = async (
   roomId: string,
   sticker: string | undefined,
-  text: string | undefined ,
+  text: string | undefined,
   setInputText: (text: string) => void,
   setSelectedImages: (images: string[]) => void,
   setSelectedFiles: React.Dispatch<React.SetStateAction<{
@@ -20,8 +20,8 @@ const sendMessage = async (
     type: string;
   }[]>>
 ) => {
-  if (!sticker){
-    if (!text?.trim()){
+  if (!sticker) {
+    if (!text?.trim()) {
       return;
     }
   }
@@ -64,28 +64,23 @@ const handleRecallMessage = (
     {
       text: "Thu hồi",
       style: "destructive",
-      onPress: () => {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg._id === id
-              ? {
-                  ...msg,
-                  content: "Tin nhắn đã được thu hồi",
-                  images: null,
-                  files: [],
-                  audio: null,
-                  reaction: null,
-                  isRevoked: true,
-                }
-              : msg
-          )
-        );
-
-        Toast.show({
-          type: "success",
-          text1: "Đã thu hồi tin nhắn",
-        });
-
+      onPress: async () => {
+        try {
+          const response = await revokeMessage({ messageId: id });
+          if (response.statusCode === 200) {
+            Toast.show({
+              type: "success",
+              text1: "Đã thu hồi tin nhắn",
+            });
+          }
+        }
+        catch (error) {
+          const e = error as ErrorResponse;
+          Toast.show({
+            type: "success",
+            text1: "Có lỗi xảy ra khi thu hồi tin nhắn",
+          });
+        }
         setShowActionModal(false);
       },
     },

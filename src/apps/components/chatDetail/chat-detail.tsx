@@ -124,10 +124,48 @@ const ChatDetail = () => {
 		socketService.on(SocketOn.joinRoom, (data: any) => {});
 
 		socketService.on(SocketOn.sendMessage, (data: any) => {
-			console.log("Received message:", data);
-			setMessages((prev) => {
-				return [...prev, data.message];
-			});
+			const { message, behavior } = data;
+
+			console.log("???????room: ", data);
+
+			switch (behavior) {
+				case "add":
+					setMessages((prev) => {
+						return [...prev, data.message];
+					});
+					break;
+				case "update":
+					setMessages((prev) => {
+						const index = prev.findIndex((msg) => msg._id === message._id);
+						if (index !== -1) {
+							const updatedMessages = [...prev];
+							updatedMessages[index] = message;
+							return updatedMessages;
+						}
+						return prev;
+					});
+					break;
+				case "revoke":
+					setMessages((prev) => {
+						const index = prev.findIndex((msg) => msg._id === message._id);
+						if (index !== -1) {
+							const updatedMessages = [...prev];
+							updatedMessages[index] = {
+								...updatedMessages[index],
+								content: "Tin nhắn đã được thu hồi",
+							};
+							return updatedMessages;
+						}
+						return prev;
+					});
+					break;
+				case "delete":
+					// await dispatch(setRoom([room]));
+					break;
+				default:
+					break;
+			}
+
 		});
 
 		return () => {
@@ -140,7 +178,11 @@ const ChatDetail = () => {
 		flatListRef.current?.scrollToEnd({ animated: true });
 	};
 
-	const filteredMessages = messages?.filter((msg) => msg.content?.toLowerCase().includes(searchQuery.toLowerCase()));
+	const filteredMessages = messages?.filter((msg) => {
+		if (!msg.isRevoked){
+			return msg.content?.toLowerCase().includes(searchQuery.toLowerCase());
+		}
+	});
 
 	const getActionItems = () => {
 		if (!actionMessage) return [];
@@ -247,8 +289,8 @@ const ChatDetail = () => {
 					) : (
 						<FlatList
 							ref={flatListRef}
-							data={showSearchBar ? filteredMessages : messages.slice().reverse()}
-							keyExtractor={(item: IMessage, index) => index.toString()}
+							data={searchQuery ? filteredMessages : messages.toReversed()}
+							keyExtractor={(item: IMessage, index) => item._id.toString()}
 							initialNumToRender={20}
 							maxToRenderPerBatch={20}
 							windowSize={5}
@@ -261,6 +303,7 @@ const ChatDetail = () => {
 							inverted
 							renderItem={({ item }) => (
 								<RenderMessageItem
+								key={item._id}
 									item={item}
 									myUserId={myUserId}
 									setMessages={setMessages}
