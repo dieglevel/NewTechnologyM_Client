@@ -1,7 +1,14 @@
+import { ReactNode } from "react";
 import { BaseEntity } from "../base-entity";
 
 
 export interface IMessage {
+	read: boolean;
+	reaction: ReactNode;
+	time: ReactNode;
+	audio: any;
+	isEdited: any;
+	id(id: any): unknown;
 	_id: string;
 	accountId?: string;
 	room_id?: string;

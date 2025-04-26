@@ -23,96 +23,23 @@ const sendMessage = async (
     return;
   }
 
-  try{
+  try {
     const response = await apiSendMessage({ roomId, content: text, type: "message" });
     if (response.statusCode === 200) {
+      // Gửi thành công
     }
   } catch (error) {
     const e = error as ErrorResponse;
     Toast.show({
       type: "error",
       text1: "Có lỗi xảy ra khi gửi tin nhắn",
-    })
-  }
-  finally{
+    });
+  } finally {
     setInputText("");
     setSelectedImages([]);
     setSelectedFiles([]);
   }
-
-
 };
-
-// const forwardMessage = async (
-//   targetChatId: string,
-//   actionMessage: IMessage,
-//   setShowForwardModal: (show: boolean) => void,
-//   setShowActionModal: (show: boolean) => void
-// ) => {
-//   if (!actionMessage) return;
-
-//   try {
-//     const payload: any = {
-//       chatId: targetChatId,
-//       senderId: "me",
-//       content: actionMessage.text || "",
-//       timestamp: new Date().toISOString(),
-//     };
-
-//     if (actionMessage.images) payload.images = actionMessage.images;
-//     if (actionMessage.files) payload.files = actionMessage.files;
-//     if (actionMessage.audio) payload.audioUrl = actionMessage.audio;
-//     // Ghi chú: Gửi API để chuyển tiếp tin nhắn
-//     // axios.post("/api/message/forward", payload);
-//     const response = await axios.post("/api/message", payload);
-
-//     console.log("Forward message response:", response.data);
-//     if (response.status === 200) {
-//       Toast.show({
-//         type: "success",
-//         text1: "Chuyển tiếp tin nhắn thành công",
-//       });
-//     } else {
-//       Toast.show({
-//         type: "error",
-//         text1: "Chuyển tiếp tin nhắn thất bại",
-//       });
-//     }
-//     setShowForwardModal(false);
-//     setShowActionModal(false);
-//   } catch (error) {
-//     Toast.show({
-//       type: "error",
-//       text1: "Có lỗi xảy ra khi chuyển tiếp tin nhắn",
-//     });
-//     console.error("Error in forwardMessage:", error);
-//   }
-// };
-
-// const handleReactionSelect = (
-//   emoji: string,
-//   selectedMessageId: string | null,
-//   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>,
-//   setShowReactionPicker: (show: boolean) => void,
-//   setSelectedMessageId: (id: string | null) => void,
-//   setShowActionModal: (show: boolean) => void
-// ) => {
-//   if (!selectedMessageId) return;
-
-//   setMessages((prev) =>
-//     prev.map((msg) =>
-//       msg._id === selectedMessageId ? { ...msg, reaction: emoji } : msg
-//     )
-//   );
-//   // Ghi chú: Gửi API để lưu phản ứng lên server
-//   // axios.post("/api/messages/reaction", {
-//   //   messageId: selectedMessageId,
-//   //   reaction: emoji,
-//   // });
-//   setShowReactionPicker(false);
-//   setSelectedMessageId(null);
-//   setShowActionModal(false);
-// };
 
 const handleRecallMessage = (
   id: string,
@@ -135,21 +62,25 @@ const handleRecallMessage = (
       style: "destructive",
       onPress: () => {
         setMessages((prev) =>
-          prev?.map((msg) =>
+          prev.map((msg) =>
             msg._id === id
               ? {
-                ...msg,
-                text: "Tin nhắn đã được thu hồi",
-                images: null,
-                files: null,
-                audio: null,
-                reaction: null,
-              }
+                  ...msg,
+                  content: "Tin nhắn đã được thu hồi",
+                  images: null,
+                  files: [],
+                  audio: null,
+                  reaction: null,
+                  isRevoked: true,
+                }
               : msg
           )
         );
-        // Ghi chú: Gửi API để thu hồi tin nhắn khỏi server
-        // axios.delete(`/api/messages/${id}`);
+
+        Toast.show({
+          type: "success",
+          text1: "Đã thu hồi tin nhắn",
+        });
 
         setShowActionModal(false);
       },
@@ -181,44 +112,6 @@ const cancelEdit = (
   setInputText("");
 };
 
-// const openImageModal = (
-//   messageImages: string[],
-//   selectedIndex: number,
-//   messages: IMessage[],
-//   setAllImageUris: (uris: string[]) => void,
-//   setInitialImageIndex: (index: number) => void,
-//   setCurrentImageIndex: (index: number) => void,
-//   setShowImageModal: (show: boolean) => void
-// ) => {
-//   const allImages: string[] = [];
-//   messages.forEach((msg) => {
-//     if (msg.images) {
-//       allImages.push(...msg.images);
-//     }
-//   });
-
-//   let globalIndex = 0;
-//   let found = false;
-//   for (const msg of messages) {
-//     if (msg.images) {
-//       for (let i = 0; i < msg.images.length; i++) {
-//         if (msg.images[i] === messageImages[selectedIndex]) {
-//           globalIndex += i;
-//           found = true;
-//           break;
-//         }
-//         globalIndex++;
-//       }
-//       if (found) break;
-//     }
-//   }
-
-//   setAllImageUris(allImages);
-//   setInitialImageIndex(globalIndex);
-//   setCurrentImageIndex(globalIndex);
-//   setShowImageModal(true);
-// };
-
 const closeImageModal = (
   setShowImageModal: (show: boolean) => void,
   setAllImageUris: (uris: string[]) => void,
@@ -242,11 +135,12 @@ const copyMessage = (
     });
     return;
   }
+
   Clipboard.setString(text);
   Toast.show({
     type: "success",
     text1: "Sao chép thành công",
-  })
+  });
   setShowActionModal(false);
 };
 
@@ -261,14 +155,10 @@ const toggleSearchBar = (
 
 export {
   sendMessage,
-  // forwardMessage,
-  // handleReactionSelect,
   handleRecallMessage,
   handleEditMessage,
-  // cancelEdit,
-  // openImageModal,
-  // closeImageModal,
+  cancelEdit,
+  closeImageModal,
   copyMessage,
   toggleSearchBar,
-  // Message,
 };
