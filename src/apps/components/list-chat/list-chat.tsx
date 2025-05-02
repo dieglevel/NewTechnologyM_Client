@@ -5,15 +5,17 @@ import { StackScreenNavigationProp } from "@/libs/navigation";
 import { initMyListFriend, initRoom, setSelectedRoom } from "@/libs/redux";
 import { RootState, store } from "@/libs/redux/redux.config";
 import { getProfileFromAnotherUser } from "@/services/auth";
-import { getMyListRoom } from "@/services/room";
-import { IDetailInformation, IRoom } from "@/types/implement";
-import { Ionicons } from "@expo/vector-icons";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { addMember, createRoom, getMyListRoom } from "@/services/room";
+import { IDetailInformation, IFriend, IRoom } from "@/types/implement";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
-import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, Image, ActivityIndicator } from "react-native";
+import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, Image, ActivityIndicator, Modal } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { handleForwardMessage } from "./../chatDetail/message-utils";
 import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
+import Toast from "react-native-toast-message";
+import { getListFriend } from "@/services/friend";
 
 interface IChatItem {
   item: IRoom;
@@ -157,6 +159,17 @@ export const ListChat = () => {
 	const { room, status } = useSelector((state: RootState) => state.room);
 	const { myListFriend } = useSelector((state: RootState) => state.myListFriend);
 
+	const [showCreateGroupModal, setShowCreateGroupModal] = useState<boolean>(false);
+	const [checked, setChecked] = useState<string[]>([]);
+	const [nameGroup, setNameGroup] = useState<string>("");
+
+
+	const isFocused = useIsFocused();
+	const [myUserId, setMyUserId] = useState<string>("");
+
+	const [searchText, setSearchText] = useState<string>("");
+
+
   useEffect(() => {
     const getMyId = async () => {
       const value = await getSecure(ExpoSecureStoreKeys.UserId);
@@ -173,12 +186,6 @@ export const ListChat = () => {
     getMyId();
   }, [isFocused]);
 
-	const [showCreateGroupModal, setShowCreateGroupModal] = useState<boolean>(true);
-	const [checked, setChecked] = useState<string[]>([]);
-	const [nameGroup, setNameGroup] = useState<string>("");
-
-
-	const isFocused = useIsFocused();
 
 	const handleChecked = (id: string) => {
 		if (checked.includes(id)) {

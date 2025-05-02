@@ -30,6 +30,7 @@ export const LoginScreen = () => {
   };
 
   return (
+   <>
     <SafeAreaView>
       <Text style={styles.title}>Zalo</Text>
 
@@ -93,18 +94,19 @@ export const LoginScreen = () => {
         <Text style={styles.loginButtonText}>Đăng nhập</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => // console.log("Quên mật khẩu")}>
+      <TouchableOpacity onPress={() =>{}}>
         <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.createAccountButton}
-        onPress={() => // console.log("Tạo tài khoản")}
+
       >
         <Text style={styles.createAccountText}>Tạo tài khoản</Text>
       </TouchableOpacity>
     </SafeAreaView>
-  );
+   </>
+  )
 };
 
 const styles = StyleSheet.create({

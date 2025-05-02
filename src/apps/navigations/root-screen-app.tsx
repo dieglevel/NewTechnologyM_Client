@@ -15,19 +15,17 @@ import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
 import { LoginUserScreen } from "../screens/login-user/login-user-screen";
-import { detailInformationStorage } from "@/libs/mmkv/mmkv";
 import { useEffect } from "react";
-import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
-import { MMKV } from "react-native-mmkv";
 import RequestFriendScreen from "../screens/request-friend/request-friend-screen";
 import ChatInfo from "../components/chat-info/chat-info";
+import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 
 export const RootScreenApp = () => {
 	useEffect(() => {
 		const checkToken = async () => {
-			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
+			const token = ExpoSecureValueService.getAccessToken();
 
 			const accountResponse = await getAccountApi();
 			if (accountResponse.statusCode === 200) {
@@ -129,16 +127,16 @@ export const RootScreenApp = () => {
 					}}
 					name="Qr"
 					component={QrScreen}
-				/>				
+				/>
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
 						headerShown: true,
 						headerTitle: "Yêu cầu kết bạn",
 					}}
-				name="RequestFriendScreen"
-				component={RequestFriendScreen}
-			/>
+					name="RequestFriendScreen"
+					component={RequestFriendScreen}
+				/>
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
@@ -153,7 +151,6 @@ export const RootScreenApp = () => {
 					name="ListChatScreen"
 					component={ListChatScreen}
 				/>
-
 			</Stack.Navigator>
 		</NavigationContainer>
 	);

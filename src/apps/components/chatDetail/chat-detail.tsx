@@ -111,10 +111,8 @@ const ChatDetail = () => {
       setIsLoadingRooms(true);
       try {
         const roomsData = await getRooms();
-        console.log("Fetched rooms:", roomsData); // Log để kiểm tra dữ liệu
         setRooms(roomsData || []);
       } catch (error) {
-        console.error("Error fetching rooms:", error);
         setRooms([]);
       } finally {
         setIsLoadingRooms(false);

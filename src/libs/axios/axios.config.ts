@@ -3,7 +3,8 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 // import { eventEmitter } from "../eventemitter3";
 import { BaseResponse } from "@/types";
-import { getIpDeviceApi } from "@/services/other-api/ip-device";
+import { getIpDeviceApi } from "@/services/ip-device";
+import { ExpoSecureValueService } from "../expo-secure-store/implement";
 
 export interface ErrorResponse {
 	error: string;
@@ -21,8 +22,8 @@ export const api = axios.create({
 // Interceptor trước khi gửi request
 api.interceptors.request.use(
 	async (config) => {
-		const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
-		let idDevice = await getSecure(ExpoSecureStoreKeys.IpDevice);
+		const token = ExpoSecureValueService.getAccessToken()
+		let idDevice = ExpoSecureValueService.getIpDevice()
 
 		if (config.headers["Authorization"] && config.headers["ip-device"]) {
 			return config;
@@ -30,7 +31,7 @@ api.interceptors.request.use(
 
 		if (!idDevice) {
 			idDevice = await getIpDeviceApi();
-			await setSecure(ExpoSecureStoreKeys.IpDevice, idDevice ?? "");
+			await ExpoSecureValueService.setIpDevice(idDevice)
 		}
 
 		if (token) {
@@ -48,12 +49,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		console.error("⛔ Axios: ", error.toJSON());
+		// console.error("⛔ Axios: ", error.toJSON());
 		const errorResponse: ErrorResponse = error.response.data;
 
 		if (errorResponse.statusCode === 401) {
-			removeSecure(ExpoSecureStoreKeys.AccessToken); // Xóa token
-			// eventEmitter.emit("logout"); // Gửi sự kiện logout
+			ExpoSecureValueService.removeAccessToken();
+			ExpoSecureValueService.removeIpDevice();
+			ExpoSecureValueService.removeUserId();
 		} else {
 			console.error("⛔ Axios: ", error.status + " - " + error.config?.url + " - " + errorResponse.message);
 		}

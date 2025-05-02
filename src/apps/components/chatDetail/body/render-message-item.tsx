@@ -38,7 +38,6 @@ const RenderMessageItem: React.FC<Props> = ({
 		const file = item.files;
 		return file?.map((file, index) => {
 			if (file.data.type.startsWith("image/")) {
-				console.log("File is an image:", file.url);
 				return (
 					<TouchableOpacity
 						key={index}

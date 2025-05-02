@@ -13,6 +13,7 @@ const thunkAction = {
   fetch: "fetch",
   set: "set",
   delete: "delete",
+  init: "init"
 };
 
 
@@ -44,6 +45,15 @@ export const deleteDetailInformation = createAsyncThunk(
     return id;
   }
 );
+
+export const initDetailInformation = createAsyncThunk(
+  `${thunkDB}${thunkAction.init}${thunkName}`,
+  async (detailInformation: IDetailInformation) => {
+    detailInformationStorage.clearAll();
+    detailInformationStorage.initData([detailInformation]);
+    return detailInformationStorage.getAll();
+  }
+)
 
 interface State {
   detailInformation: IDetailInformation | null;

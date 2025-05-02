@@ -62,7 +62,6 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 					type: file.type,
 				} as any);
 
-				// console.log("Uploading file:", file);
 
 				// const response = await axios.post(
 				//    "https://your-api-domain.com/api/file-cloud/upload-single-file",
@@ -74,7 +73,6 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 				//    },
 				// );
 
-				// console.log("Upload response:", response.data);
 
 				// if (response.data && response.data.url) {
 				//    uploadedUrls.push(response.data.url);
@@ -82,7 +80,6 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 			}
 
 			if (uploadedUrls.length > 0) {
-				// console.log("Uploaded URLs:", uploadedUrls);
 				// sendMessage(
 				// 	"",
 				// 	[],

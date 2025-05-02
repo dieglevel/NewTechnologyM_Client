@@ -36,12 +36,10 @@ export const ForgotPasswordComponent = () => {
 	const handlePhoneConfirmation = () => {
 		setShowConfirmModal(false);
 		setShowOTPModal(true);
-		// console.log("OTP đã được gửi:", phone);
 		const sendEmail = async () => {
 			try {
 				const response = await sendOTPPasswordApi(phone);
 				if (response.statusCode === 200) {
-					// console.log("Gửi OTP thành công:", response);
 				}
 			} catch (error) {
 				console.error("Lỗi kết nối:", error);

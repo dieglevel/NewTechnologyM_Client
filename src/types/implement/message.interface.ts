@@ -1,36 +1,19 @@
-import { ReactNode } from "react";
-import { BaseEntity } from "../base-entity";
+// import { BaseEntity } from "../base-entity";
+import { IMessageFile } from "./file.interface";
 
 
 export interface IMessage {
-	read: boolean;
-	reaction: ReactNode;
-	time: ReactNode;
-	audio: any;
-	isEdited: any;
-	_id: string;
+	_id?: string;
+	message_id?: string;
 	accountId?: string;
-	room_id?: string;
+	roomId?: string;
 	content?: string;
-	files?: IMessageFile[];
+	sticker?: string;
+	files?: IMessageFile[]; 
+	isRevoked?: boolean;
 	isDeleted?: boolean;
 	createdAt?: Date;
 	updatedAt?: Date;
-	sticker?: string;
-	roomId?: string;
-	isRevoked?: boolean;
 	hiddenWith?: string[];
-	type: "mixed" | "sticker" | "call";
-
-}
-
-export interface IMessageFile {
-	data: {
-		name: string;
-		type: string;
-		size: string;
-	};
-	url: string;
-	index: number;
-	_id: string;
+	type: "mixed" | "sticker" | "call",
 }

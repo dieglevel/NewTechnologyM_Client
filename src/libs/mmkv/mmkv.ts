@@ -1,4 +1,5 @@
-import { IDetailInformation, IFriend, IMessage, IRequestFriend, IRoom, ISendedFriend } from '@/types/implement';
+import { IDetailInformation, IFriend, IMessage, IRoom, ISendedFriend } from '@/types/implement';
+import { IRequestFriend } from '@/types/implement/response';
 import { MMKV } from 'react-native-mmkv';
 
 
@@ -101,6 +102,13 @@ export class GenericMMKVStorage<T> {
       return this.getKeyList();
    }
 
+   public initData(initialData: T[]): void {
+      const existingKeys = this.getKeyList();
+      if (existingKeys.length > 0) return;
+   
+      this.setMany(initialData);
+   }
+   
 }
 
 

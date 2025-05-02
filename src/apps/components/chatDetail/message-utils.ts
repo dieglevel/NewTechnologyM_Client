@@ -14,7 +14,6 @@ import { getMyListRoom } from "@/services/room";
 const getRooms = async (): Promise<IRoom[]> => {
   try {
     const response = await getMyListRoom();
-    console.log("response", response);
     if (response.statusCode === 200) {
       return response.data?.listRoomResponse ?? [];
     }

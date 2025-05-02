@@ -27,7 +27,7 @@ export const fetchMessage = createAsyncThunk(
 export const fetchMessageByRoomId = createAsyncThunk(
 	`${thunkDB}${thunkAction.fetchByRoomId}${thunkName}`,
 	async (roomId: string): Promise<IMessage[]> => {
-		const message = messageStorage.getAll().filter((message) => message.room_id === roomId);
+		const message = messageStorage.getAll().filter((message) => message.roomId === roomId);
 		// console.log("messageStorage fetch", messageStorage.getAll());
 		// console.log("messageStorage fetch", message);
 		return message;
@@ -42,7 +42,7 @@ export const setMessage = createAsyncThunk(
 
 
 		// Fetch existing messages for the room
-		const existingMessages = messageStorage.getAll().filter((message) => message.room_id === roomId);
+		const existingMessages = messageStorage.getAll().filter((message) => message.roomId === roomId);
 		// If there are existing messages, delete the first one
 		if (existingMessages.length > 0) {
 			if (existingMessages[0]._id) {
@@ -56,15 +56,15 @@ export const setMessage = createAsyncThunk(
 
 export const setOneMessage = createAsyncThunk(
 	`${thunkDB}${thunkAction.setOne}${thunkName}`,
-	async (message: IMessage) => {
-		const messageStorageData = messageStorage.getAll().filter((m) => m.room_id === message.room_id);
+	async (m: IMessage) => {
+		const messageStorageData = messageStorage.getAll().filter((message) => message.roomId === m.roomId);
 		if (messageStorageData.length > 0) {
 			if (messageStorageData[0]._id) {
 				messageStorage.delete(messageStorageData[0]._id);
 			}
 		}
-		messageStorage.set(message);
-		return message;
+		messageStorage.set(m);
+		return m;
 	},
 );
 
@@ -78,7 +78,7 @@ export const deleteMessage = createAsyncThunk(`${thunkDB}${thunkAction.delete}${
 	return id;
 });
 
-export const initMessage = createAsyncThunk(`${thunkDB}${thunkAction.init}${thunkName}`, async ({messages, roomId}: {messages: IMessage[], roomId: string}) => {
+export const initMessage = createAsyncThunk(`${thunkDB}${thunkAction.init}${thunkName}`, async ({ messages, roomId }: { messages: IMessage[], roomId: string }) => {
 	// messageStorage.clearAll();
 	// console.log("messageStorage init", messages);
 	messageStorage.setMany(messages);

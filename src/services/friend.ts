@@ -1,6 +1,7 @@
-import { api, ErrorResponse } from "@/libs/axios/axios.config";
+import { api, ErrorResponse } from "@/libs/axios/axios.config"
 import { BaseResponse } from "@/types"
-import { IFriend, IRequestFriend, ISendedFriend } from "@/types/implement"
+import { IFriend, ISendedFriend } from "@/types/implement"
+import { IRequestFriend } from "@/types/implement/response/request-friend.interface"
 
 export const getListFriend = async () => {
    try {
@@ -41,6 +42,7 @@ export const getListResponseFriend = async () => {
 
 export const acceptRequestFriend = async (requestId: string) => {
    try {
+      console.log(requestId, "requestId")
       const response = await api.put<BaseResponse<IFriend>>("/request-friend/respond", { requestId, status: true })
       return response.data;
    } catch (error) {

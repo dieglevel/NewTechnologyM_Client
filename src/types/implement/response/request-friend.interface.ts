@@ -1,4 +1,4 @@
-import { IDetailInformation } from "./detail-information.interface";
+import { IDetailInformation } from "../detail-information.interface";
 
 export interface IRequestFriend {
    message?: string,

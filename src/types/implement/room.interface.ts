@@ -1,33 +1,27 @@
+import { avatar } from '@/assets/images';
 import { BaseEntity } from "../base-entity";
 import { IMessage } from "./message.interface";
 
-export interface LatestMessage {
-	_id: string;
-	accountId?: string;
-	roomId?: string;
-	content?: string;
-	sticker?: string;
-	isDeleted?: boolean;
-	isRevoked?: boolean;
-	createdAt?: Date;
-	updatedAt?: Date;
-	__v?: number;
- }
- 
- export interface RoomMember {
-	id: string;
-	fullName?: string;
-	avatar?: string
- }
- 
- export interface IRoom {
-	id: string;
-	leader_account_id?: string;
-	type?: "group" | "single" ;
-	updatedAt?: Date; // ISO date string
-	avatar?: string
-	latestMessage?: LatestMessage;
+
+export interface IRoom {
+	id?: string;
 	name?: string;
-	detailRoom: RoomMember[];
- }
- 
+	isSeen?: string[];
+	leader_account_id?: string;
+	latestMessage?: IMessage;
+	type?: "group" | "single" | "channel" | "cloud"; 
+	isDelete?: boolean;
+	isLoad?: boolean;
+	detailRoom?: IDetailAccountRoom[];
+	avatar?: string;
+	isDisbanded?: boolean;
+	avatarUrl?: string;
+	updatedAt?: Date;
+	
+}
+
+export interface IDetailAccountRoom  {
+	id?: string;
+	fullName?: string;
+	avatar?: string;
+}

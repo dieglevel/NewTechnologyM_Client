@@ -10,6 +10,7 @@ import { getListFriend, getListResponseFriend, getListSended } from "@/services/
 import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 import { Text } from "react-native";
+import { initialDataPage } from "./handle-initital-page";
 
 export const BottomTabScreenApp = () => {
 	const navigator = useNavigation<StackScreenNavigationProp>();
@@ -29,33 +30,7 @@ export const BottomTabScreenApp = () => {
 	}, []);
 
 	useEffect(() => {
-		const fetch = async () => {
-			try {
-				const response = await getListSended();
-				if (response?.statusCode === 200) {
-					// console.log("response: ", response.data);
-					store.dispatch(initSendedFriend(response.data || []));
-				}
-			} catch (error) {
-				const e = error as ErrorResponse;
-			}
-		};
-		fetch();
-	}, []);
-
-	useEffect(() => {
-		const fetch = async () => {
-			try {
-				const response = await getListResponseFriend();
-				if (response?.statusCode === 200) {
-					// console.log("response: ", response.data);
-					store.dispatch(initRequestFriend(response.data || []));
-				}
-			} catch (error) {
-				const e = error as ErrorResponse;
-			}
-		};
-		fetch();
+		initialDataPage();
 	}, []);
 
 	return (

@@ -68,7 +68,6 @@ const uploadAudio = async (file: { uri: string; name: string; type: string }) =>
     formData.append("senderId", "me");
     formData.append("timestamp", new Date().toISOString());
 
-    // console.log("Uploading audio:", file);
 
     const response = await uploadAudioToMessageApi(formData);
 
