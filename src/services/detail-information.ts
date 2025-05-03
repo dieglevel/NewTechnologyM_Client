@@ -26,7 +26,6 @@ export const updateProfile = async (profile: UpdateProfileRequest) => {
 
 export const getProfile = async () => {
    const userId = ExpoSecureValueService.getUserId();
-   console.log(userId)
    try {
       const response = await api.get<BaseResponse<IDetailInformation>>(`/detail-information/${userId}`)
       return response.data

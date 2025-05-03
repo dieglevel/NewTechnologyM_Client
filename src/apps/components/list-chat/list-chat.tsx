@@ -1,158 +1,19 @@
-import { images } from "@/assets/images";
 import { colors } from "@/constants";
 import { ErrorResponse } from "@/libs/axios/axios.config";
+import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 import { StackScreenNavigationProp } from "@/libs/navigation";
-import { initMyListFriend, initRoom, setSelectedRoom } from "@/libs/redux";
+import { initMyListFriend, initRoom } from "@/libs/redux";
 import { RootState, store } from "@/libs/redux/redux.config";
-import { getProfileFromAnotherUser } from "@/services/auth";
-import { addMember, createRoom, getMyListRoom } from "@/services/room";
-import { IDetailInformation, IFriend, IRoom } from "@/types/implement";
-import { Feather, Ionicons } from "@expo/vector-icons";
-import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
-import React, { useState, useEffect } from "react";
-import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, Image, ActivityIndicator, Modal } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
-import { handleForwardMessage } from "./../chatDetail/message-utils";
-import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
-import Toast from "react-native-toast-message";
 import { getListFriend } from "@/services/friend";
-
-interface IChatItem {
-  item: IRoom;
-  myUserId: string;
-}
-
-const ChatItem = ({ item, myUserId }: IChatItem) => {
-  const navigation = useNavigation<StackScreenNavigationProp>();
-  const dispatch = useDispatch();
-  const route = useRoute<any>();
-
-  const handlePress = () => {
-    const { forwardMessage, senderId, roomId } = route.params || {};
-    if (forwardMessage) {
-      // Handle forwarding message
-      handleForwardMessage(
-        forwardMessage._id,
-        roomId,
-        senderId,
-        item.id,
-        () => {} // No modal to close in this context
-      );
-      navigation.goBack();
-    } else {
-      // Normal chat navigation
-      dispatch(setSelectedRoom(item));
-      navigation.navigate("ChatScreen", { room: item });
-    }
-  };
-
-  const renderAvatar = () => {
-    if (item.type === "single") {
-      const account = item.detailRoom.find((detail) => {
-        return detail.id !== myUserId;
-      });
-
-      return (
-        <Image
-          source={account?.avatar ? { uri: account?.avatar } : images.avatarDefault}
-          style={styles.avatarContainer}
-        />
-      );
-    } else {
-      return (
-        <Image
-          source={item.avatar ? { uri: item?.avatar } : images.group}
-          style={[, { width: 30, height: 30 }]}
-        />
-      );
-    }
-  };
-
-  const renderName = () => {
-    if (item.type === "single") {
-      const account = item.detailRoom.find((detail) => {
-        return detail.id !== myUserId;
-      });
-      return account?.fullName || "Unknown User";
-    } else {
-      return item.name || "Group Chat";
-    }
-  };
-
-  const renderMessage = () => {
-    const message = () => {
-      console.log(item.latestMessage);
-      if (item.latestMessage?.sticker) {
-        return "Đã gửi một nhãn dán";
-      }
-      if (item.latestMessage?.content) {
-        return item.latestMessage.content;
-      }
-      return null;
-    };
-
-    const accountMessage = item.latestMessage?.accountId;
-
-    const account = item.detailRoom.find((detail) => {
-      return detail.id === accountMessage;
-    });
-
-    return message() !== null && (account ? account?.fullName + ": " + message() : "Bạn: " + message());
-  };
-
-  return (
-    <TouchableOpacity style={styles.chatItemContainer} onPress={handlePress}>
-      <View style={styles.avatarContainer}>{renderAvatar()}</View>
-      <View style={styles.chatContent}>
-        <Text style={styles.chatName}>{renderName()}</Text>
-        <Text style={styles.chatMessage}>{renderMessage()}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-interface ContactItemProps {
-	item: IFriend;
-	checked: string[];
-	onChecked?: (contact: IFriend) => void;
-}
-
-const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
-	return (
-		<TouchableOpacity
-			style={styles.contactItem}
-			onPress={() => {
-				if (onChecked) {
-					onChecked(item);
-				}
-			}}
-		>
-			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
-
-			<Image
-				source={item.detail?.avatarUrl ? { uri: item.detail?.avatarUrl } : images.avatarDefault}
-				style={styles.avatar}
-				resizeMode="cover"
-			/>
-			{/* </View> */}
-			<View style={styles.contactInfo}>
-				<Text style={styles.contactName}>{item.detail?.fullName}</Text>
-			</View>
-			<TouchableOpacity style={{ marginLeft: 10 }}>
-				<View
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: 10,
-						borderWidth: 1,
-						borderColor: "black",
-						backgroundColor: checked.includes(item.accountId ?? "") ? colors.brand : "white",
-					}}
-				/>
-			</TouchableOpacity>
-		</TouchableOpacity>
-	);
-};
+import { addMember, createRoom, getRoom } from "@/services/room";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
+import { useSelector } from "react-redux";
+import { ChatItem } from "./components/chat-room-item";
+import { FriendItem } from "./components/friend-item";
 
 export const ListChat = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -163,29 +24,21 @@ export const ListChat = () => {
 	const [checked, setChecked] = useState<string[]>([]);
 	const [nameGroup, setNameGroup] = useState<string>("");
 
-
 	const isFocused = useIsFocused();
-	const [myUserId, setMyUserId] = useState<string>("");
-
 	const [searchText, setSearchText] = useState<string>("");
 
+	const myUserId = ExpoSecureValueService.getUserId();
 
-  useEffect(() => {
-    const getMyId = async () => {
-      const value = await getSecure(ExpoSecureStoreKeys.UserId);
-      setMyUserId(value ?? "");
-      return;
-    };
-    const fetchedRoom = async () => {
-      const response = await getMyListRoom();
-      if (response?.statusCode === 200 && response.data) {
-        await store.dispatch(initRoom(response?.data.listRoomResponse || []));
-      }
-    };
-    fetchedRoom();
-    getMyId();
-  }, [isFocused]);
+	useEffect(() => {
+		const fetchedRoom = async () => {
+			const response = await getRoom();
+			if (response?.statusCode === 200 && response.data) {
+				await store.dispatch(initRoom(response?.data.listRoomResponse || []));
+			}
+		};
 
+		fetchedRoom();
+	}, [isFocused]);
 
 	const handleChecked = (id: string) => {
 		if (checked.includes(id)) {
@@ -242,19 +95,13 @@ export const ListChat = () => {
 	};
 
 	const fetchedRoom = async () => {
-		const response = await getMyListRoom();
+		const response = await getRoom();
 		if (response?.statusCode === 200 && response.data) {
 			await store.dispatch(initRoom(response?.data.listRoomResponse || []));
 		}
 	};
 
 	useEffect(() => {
-		const getMyId = async () => {
-			const value = await getSecure(ExpoSecureStoreKeys.UserId);
-			setMyUserId(value ?? "");
-			return;
-		};
-
 		const fetchedFriend = async () => {
 			try {
 				const response = await getListFriend();
@@ -267,10 +114,7 @@ export const ListChat = () => {
 			}
 		};
 
-		fetchedRoom();
 		fetchedFriend();
-
-		getMyId();
 	}, [isFocused]);
 	return (
 		<View style={styles.container}>
@@ -278,7 +122,7 @@ export const ListChat = () => {
 				visible={showCreateGroupModal}
 				transparent={true}
 				animationType="fade"
-				presentationStyle="overFullScreen" 
+				presentationStyle="overFullScreen"
 			>
 				<View style={[{ width: "100%", height: "100%", padding: 30 }]}>
 					<View
@@ -382,7 +226,6 @@ export const ListChat = () => {
 						></View>
 					</View>
 				</View>
-
 			</Modal>
 
 			<View style={styles.searchBar}>
@@ -489,10 +332,11 @@ const styles = StyleSheet.create({
 	avatarContainer: {
 		width: 48,
 		height: 48,
+		objectFit: "cover",
 		borderRadius: 999,
 		alignItems: "center",
 		justifyContent: "center",
-		borderWidth: 1,
+		borderWidth: 2,
 		borderColor: "#3b82f6",
 	},
 	avatarText: {
@@ -531,10 +375,9 @@ const styles = StyleSheet.create({
 	avatar: {
 		width: 48,
 		height: 48,
-		borderRadius: 24,
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: 1,
+		objectFit: "cover",
+		borderRadius: 999,
+		borderWidth: 2,
 		borderColor: "#3b82f6",
 	},
 

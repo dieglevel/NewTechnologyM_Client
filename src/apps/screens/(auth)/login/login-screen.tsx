@@ -29,7 +29,7 @@ import { getListFriend, getListResponseFriend, getListSended } from "@/services/
 import { store } from "@/libs/redux/redux.config";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { initMyListFriend, initRequestFriend, initRoom, initSendedFriend } from "@/libs/redux/stores/model";
-import { getMyListRoom } from "@/services/room";
+import { getRoom } from "@/services";
 
 export const LoginScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -92,7 +92,7 @@ export const LoginScreen = () => {
 		}
 
 		try {
-			const response = await getMyListRoom();
+			const response = await getRoom();
 			if (response?.statusCode === 200) {
 				// console.log("response: ", response.data);
 				store.dispatch(initRoom(response?.data?.listRoomResponse || []));

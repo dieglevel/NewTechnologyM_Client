@@ -1,0 +1,73 @@
+import { images } from "@/assets/images";
+import { colors } from "@/constants";
+import { IFriend } from "@/types/implement";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+interface ContactItemProps {
+	item: IFriend;
+	checked: string[];
+	onChecked?: (contact: IFriend) => void;
+}
+
+export const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
+	return (
+		<TouchableOpacity
+			style={styles.contactItem}
+			onPress={() => {
+				if (onChecked) {
+					onChecked(item);
+				}
+			}}
+		>
+			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
+
+			<Image
+				source={item.detail?.avatarUrl ? { uri: item.detail?.avatarUrl } : images.avatarDefault}
+				style={styles.avatar}
+				resizeMode="cover"
+			/>
+			{/* </View> */}
+			<View style={styles.contactInfo}>
+				<Text style={styles.contactName}>{item.detail?.fullName}</Text>
+			</View>
+			<TouchableOpacity style={{ marginLeft: 10 }}>
+				<View
+					style={{
+						width: 20,
+						height: 20,
+						borderRadius: 10,
+						borderWidth: 1,
+						borderColor: "black",
+						backgroundColor: checked.includes(item.accountId ?? "") ? colors.brand : "white",
+					}}
+				/>
+			</TouchableOpacity>
+		</TouchableOpacity>
+	);
+};
+
+const styles = StyleSheet.create({
+	contactItem: {
+		flex: 1,
+		width: "100%",
+		flexDirection: "row",
+		alignItems: "center",
+		padding: 12,
+	},
+	avatar: {
+		width: 48,
+		height: 48,
+		objectFit: "cover",
+		borderRadius: 999,
+		borderWidth: 2,
+		borderColor: "#3b82f6",
+	},
+	contactInfo: {
+		marginLeft: 12,
+		flex: 1,
+	},
+	contactName: {
+		fontWeight: "600",
+		color: "black",
+	},
+});

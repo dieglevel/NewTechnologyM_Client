@@ -7,20 +7,20 @@ import {
 	QrScreen,
 	ForgotPasswordScreen,
 	UpdateProfileScreen,
-	UpdatePasswordScreen,
 	ListChatScreen,
 } from "@/apps/screens";
 
 import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
-import { LoginUserScreen } from "../screens/login-user/login-user-screen";
+import { LoginUserScreen } from "../screens/(auth)/login-user/login-user-screen";
 import { useEffect } from "react";
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
-import RequestFriendScreen from "../screens/request-friend/request-friend-screen";
+import RequestFriendScreen from "../screens/(contact)/request-friend/request-friend-screen";
 import ChatInfo from "../components/chat-info/chat-info";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
+import { UpdatePasswordScreen } from "../screens/(auth)/updatePassword/updatePasswordScreen";
 
 export const RootScreenApp = () => {
 	useEffect(() => {

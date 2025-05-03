@@ -21,7 +21,6 @@ export const loginApi = async (identifier: string, password: string) => {
 		}
 		const response = await api.post<BaseResponse<IAuth>>("/auth/login", { identifier, password });
 		
-		console.log(response.data.data)
 		await ExpoSecureValueService.setAccessToken(response.data.data?.accessToken || null)
 		await ExpoSecureValueService.setUserId(response.data.data?.userId || null)
 		return response.data;

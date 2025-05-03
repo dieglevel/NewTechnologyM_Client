@@ -1,4 +1,4 @@
-import { ListChatScreen } from '../../apps/screens/list-chat/list-chat-screen';
+import { ListChatScreen } from '../../apps/screens/(chat)/list-chat/list-chat-screen';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationProp, RouteProp } from "@react-navigation/native";
 

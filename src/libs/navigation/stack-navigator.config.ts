@@ -2,9 +2,9 @@ import { ListChatScreen } from '@/apps/screens';
 import { UpdatePasswordComponent } from './../../apps/components/updatePassword/UpdatePasswordComponent';
 import { ForgotPasswordComponent } from '@/apps/components/forgotPassword/forgot-password';
 import { UpdatePasswordScreen } from './../../apps/screens/updatePassword/updatePasswordScreen';
-import { UpdateProfileScreen } from '../../apps/screens/update-profile/update-profile-screen';
-import { ChatScreen } from '../../apps/screens/chat-detail/chat-screen';
-import { ForgotPasswordScreen } from "@/apps/screens/forgotPassword/forgot-password-screen";
+import { UpdateProfileScreen } from '../../apps/screens/(profile)/update-profile/update-profile-screen';
+import { ChatScreen } from '../../apps/screens/(chat)/chat-detail/chat-screen';
+import { ForgotPasswordScreen } from "@/apps/screens/(auth)/forgot-password-screen/forgot-password-screen";
 import { RouteProp } from "@react-navigation/native";
 import {
   createNativeStackNavigator,

@@ -21,15 +21,16 @@ import { store } from "@/libs/redux/redux.config";
 import { useDispatch } from "react-redux";
 import { clearDetailInformationReducer } from "@/libs/redux";
 import { MMKV } from "react-native-mmkv";
+import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 
 export const UserScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
 	const dispatch = useDispatch();
 
 	const handleLogout = async () => {
-		await deleteItemAsync(ExpoSecureStoreKeys.AccessToken);
-		await deleteItemAsync(ExpoSecureStoreKeys.IpDevice);
-		await deleteItemAsync(ExpoSecureStoreKeys.UserId);
+		ExpoSecureValueService.removeAccessToken();
+		ExpoSecureValueService.removeIpDevice();
+		ExpoSecureValueService.removeUserId();
 		api.defaults.headers.common["Authorization"] = undefined;
 		api.defaults.headers.common["ip-device"] = undefined;
 

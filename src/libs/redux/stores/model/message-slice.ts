@@ -115,7 +115,6 @@ const messageSlice = createSlice({
 			})
 			.addCase(fetchMessageByRoomId.fulfilled, (state, action: PayloadAction<IMessage[]>) => {
 				state.status = "succeeded";
-				console.log(action.payload);
 				state.message = action.payload;
 			})
 			.addCase(fetchMessageByRoomId.rejected, (state) => {
