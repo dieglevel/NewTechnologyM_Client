@@ -1,10 +1,4 @@
-import { ListChatScreen } from '@/apps/screens';
-import { UpdatePasswordComponent } from './../../apps/components/updatePassword/UpdatePasswordComponent';
-import { ForgotPasswordComponent } from '@/apps/components/forgotPassword/forgot-password';
-import { UpdatePasswordScreen } from './../../apps/screens/updatePassword/updatePasswordScreen';
-import { UpdateProfileScreen } from '../../apps/screens/(profile)/update-profile/update-profile-screen';
-import { ChatScreen } from '../../apps/screens/(chat)/chat-detail/chat-screen';
-import { ForgotPasswordScreen } from "@/apps/screens/(auth)/forgot-password-screen/forgot-password-screen";
+
 import { RouteProp } from "@react-navigation/native";
 import {
   createNativeStackNavigator,
@@ -21,21 +15,23 @@ export type RootStackParamList = {
   Chat: undefined;
   ChatScreen: { room: IRoom };
   LoginUser: undefined;
-  ForgotPasswordScreen: undefined; 
-  UpdatePasswordScreen: {identifier: string};
+  ForgotPasswordScreen: undefined;
+  UpdatePasswordScreen: { identifier: string };
   UpdateProfileScreen: undefined;
   ForgotPasswordComponent: undefined;
   Qr: undefined;
   RequestFriendScreen: undefined;
-  ChatInfoScreen: undefined;
-  ListChatScreen: undefined;
+  RoomInformationScreen: undefined;
+  ListRoomScreen: undefined;
+  FilePreviewScreen: { uri: string, fileName: string }
+
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }
 
@@ -46,3 +42,4 @@ export type OTPRouteProp = RouteProp<RootStackParamList, "OTP">;
 export type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
 export type UpdatePasswordRouteProp = RouteProp<RootStackParamList, "UpdatePasswordScreen">;
 export type ChatScreenRouteProp = RouteProp<RootStackParamList, "ChatScreen">;
+export type FilePrewviewRouteProp = RouteProp<RootStackParamList, "FilePreviewScreen">;

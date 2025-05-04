@@ -8,12 +8,12 @@ import { ErrorResponse, BaseResponse } from "@/libs/axios/axios.config";
 import { SocketEmit, SocketOn } from "@/constants/socket";
 import { store } from "@/libs/redux/redux.config";
 import { api } from "@/libs/axios/axios.config";
-import { getMyListRoom } from "@/services/room";
+import { getRoom } from "@/services/room";
 
 // Hàm lấy danh sách phòng
-const getRooms = async (): Promise<IRoom[]> => {
+const getRooms = async () => {
   try {
-    const response = await getMyListRoom();
+    const response = await getRoom();
     if (response.statusCode === 200) {
       return response.data?.listRoomResponse ?? [];
     }
@@ -118,13 +118,9 @@ const handleEditMessage = (
   id: string,
   text: string,
   setEditingMessageId: (id: string | null) => void,
-  setEditText: (text: string) => void,
-  setInputText: (text: string) => void,
   setShowActionModal: (show: boolean) => void
 ) => {
   setEditingMessageId(id);
-  setEditText(text);
-  setInputText(text);
   setShowActionModal(false);
 };
 
@@ -197,7 +193,7 @@ const pushforwardMessage = async ({
 }) => {
   try {
     // Gọi lại hàm forwardMessage để chuyển tiếp tin nhắn
-    const response = await forwardMessage({ messageId, roomId, senderId });
+    const response = await forwardMessage({ messageId, roomId });
 
   } catch (error) {
     const e = error as ErrorResponse;

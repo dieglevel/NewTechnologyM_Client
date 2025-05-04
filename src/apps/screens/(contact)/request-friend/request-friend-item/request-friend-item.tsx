@@ -4,7 +4,7 @@ import Delete from "@/assets/svgs/delete";
 import { colors } from "@/constants";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { acceptRequestFriend, rejectRequestFriend } from "@/services/friend";
-import { IRequestFriend } from "@/types/implement";
+import { IRequestFriend } from "@/types/implement/response";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
@@ -100,6 +100,7 @@ const RequestFriendItem = ({ data }: Props) => {
 					<TouchableOpacity
 						style={{ padding: 10, borderRadius: 9999 }}
 						onPress={handleRejectFriend}
+						disabled={isSubmitting}
 					>
 						<Delete
 							size={23}
@@ -110,6 +111,7 @@ const RequestFriendItem = ({ data }: Props) => {
 					<TouchableOpacity
 						style={{ padding: 10, borderRadius: 9999 }}
 						onPress={handleAcceptFriend}
+						disabled={isSubmitting}
 					>
 						<Add
 							size={23}

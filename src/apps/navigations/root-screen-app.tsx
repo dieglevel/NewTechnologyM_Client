@@ -7,7 +7,7 @@ import {
 	QrScreen,
 	ForgotPasswordScreen,
 	UpdateProfileScreen,
-	ListChatScreen,
+	ListRoomScreen,
 } from "@/apps/screens";
 
 import { Stack } from "@/libs/navigation";
@@ -18,9 +18,10 @@ import { useEffect } from "react";
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import RequestFriendScreen from "../screens/(contact)/request-friend/request-friend-screen";
-import ChatInfo from "../components/chat-info/chat-info";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 import { UpdatePasswordScreen } from "../screens/(auth)/updatePassword/updatePasswordScreen";
+import FilePreviewScreen from "../screens/file-preview/file-preview-screen";
+import { RoomInformationScreen } from "../screens/(chat)/room-infomation/room-information-screen";
 
 export const RootScreenApp = () => {
 	useEffect(() => {
@@ -120,7 +121,6 @@ export const RootScreenApp = () => {
 					name="UpdateProfileScreen"
 					component={UpdateProfileScreen}
 				/>
-
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
@@ -141,15 +141,22 @@ export const RootScreenApp = () => {
 					options={{
 						statusBarBackgroundColor: "gray",
 					}}
-					name="ChatInfoScreen"
-					component={ChatInfo}
+					name="RoomInformationScreen"
+					component={RoomInformationScreen}
 				/>
 				<Stack.Screen
 					options={{
 						statusBarBackgroundColor: "gray",
 					}}
-					name="ListChatScreen"
-					component={ListChatScreen}
+					name="ListRoomScreen"
+					component={ListRoomScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "gray",
+					}}
+					name="FilePreviewScreen"
+					component={FilePreviewScreen}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>

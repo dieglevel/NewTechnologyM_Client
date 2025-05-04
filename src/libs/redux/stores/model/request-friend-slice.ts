@@ -24,7 +24,7 @@ export const fetchRequestFriend = createAsyncThunk(`${thunkDB}${thunkAction.fetc
 });
 
 export const setRequestFriend = createAsyncThunk(`${thunkDB}${thunkAction.set}${thunkName}`, async (friend: IRequestFriend[]) => {
-  const requestFriendStorages = requestFriendStorage.setMany(friend);
+  requestFriendStorage.setMany(friend);
   const data = requestFriendStorage.getAll();
   return data;
 });

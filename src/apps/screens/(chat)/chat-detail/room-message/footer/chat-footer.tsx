@@ -283,7 +283,7 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 						color="#3b82f6"
 					/>
 				</TouchableOpacity>
-				<TouchableOpacity
+				{/* <TouchableOpacity
 					onPress={
 						isRecording
 							? () => stopRecording(recording, setRecording, setIsRecording)
@@ -296,7 +296,7 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 						size={26}
 						color={isRecording ? "#ef4444" : "#3b82f6"}
 					/>
-				</TouchableOpacity>
+				</TouchableOpacity> */}
 				<TextInput
 					style={[styles.textInput, isDark && styles.darkTextInput]}
 					placeholder={editingMessageId ? "Chỉnh sửa tin nhắn..." : "Nhập tin nhắn..."}

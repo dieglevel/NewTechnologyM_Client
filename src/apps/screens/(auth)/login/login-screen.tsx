@@ -1,35 +1,25 @@
 import { SafeAreaView } from "@/apps/components";
+import { ErrorResponse } from "@/libs/axios/axios.config";
+import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
+import { StackScreenNavigationProp } from "@/libs/navigation";
+import { socketService } from "@/libs/socket/socket";
+import { getAccountApi } from "@/services/auth";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
+	ActivityIndicator,
 	Image,
 	Modal,
 	PanResponder,
 	PanResponderInstance,
 	Pressable,
+	StyleSheet,
 	Text,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
-	View,
-	StyleSheet,
-	FlatList,
-	ActivityIndicator,
+	View
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { texts } from "./handle";
-import { use } from "i18next";
-import { detailInformationStorage } from "@/libs/mmkv/mmkv";
-import { IDetailInformation } from "@/types/implement";
-import { MMKV } from "react-native-mmkv";
-import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
-import { StackScreenNavigationProp } from "@/libs/navigation";
-import { getAccountApi } from "@/services/auth";
-import { socketService } from "@/libs/socket/socket";
-import { ListChat } from "@/apps/components/list-chat";
-import { getListFriend, getListResponseFriend, getListSended } from "@/services/friend";
-import { store } from "@/libs/redux/redux.config";
-import { ErrorResponse } from "@/libs/axios/axios.config";
-import { initMyListFriend, initRequestFriend, initRoom, initSendedFriend } from "@/libs/redux/stores/model";
-import { getRoom } from "@/services";
 
 export const LoginScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -48,7 +38,6 @@ export const LoginScreen = () => {
 				const accountResponse = await getAccountApi();
 				if (accountResponse.statusCode === 200) {
 					socketService.connect();
-					// const temp = await fetch();
 					navigation.navigate("BottomTabScreenApp");
 				}
 			} catch (error) {
@@ -59,48 +48,6 @@ export const LoginScreen = () => {
 		checkToken();
 
 	}, []);
-
-	const fetch = async () => {
-		try {
-			const response = await getListFriend();
-			if (response?.statusCode === 200) {
-				// console.log("response: ", response.data);
-				store.dispatch(initMyListFriend(response?.data || []));
-			}
-		} catch (error) {
-			const e = error as ErrorResponse;
-		}
-
-		try {
-			const response = await getListResponseFriend();
-			if (response?.statusCode === 200) {
-				// console.log("response: ", response.data);
-				store.dispatch(initRequestFriend(response.data || []));
-			}
-		} catch (error) {
-			const e = error as ErrorResponse;
-		}
-
-		try {
-			const response = await getListSended();
-			if (response?.statusCode === 200) {
-				// console.log("response: ", response.data);
-				store.dispatch(initSendedFriend(response.data || []));
-			}
-		} catch (error) {
-			const e = error as ErrorResponse;
-		}
-
-		try {
-			const response = await getRoom();
-			if (response?.statusCode === 200) {
-				// console.log("response: ", response.data);
-				store.dispatch(initRoom(response?.data?.listRoomResponse || []));
-			}
-		} catch (error) {
-			const e = error as ErrorResponse;
-		}
-	};
 
 	const handleImagePress = () => {
 		if (currentPage < texts[language].pages.length - 1) {

@@ -1,12 +1,9 @@
-import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SearchHeader, UserInfo } from "@/apps/components/user-tab";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { SafeAreaView } from "@/apps/components";
 import { colors } from "@/constants";
-import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
-import { deleteItemAsync } from "expo-secure-store";
 import { api } from "@/libs/axios/axios.config";
 import { socketService } from "@/libs/socket/socket";
 import {
@@ -17,7 +14,6 @@ import {
 	roomStorage,
 	sendedFriendStorage,
 } from "@/libs/mmkv/mmkv";
-import { store } from "@/libs/redux/redux.config";
 import { useDispatch } from "react-redux";
 import { clearDetailInformationReducer } from "@/libs/redux";
 import { MMKV } from "react-native-mmkv";

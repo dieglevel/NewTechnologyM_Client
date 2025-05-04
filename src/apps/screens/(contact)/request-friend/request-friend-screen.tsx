@@ -1,5 +1,5 @@
 import { SafeAreaView } from "@/apps/components";
-import RequestFriendItem from "@/apps/components/request-friend/request-friend-item";
+import RequestFriendItem from "@/apps/screens/(contact)/request-friend/request-friend-item/request-friend-item";
 import Add from "@/assets/svgs/add";
 import Delete from "@/assets/svgs/delete";
 import { colors } from "@/constants";

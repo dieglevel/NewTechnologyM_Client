@@ -3,7 +3,7 @@ import { IMessageFile } from "./file.interface";
 
 
 export interface IMessage {
-	_id?: string;
+	_id: string;
 	message_id?: string;
 	accountId?: string;
 	roomId?: string;

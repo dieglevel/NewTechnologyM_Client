@@ -1,11 +1,11 @@
-import { ListChatScreen } from '../../apps/screens/(chat)/list-chat/list-chat-screen';
+
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationProp, RouteProp } from "@react-navigation/native";
 
 export const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export type RootTabParamList = {
-	ListChatScreen: undefined;
+	ListRoomScreen: undefined;
 	UserScreen: undefined;
 	ContactScreen: undefined
 };

@@ -1,11 +1,12 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { handleRecallMessage } from "@/apps/components/chatDetail/message-utils";
+import { handleRecallMessage } from "@/apps/screens/(chat)/chat-detail/room-message/message-utils";
 import { IDetailInformation, IMessage } from "@/types/implement";
 import { useAppSelector } from "@/libs/redux/redux.config";
 import { images } from "@/assets/images";
 import styles from "../styles";
+import FilePreview from "../../../../../components/file-preview/file-preview";
 
 interface Props {
 	item: IMessage;
@@ -19,7 +20,7 @@ interface Props {
 	isDark: boolean;
 }
 
-const RenderMessageItem: React.FC<Props> = ({
+const MessageItem: React.FC<Props> = React.memo(({
 	item,
 	myUserId,
 	detailInformation,
@@ -36,10 +37,11 @@ const RenderMessageItem: React.FC<Props> = ({
 
 	const renderFile = () => {
 		const file = item.files;
+
 		return file?.map((file, index) => {
-			if (file.data.type.startsWith("image/")) {
-				return (
-					<TouchableOpacity
+			// return <FilePreview uri={file.url} />;
+
+			 return <TouchableOpacity
 						key={index}
 						onPress={() => {
 							// openImageModal(
@@ -52,8 +54,9 @@ const RenderMessageItem: React.FC<Props> = ({
 							// 	setShowImageModal,
 							// );
 						}}
+						style={{ minWidth: "100%", height: 150 }}
 					>
-						<Image
+						{/* <Image
 							source={{
 								uri: file.url,
 							}}
@@ -61,14 +64,13 @@ const RenderMessageItem: React.FC<Props> = ({
 							style={{ width: 200, height: 200 }}
 							width={300}
 							height={300}
-						/>
+						/> */}
+						<FilePreview uri={file.url} />
 					</TouchableOpacity>
-				);
-			}
 		});
 	};
 	const renderAvatar = () => {
-		const account = selectedRoom?.detailRoom.find((account) => account.id === item.accountId);
+		const account = selectedRoom?.detailRoom?.find((account) => account.id === item.accountId);
 
 		return (
 			<Image
@@ -104,7 +106,7 @@ const RenderMessageItem: React.FC<Props> = ({
 					setActionMessage(item);
 					setShowActionModal(true);
 				}}
-				onPress={() => handleRecallMessage(item?._id ?? "", isMyMessage, setMessages, setShowActionModal)}
+				// onPress={() => handleRecallMessage(item?._id ?? "", isMyMessage, setMessages, setShowActionModal)}
 				delayLongPress={1000}
 				activeOpacity={0.8}
 				style={[
@@ -115,16 +117,16 @@ const RenderMessageItem: React.FC<Props> = ({
 					},
 				]}
 			>
-				{renderFile()}
-				{item.sticker ? (
-					<Image
-						source={{ uri: item.sticker }}
-						style={{ width: 100, height: 100, objectFit: "contain" }}
-					/>
+				{item.isRevoked ? (
+					<Text style={styles.senderName}>Tin nhắn đã thu hồi</Text>
 				) : (
 					<>
-						{item.isRevoked ? (
-							<Text style={styles.senderName}>Tin nhắn đã thu hồi</Text>
+						{renderFile()}
+						{item.sticker ? (
+							<Image
+								source={{ uri: item.sticker }}
+								style={{ width: 100, height: 100, objectFit: "contain" }}
+							/>
 						) : (
 							<Text style={styles.senderName}>{item.content}</Text>
 						)}
@@ -133,6 +135,6 @@ const RenderMessageItem: React.FC<Props> = ({
 			</TouchableOpacity>
 		</View>
 	);
-};
+});
 
-export default RenderMessageItem;
+export default MessageItem;

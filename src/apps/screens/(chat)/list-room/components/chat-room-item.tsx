@@ -4,8 +4,8 @@ import { IRoom } from "@/types/implement";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
-import { handleForwardMessage } from "../../chatDetail/message-utils";
 import { images } from "@/assets/images";
+import { handleForwardMessage } from "@/apps/screens/(chat)/chat-detail/room-message/message-utils";
 
 interface IChatItem {
    item: IRoom;
@@ -71,11 +71,17 @@ export const ChatItem = ({ item, myUserId }: IChatItem) => {
 
    const renderMessage = () => {
       const message = () => {
+         if(item.latestMessage?.isRevoked) {
+            return "Đã thu hồi tin nhắn"
+         }
          if (item.latestMessage?.sticker) {
             return "Đã gửi một nhãn dán";
          }
          if (item.latestMessage?.content) {
             return item.latestMessage.content;
+         }
+         if (item.latestMessage?.files){
+            return "Đã gửi tệp"
          }
          return null;
       };

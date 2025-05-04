@@ -1,267 +1,71 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import {
-	View,
-	Text,
-	TextInput,
-	SectionList,
-	TouchableOpacity,
-	StyleSheet,
-	RefreshControl,
-	Image,
-	FlatList,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "@/apps/components";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { RootStackParamList, StackScreenNavigationProp } from "@/libs/navigation";
-import { useSelector } from "react-redux";
-import { RootState, store } from "@/libs/redux/redux.config";
-import { IFriend } from "@/types/implement";
-import { getListFriend, getListResponseFriend, getListSended, sendRequestFriend, unFriend } from "@/services/friend";
-import Toast from "react-native-toast-message";
 import { ErrorResponse } from "@/libs/axios/axios.config";
-import Delete from "@/assets/svgs/delete";
-import { ISearchAccount } from "@/types/implement/response";
-import { findAccount } from "@/services/auth";
-import { use } from "i18next";
+import { StackScreenNavigationProp } from "@/libs/navigation";
 import { initMyListFriend, initRequestFriend, initSendedFriend } from "@/libs/redux";
-
-// // Phân nhóm liên hệ theo chữ cái đầu
-// const groupContacts = (contacts: IFriend[]) => {
-// 	const grouped = contacts.reduce((acc, contact) => {
-// 		const firstLetter = contact.detail?.fullName?.charAt(0).toUpperCase() || "A";
-// 		if (!acc[firstLetter]) acc[firstLetter] = [];
-// 		acc[firstLetter].push(contact);
-// 		return acc;
-// 	}, {} as Record<string, IFriend[]>);
-
-// 	return Object.entries(grouped).map(([title, data]) => ({
-// 		title,
-// 		data: data as IFriend[], // Explicitly type data as an array
-// 	}));
-// };
-
-// const getRandomColor = (name: string) => {
-// 	const colors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6"];
-// 	const index = name.charCodeAt(0) % colors.length;
-// 	return colors[index];
-// };
-
-interface ContactItemProps {
-	item: IFriend;
-	onPress: (contact: IFriend) => void;
-}
-
-const ContactItem = ({ item, onPress }: ContactItemProps) => {
-	const handleUnFriend = async () => {
-		try {
-			const response = await unFriend(item.friendId ?? "");
-			if (response?.statusCode === 200) {
-				Toast.show({
-					type: "success",
-					text1: "Thành công",
-					text2: "Hủy kết bạn thành công",
-				});
-			}
-		} catch (error) {
-			const e = error as ErrorResponse;
-			Toast.show({
-				type: "error",
-				text1: "Thất bại",
-				text2: e.message,
-			});
-		}
-	};
-
-	return (
-		<TouchableOpacity
-			style={styles.contactItem}
-			onPress={() => onPress(item)}
-		>
-			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
-			{item.detail?.avatarUrl ? (
-				<Image
-					source={{ uri: item.detail?.avatarUrl }}
-					style={styles.avatar}
-					resizeMode="cover"
-				/>
-			) : (
-				<Text style={styles.avatarText}>{(item.detail?.fullName ?? "-").charAt(0)}</Text>
-			)}
-			{/* </View> */}
-			<View style={styles.contactInfo}>
-				<Text style={styles.contactName}>{item.detail?.fullName}</Text>
-				{/* <Text style={[styles.statusText, { color: item.online ? "green" : "gray" }]}>
-        {item.online ? "Đang hoạt động" : "Ngoại tuyến"}
-      </Text> */}
-			</View>
-			<View style={{ flex: 1, gap: 8, justifyContent: "flex-end", flexDirection: "row" }}>
-				<TouchableOpacity onPress={handleUnFriend}>
-					<Ionicons
-						name="person-remove"
-						size={20}
-						color="gray"
-						style={styles.icon}
-					/>
-				</TouchableOpacity>
-
-				<Ionicons
-					name="call"
-					size={20}
-					color="gray"
-					style={styles.icon}
-				/>
-				<Ionicons
-					name="videocam"
-					size={20}
-					color="gray"
-					style={styles.icon}
-				/>
-			</View>
-		</TouchableOpacity>
-	);
-};
-
-interface AccountItemProps {
-	data: ISearchAccount;
-	onPress: (contact: ISearchAccount) => void;
-}
-
-const AccountItem = ({ data, onPress }: AccountItemProps) => {
-	const { sendedFriends } = useSelector((state: RootState) => state.sendedFriend);
-	const { myListFriend } = useSelector((state: RootState) => state.myListFriend);
-
-	const handleSubmit = async () => {
-		try {
-			const response = await sendRequestFriend(data.id, "Kết bạn với tôi nhé");
-			if (response.statusCode === 201) {
-				Toast.show({
-					type: "success",
-					text1: "Thành công",
-					text2: "Gửi lời mời kết bạn thành công",
-				});
-			}
-		} catch (error) {
-			const e = error as ErrorResponse;
-			Toast.show({
-				type: "error",
-				text1: "Thất bại",
-				text2: e.message,
-			});
-		}
-	};
-
-	const checkSendedFriend = () => {
-		if (sendedFriends) {
-			const sendedFriend = sendedFriends.find((friend) => friend.receiver_id === data.id);
-			if (sendedFriend) {
-				// console.log("Sended friend: ", sendedFriend, "ID: ", data.id);
-				return true;
-			}
-		}
-
-		if (myListFriend) {
-			const myFriend = myListFriend.find((friend) => friend.accountId === data.id);
-			if (myFriend) {
-				// console.log("My friend: ", myFriend, "ID: ", data.id);
-				return true;
-			}
-		}
-
-		return false;
-	};
-
-	return (
-		<TouchableOpacity
-			style={styles.contactItem}
-			onPress={() => onPress(data)}
-		>
-			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
-			{data.detailInformation.avatarUrl ? (
-				<Image
-					source={{ uri: data.detailInformation.avatarUrl }}
-					style={styles.avatar}
-					resizeMode="cover"
-				/>
-			) : (
-				<Text style={styles.avatarText}>{(data.detailInformation?.fullName ?? "-").charAt(0)}</Text>
-			)}
-			{/* </View> */}
-			<View style={styles.contactInfo}>
-				<Text style={styles.contactName}>{data.detailInformation?.fullName}</Text>
-			</View>
-			<View style={{ flex: 1, gap: 8, justifyContent: "flex-end", flexDirection: "row" }}>
-				{!checkSendedFriend() && (
-					<TouchableOpacity onPress={handleSubmit}>
-						<Ionicons
-							name="person-add"
-							size={20}
-							color="gray"
-							style={styles.icon}
-						/>
-					</TouchableOpacity>
-				)}
-			</View>
-		</TouchableOpacity>
-	);
-};
+import { RootState, store } from "@/libs/redux/redux.config";
+import { findAccount } from "@/services/auth";
+import { getListFriend, getListResponseFriend, getListSended } from "@/services/friend";
+import { ISearchAccount } from "@/types/implement/response";
+import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useSelector } from "react-redux";
+import { AccountItem } from "./components/account-item/account-item";
+import { ContactItem } from "./components/contact-item/contact-item";
 
 export const ContactsScreen = () => {
 	const navigator = useNavigation<StackScreenNavigationProp>();
 
 	const { myListFriend } = useSelector((state: RootState) => state.myListFriend);
+	
 
 	const [search, setSearch] = useState<string>("");
 	const [searchResult, setSearchResult] = useState<ISearchAccount[]>([]);
 
 	const isFocused = useIsFocused();
 
-	  useEffect(() => {
-			const fetch = async () => {
-			  try {
-				 const response = await getListFriend();
-				 if (response?.statusCode === 200) {
+	useEffect(() => {
+		const fetch = async () => {
+			try {
+				const response = await getListFriend();
+				if (response?.statusCode === 200) {
 					// console.log("response: ", response.data);
 					store.dispatch(initMyListFriend(response?.data || []));
-				 }
-			  } catch (error) {
-				 const e = error as ErrorResponse;
-			  }
-	  
-			  try {
-				 const response = await getListResponseFriend();
-				 if (response?.statusCode === 200) {
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+			}
+
+			try {
+				const response = await getListResponseFriend();
+				if (response?.statusCode === 200) {
 					// console.log("response: ", response.data);
 					store.dispatch(initRequestFriend(response.data || []));
-				 }
-			  } catch (error) {
-				 const e = error as ErrorResponse;
-			  }
-	  
-			  try {
-				 const response = await getListSended();
-				 if (response?.statusCode === 200) {
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+			}
+
+			try {
+				const response = await getListSended();
+				if (response?.statusCode === 200) {
 					// console.log("response: ", response.data);
 					store.dispatch(initSendedFriend(response.data || []));
-				 }
-			  } catch (error) {
-				 const e = error as ErrorResponse;
-			  }
-			};
-	  
-			fetch();
-		 }, [isFocused]);
-	
+				}
+			} catch (error) {
+				const e = error as ErrorResponse;
+			}
+		};
 
-
-	const [refreshing, setRefreshing] = useState<boolean>(false);
+		fetch();
+	}, [isFocused]);
 
 	useEffect(() => {
 		const fetch = async () => {
 			try {
 				const response = await findAccount(search);
 				if (response.statusCode === 200) {
-					console.log("response: ", response.data);
 					setSearchResult(response.data || []);
 				}
 			} catch (error) {
@@ -283,13 +87,6 @@ export const ContactsScreen = () => {
 		};
 	}, [search]);
 
-	
-
-	// const filtered = useMemo(() => {
-	// 	return myListFriend?.filter((contact) =>
-	// 		contact?.detail?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()),
-	// 	);
-	// }, [searchQuery]);
 
 	const handleContactPress = (contact: any) => {
 		// console.log("Contact selected:", contact);
@@ -357,29 +154,6 @@ export const ContactsScreen = () => {
 							/>
 						)}
 					/>
-
-					{/* <SectionList
-					sections={[]}
-					data={myListFriend}
-					keyExtractor={(item) => item.friendId?.toString() || ""}
-					renderItem={({ item }) => (
-						<ContactItem
-						item={item}
-						onPress={handleContactPress}
-						/>
-						)}
-						// renderSectionHeader={({ section: { title } }) => (
-							// 	<View style={styles.sectionHeader}>
-							// 		<Text style={styles.sectionText}>{title}</Text>
-							// 	</View>
-							// )}
-							// refreshControl={
-								// 	<RefreshControl
-								// 		refreshing={refreshing}
-								// 		onRefresh={handleRefresh}
-					// 	/>
-					// }
-					/> */}
 				</View>
 			</View>
 		</SafeAreaView>

@@ -37,7 +37,8 @@
       ]
     ],
     "plugins": [
-      "expo-barcode-scanner"
+      "expo-barcode-scanner",
+      "react-native-video"
     ]
   }
 }

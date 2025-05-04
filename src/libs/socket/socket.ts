@@ -11,7 +11,7 @@ import { fetchDetailInformation } from "../redux";
 class SocketService {
 	private static instance: SocketService;
 	private socket: Socket | null = null;
-	private URL = process.env.NEXT_PUBLIC_SOCKET_URL || "";
+	private URL = process.env.EXPO_PUBLIC_BACKEND_SOCKET || "";
 
 	private constructor() { }
 
@@ -42,7 +42,6 @@ class SocketService {
 				token: `${token}`,
 			},
 		});
-
 		this.registerCoreEvents();
 	}
 

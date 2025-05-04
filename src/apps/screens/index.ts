@@ -1,6 +1,5 @@
-export * from "./(chat)/list-chat/list-chat-screen";
+export * from "./(chat)/list-room/list-room-screen"
 export * from "./(profile)/detail-user/detail-user-screen";
-export * from "./home";
 export * from "./(auth)/login/login-screen";
 export * from "./(auth)/otp/otp-screen";
 export * from "./(auth)/register-screen/register-screen";
@@ -10,3 +9,5 @@ export * from "./(auth)/forgot-password-screen/forgot-password-screen";
 export * from "./(contact)/contacts/contacts-screen"
 export * from "./(profile)/update-profile/update-profile-screen";
 export * from "./qr/qr-screen";
+export * from "./file-preview/file-preview-screen"
+export * from "./(chat)/room-infomation/room-information-screen"

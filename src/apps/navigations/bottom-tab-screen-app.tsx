@@ -1,4 +1,4 @@
-import { ContactsScreen, HomeScreen, ListChatScreen, UserScreen } from "@/apps/screens";
+import { ContactsScreen, ListRoomScreen, UserScreen } from "@/apps/screens";
 import { Message, Profile } from "@/assets/svgs";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { StackScreenNavigationProp, Tab } from "@/libs/navigation";
@@ -40,7 +40,7 @@ export const BottomTabScreenApp = () => {
 				headerShown: false,
 				tabBarLabel: ({ focused, color }) => {
 					const labels = {
-						ListChatScreen: "Tin nhắn",
+						ListRoomScreen: "Tin nhắn",
 						UserScreen: "Cá nhân",
 						ContactScreen: "Liên lạc",
 					};
@@ -48,7 +48,7 @@ export const BottomTabScreenApp = () => {
 				},
 				tabBarIcon: ({ focused, color, size }) => {
 					let iconName;
-					if (route.name === "ListChatScreen")
+					if (route.name === "ListRoomScreen")
 						return focused ? (
 							<Message
 								outline="white"
@@ -94,8 +94,8 @@ export const BottomTabScreenApp = () => {
 			})}
 		>
 			<Tab.Screen
-				name="ListChatScreen"
-				component={ListChatScreen}
+				name="ListRoomScreen"
+				component={ListRoomScreen}
 			/>
 
 			<Tab.Screen
