@@ -4,7 +4,6 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
-import { toggleSearchBar } from "../message-utils";
 import styles from "../styles";
 
 interface Props {
@@ -38,6 +37,10 @@ const Header = ({ showSearchBar, setShowSearchBar, setSearchQuery, myUserId, sea
 		}
 	};
 
+	const toggleSearchBar = () => {
+		setShowSearchBar(!showSearchBar);
+		setSearchQuery("");
+	};
 	return (
 		<>
 			<View style={styles.header}>
@@ -80,7 +83,7 @@ const Header = ({ showSearchBar, setShowSearchBar, setSearchQuery, myUserId, sea
 					</TouchableOpacity>
 					<TouchableOpacity
 						style={styles.headerIcon}
-						onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}
+						onPress={() => toggleSearchBar()}
 					>
 						<Ionicons
 							name="search-outline"
@@ -110,7 +113,7 @@ const Header = ({ showSearchBar, setShowSearchBar, setSearchQuery, myUserId, sea
 						autoFocus
 					/>
 					<TouchableOpacity
-						onPress={() => toggleSearchBar(showSearchBar, setShowSearchBar, setSearchQuery)}
+						onPress={() => toggleSearchBar()}
 						style={styles.cancelSearchButton}
 					>
 						<Text style={styles.cancelSearchText}>Hủy</Text>

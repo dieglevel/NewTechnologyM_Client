@@ -1,5 +1,6 @@
 import { api, ErrorResponse } from "@/libs/axios/axios.config";
 import { BaseResponse } from "@/types";
+import { BaseFile } from "@/types/base-file";
 import { IMessage } from "@/types/implement/message.interface";
 import { IRoom } from "@/types/implement/room.interface";
 
@@ -8,13 +9,20 @@ interface ISend {
 	roomId: string;
 	content?: string;
 	type: string;
-	files?: File[]; // multipleFiles
+	files?: BaseFile[];
+
 	sticker?: string;
 }
 
 interface IResponse {
 	message: IMessage;
 	room: IRoom;
+}
+
+export interface ImageType {
+	uri: string;
+	fileName: string;
+	mimeType: string;
 }
 
 export const sendMessage = async (data: ISend) => {
@@ -25,7 +33,6 @@ export const sendMessage = async (data: ISend) => {
 		if (data.content) {
 			formData.append("content", data.content);
 		}
-		// formData.append("content", data.content);
 		formData.append("type", data.type);
 
 		if (data.accountId) {
@@ -38,16 +45,21 @@ export const sendMessage = async (data: ISend) => {
 
 		if (data.files && data.files.length > 0) {
 			data.files.forEach((file) => {
-				formData.append("multipleFiles", file);
+				formData.append("multipleFiles", {
+					uri: file.uri,
+					name: file.name,
+					type: file.type
+				} as unknown as Blob);
 			});
 		}
 
+
+		console.log(formData)
 		const response = await api.post<BaseResponse<IResponse>>("/message", formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
 			},
 		});
-
 
 		return response.data;
 	} catch (error) {

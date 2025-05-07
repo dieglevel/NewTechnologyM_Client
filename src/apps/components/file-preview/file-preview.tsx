@@ -1,74 +1,140 @@
-import React from 'react';
-import { View, Text, Image, Dimensions } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { ResizeMode, Video } from 'expo-av';
+import React from "react";
+import { View, Text, Image, Dimensions, TouchableOpacity, Linking } from "react-native";
+import { WebView } from "react-native-webview";
+import { ResizeMode, Video } from "expo-av";
+import { IMessageFile } from "@/types/implement";
+import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import Toast from "react-native-toast-message";
 
-type FileType = 'image' | 'pdf' | 'video' | 'doc' | 'unknown';
+type FileType = "image" | "pdf" | "video" | "doc" | "unknown";
 
 interface FilePreviewProps {
-  uri: string;
+	data: IMessageFile;
 }
 
-const screenHeight = Dimensions.get('window').height;
-const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get("window").height;
+const screenWidth = Dimensions.get("window").width;
 
 const getFileType = (uri: string): FileType => {
-  const ext = uri.split('.').pop()?.toLowerCase() || '';
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
-  if (['pdf'].includes(ext)) return 'pdf';
-  if (['mp4', 'mov', 'webm'].includes(ext)) return 'video';
-  if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) return 'doc';
-  return 'unknown';
+	const ext = uri.split(".").pop()?.toLowerCase() || "";
+	if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "image";
+	if (["pdf"].includes(ext)) return "pdf";
+	if (["mp4", "mov", "webm"].includes(ext)) return "video";
+	if (["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(ext)) return "doc";
+	return "unknown";
 };
 
-const FilePreview: React.FC<FilePreviewProps> = ({ uri }) => {
-  const type = getFileType(uri);
+const FilePreview: React.FC<FilePreviewProps> = ({ data }) => {
+	const type = getFileType(data?.url);
 
-  switch (type) {
-    case 'image':
-      return (
-        <Image
-          source={{ uri }}
-          style={{ minWidth: "100%", height: "100%" }}
-        />
-      );
+	const downloadFile = async () => {
+		Toast.show({
+			text1: "File đang được tải xuống",
+			type: "info"
+		})
+		try {
+			const fileUrl = data.url;
+			const fileName = fileUrl.split("/").pop(); // Tách tên file từ URL
 
-    case 'pdf':
-      return (
-        <WebView
-          source={{ uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(uri)}` }}
-          style={{ flex: 1 }}
-        />
-      );
+			const documentDir = FileSystem.documentDirectory;
+			if (!documentDir) {
+				throw new Error("Không thể truy cập thư mục documentDirectory");
+			}
+			const fileUri = documentDir + fileName;
 
-    case 'doc':
-      return (
-        <WebView
-          source={{ uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(uri)}` }}
-          style={{ flex: 1 }}
-        />
-      );
+			const result = await FileSystem.downloadAsync(fileUrl, fileUri);
+			Toast.show({
+				text1: "File đã tả thành công",
+				type: "success"
+			})
+		} catch (error) {
+			console.error("❌ Tải file thất bại:", error);
+			Toast.show({
+				text1: "File đã tả thành công",
+				type: "error"
+			})
+		}
+	};
+	switch (type) {
+		case "image":
+			return (
+				<Image
+					source={{ uri: data.url }}
+					style={{ width: "100%", flex: 1 }}
+					resizeMode="contain"
+					height={300}
+				/>
+			);
 
-    case 'video':
-      return (
-        <Video
-          source={{ uri }}
-          rate={1.0}
-          volume={1.0}
-          isMuted={false}
-          useNativeControls
-          style={{ width: "100%", height: "100%", }}
-          resizeMode={ResizeMode.CONTAIN}
-        />
-      );
+		case "pdf":
+			return (
+				<WebView
+					source={{
+						uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(data.url)}`,
+					}}
+					style={{ flex: 1 }}
+				/>
+			);
 
-    default:
-      return (
-        <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <Text>Không hỗ trợ định dạng file này.</Text>
-        </View>
-      );
-  }
+		case "doc":
+			return (
+				<WebView
+					source={{
+						uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(data.url)}`,
+					}}
+					style={{ flex: 1 }}
+				/>
+			);
+
+		case "video":
+			return (
+				<Video
+					source={{ uri: data.url }}
+					rate={1.0}
+					volume={1.0}
+					isMuted={false}
+					useNativeControls
+					style={{ width: "100%", height: "auto", flex: 1, aspectRatio: 926 / 606 }}
+					resizeMode={ResizeMode.CONTAIN}
+				/>
+			);
+
+		default:
+			return (
+				<View
+
+					style={{
+						alignItems: "center",
+						justifyContent: "center",
+						flex: 1,
+						borderWidth: 1,
+						borderColor: "gray",
+						borderRadius: 10,
+						flexDirection: "row",
+						gap: 10,
+						paddingVertical: 20,
+						paddingHorizontal: 10,
+						backgroundColor: "white",
+					}}
+				>
+					<Ionicons
+						name="document-outline"
+						size={40}
+					/>
+					<View style={{ flex: 1, flexDirection: "column" }}>
+						<Text style={{ fontWeight: "bold" }}>{data.data.name}</Text>
+						<Text>{data.data.size && (Number.parseInt(data.data.size) / 8000000).toFixed(1)} MB</Text>
+						<TouchableOpacity
+							style={{}}
+							onPress={() =>downloadFile()}
+						>
+							<Text style={{ color: "black", fontWeight: "bold" }}>Click to Download</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			);
+	}
 };
 
 export default FilePreview;

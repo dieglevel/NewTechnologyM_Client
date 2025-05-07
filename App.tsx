@@ -26,9 +26,9 @@ export default function App() {
 			<Provider store={store}>
 				<SafeAreaProvider>
 					<RootScreenApp />
-					<Toast position="top" visibilityTime={1000} />
 				</SafeAreaProvider>
 			</Provider>
+			<Toast position="top" visibilityTime={5000} />
 		</I18nextProvider>
 	);
 }

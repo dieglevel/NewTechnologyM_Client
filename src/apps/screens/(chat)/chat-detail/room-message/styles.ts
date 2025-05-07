@@ -456,8 +456,10 @@ const styles = StyleSheet.create({
     color: "#d1d5db",
   },
   userInfoDetail: {
+    flex: 1,
+    width: "100%",
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginVertical: 4,
   },
   userInfoIcon: {
@@ -466,6 +468,12 @@ const styles = StyleSheet.create({
   userInfoText: {
     fontSize: 16,
     color: "#374151",
+  },
+  userInfoTextHeader: {
+    fontSize: 16,
+    color: "black",
+    fontWeight: "bold",
+    minWidth: "30%"
   },
   darkUserInfoText: {
     color: "#d1d5db",
