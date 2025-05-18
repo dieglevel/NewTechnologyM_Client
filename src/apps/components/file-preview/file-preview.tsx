@@ -1,5 +1,6 @@
+// FilePreview.tsx
 import React from "react";
-import { View, Text, Image, Dimensions, TouchableOpacity, Linking } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import { WebView } from "react-native-webview";
 import { ResizeMode, Video } from "expo-av";
 import { IMessageFile } from "@/types/implement";
@@ -12,9 +13,6 @@ type FileType = "image" | "pdf" | "video" | "doc" | "unknown";
 interface FilePreviewProps {
 	data: IMessageFile;
 }
-
-const screenHeight = Dimensions.get("window").height;
-const screenWidth = Dimensions.get("window").width;
 
 const getFileType = (uri: string): FileType => {
 	const ext = uri.split(".").pop()?.toLowerCase() || "";
@@ -29,61 +27,42 @@ const FilePreview: React.FC<FilePreviewProps> = ({ data }) => {
 	const type = getFileType(data?.url);
 
 	const downloadFile = async () => {
-		Toast.show({
-			text1: "File đang được tải xuống",
-			type: "info"
-		})
+		Toast.show({ text1: "Đang tải xuống...", type: "info" });
 		try {
 			const fileUrl = data.url;
-			const fileName = fileUrl.split("/").pop(); // Tách tên file từ URL
-
-			const documentDir = FileSystem.documentDirectory;
-			if (!documentDir) {
-				throw new Error("Không thể truy cập thư mục documentDirectory");
+			const fileName = fileUrl.split("/").pop();
+			if (!FileSystem.documentDirectory) {
+				Toast.show({ text1: "Không thể xác định thư mục lưu trữ!", type: "error" });
+				return;
 			}
-			const fileUri = documentDir + fileName;
+			const fileUri = FileSystem.documentDirectory + fileName;
 
-			const result = await FileSystem.downloadAsync(fileUrl, fileUri);
-			Toast.show({
-				text1: "File đã tả thành công",
-				type: "success"
-			})
+			await FileSystem.downloadAsync(fileUrl, fileUri);
+			Toast.show({ text1: "Tải xuống thành công!", type: "success" });
 		} catch (error) {
-			console.error("❌ Tải file thất bại:", error);
-			Toast.show({
-				text1: "File đã tả thành công",
-				type: "error"
-			})
+			console.error("❌ Lỗi tải file:", error);
+			Toast.show({ text1: "Tải xuống thất bại!", type: "error" });
 		}
 	};
+
 	switch (type) {
 		case "image":
 			return (
 				<Image
 					source={{ uri: data.url }}
-					style={{ width: "100%", flex: 1 }}
-					resizeMode="contain"
-					height={300}
+					style={{ width: "100%", height: 200, borderRadius: 8 }}
+					resizeMode="cover"
 				/>
 			);
 
 		case "pdf":
-			return (
-				<WebView
-					source={{
-						uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(data.url)}`,
-					}}
-					style={{ flex: 1 }}
-				/>
-			);
-
 		case "doc":
 			return (
 				<WebView
 					source={{
 						uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(data.url)}`,
 					}}
-					style={{ flex: 1 }}
+					style={{ height: 300 }}
 				/>
 			);
 
@@ -91,11 +70,8 @@ const FilePreview: React.FC<FilePreviewProps> = ({ data }) => {
 			return (
 				<Video
 					source={{ uri: data.url }}
-					rate={1.0}
-					volume={1.0}
-					isMuted={false}
 					useNativeControls
-					style={{ width: "100%", height: "auto", flex: 1, aspectRatio: 926 / 606 }}
+					style={{ width: "100%", height: 200 }}
 					resizeMode={ResizeMode.CONTAIN}
 				/>
 			);
@@ -103,33 +79,24 @@ const FilePreview: React.FC<FilePreviewProps> = ({ data }) => {
 		default:
 			return (
 				<View
-
 					style={{
-						alignItems: "center",
-						justifyContent: "center",
-						flex: 1,
-						borderWidth: 1,
-						borderColor: "gray",
-						borderRadius: 10,
 						flexDirection: "row",
-						gap: 10,
-						paddingVertical: 20,
-						paddingHorizontal: 10,
-						backgroundColor: "white",
+						alignItems: "center",
+						borderWidth: 1,
+						borderColor: "#ccc",
+						padding: 10,
+						borderRadius: 8,
+						backgroundColor: "#fff",
 					}}
 				>
-					<Ionicons
-						name="document-outline"
-						size={40}
-					/>
-					<View style={{ flex: 1, flexDirection: "column" }}>
-						<Text style={{ fontWeight: "bold" }}>{data.data.name}</Text>
-						<Text>{data.data.size && (Number.parseInt(data.data.size) / 8000000).toFixed(1)} MB</Text>
-						<TouchableOpacity
-							style={{}}
-							onPress={() =>downloadFile()}
-						>
-							<Text style={{ color: "black", fontWeight: "bold" }}>Click to Download</Text>
+					<Ionicons name="document-outline" size={40} />
+					<View style={{ marginLeft: 10, flex: 1 }}>
+						<Text numberOfLines={1} style={{ fontWeight: "bold" }}>
+							{data.data.name}
+						</Text>
+						<Text>{(Number(data.data.size) / 1_000_000).toFixed(2)} MB</Text>
+						<TouchableOpacity onPress={downloadFile}>
+							<Text style={{ color: "#1e40af", marginTop: 5 }}>Tải xuống</Text>
 						</TouchableOpacity>
 					</View>
 				</View>
