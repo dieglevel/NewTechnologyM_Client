@@ -65,8 +65,12 @@ const ChatDetail = () => {
 		});
 		socketService.on(SocketOn.joinRoom, (data: any) => {});
 
-		socketService.on(SocketOn.sendMessage, (data: any) => {
+		socketService.on(SocketOn.sendMessage, (data: { behavior: string; message: IMessage }) => {
 			const { message, behavior } = data;
+
+			if (message.roomId !== selectedRoom?.id) {
+				return;
+			}
 
 			switch (behavior) {
 				case "add":
@@ -122,67 +126,90 @@ const ChatDetail = () => {
 
 	return (
 		<View style={[styles.container]}>
-			<Header
-				myUserId={myUserId}
-				showSearchBar={showSearchBar}
-				searchQuery={searchQuery}
-				setShowSearchBar={setShowSearchBar}
-				setSearchQuery={setSearchQuery}
-			/>
-			{/* Message */}
-			{isLoading ? (
-				<View style={{ flex: 1, justifyContent: "center" }}>
-					<ActivityIndicator
-						size={"large"}
-						color={colors.brand}
+			{selectedRoom?.isDisbanded ? (
+				<>
+					<Header
+						myUserId={myUserId}
+						showSearchBar={showSearchBar}
+						searchQuery={searchQuery}
+						setShowSearchBar={setShowSearchBar}
+						setSearchQuery={setSearchQuery}
 					/>
-				</View>
+					<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+						<Text style={{ color: "gray", fontSize: 18, fontWeight: "bold", textAlign: "center" }}>
+							Nhóm chat đã bị giải tán.
+						</Text>
+					</View>
+				</>
 			) : (
 				<>
-					{messages.length <= 0 ? (
+					<Header
+						myUserId={myUserId}
+						showSearchBar={showSearchBar}
+						searchQuery={searchQuery}
+						setShowSearchBar={setShowSearchBar}
+						setSearchQuery={setSearchQuery}
+					/>
+					{/* Message */}
+					{isLoading ? (
 						<View style={{ flex: 1, justifyContent: "center" }}>
-							<Text style={{ textAlign: "center", fontWeight: "bold" }}>Chưa có tin nhắn nào</Text>
+							<ActivityIndicator
+								size={"large"}
+								color={colors.brand}
+							/>
 						</View>
 					) : (
-						<FlatList
-							ref={flatListRef}
-							data={searchQuery ? filteredMessages : messages.toReversed()}
-							keyExtractor={(item: IMessage, index) => item._id.toString()}
-							initialNumToRender={20}
-							maxToRenderPerBatch={20}
-							windowSize={5}
-							removeClippedSubviews
-							inverted
-							renderItem={({ item }) => (
-								<RenderMessageItem
-									key={item._id}
-									item={item}
-									myUserId={myUserId}
-									detailInformation={detailInformation}
-									setActionMessage={setActionMessage}
-									setShowActionModal={setShowActionModal}
-									isDark={isDark}
+						<>
+							{messages.length <= 0 ? (
+								<View style={{ flex: 1, justifyContent: "center" }}>
+									<Text style={{ textAlign: "center", fontWeight: "bold" }}>
+										Chưa có tin nhắn nào
+									</Text>
+								</View>
+							) : (
+								<FlatList
+									ref={flatListRef}
+									data={searchQuery ? filteredMessages : messages.toReversed()}
+									keyExtractor={(item: IMessage, index) => item._id.toString()}
+									initialNumToRender={20}
+									maxToRenderPerBatch={20}
+									windowSize={5}
+									removeClippedSubviews
+									inverted
+									renderItem={({ item }) => (
+										<RenderMessageItem
+											key={item._id}
+											item={item}
+											myUserId={myUserId}
+											detailInformation={detailInformation}
+											setActionMessage={setActionMessage}
+											setShowActionModal={setShowActionModal}
+											isDark={isDark}
+										/>
+									)}
+									contentContainerStyle={styles.flatListContent}
 								/>
 							)}
-							contentContainerStyle={styles.flatListContent}
-						/>
+						</>
 					)}
+
+					<ActionModalMessage
+						data={messages}
+						setData={setMessages}
+						actionMessage={actionMessage}
+						setActionMessage={setActionMessage}
+						showActionModal={showActionModal}
+						setShowActionModalAction={setShowActionModal}
+					/>
+
+					<Footer
+						isDark={isDark}
+						editingMessageId={editingMessageId}
+						setEditingMessageId={setEditingMessageId}
+						setMessages={setMessages}
+					/>
 				</>
 			)}
-
-			<ActionModalMessage
-				actionMessage={actionMessage}
-				setActionMessage={setActionMessage}
-				showActionModal={showActionModal}
-				setShowActionModalAction={setShowActionModal}
-			/>
-
-			<Footer
-				isDark={isDark}
-				editingMessageId={editingMessageId}
-				setEditingMessageId={setEditingMessageId}
-				setMessages={setMessages}
-			/>
 		</View>
 	);
 };

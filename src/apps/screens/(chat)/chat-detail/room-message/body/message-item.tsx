@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, Linking, Modal } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { handleRecallMessage } from "@/apps/screens/(chat)/chat-detail/room-message/message-utils";
 import { IDetailInformation, IMessage } from "@/types/implement";
 import { useAppSelector } from "@/libs/redux/redux.config";
 import { images } from "@/assets/images";
@@ -10,6 +9,7 @@ import FilePreview from "../../../../../components/file-preview/file-preview";
 import { getProfileFromAnotherUser } from "@/services";
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { changeDateToString } from "@/utils/change-date-to-string";
+import { colors } from "@/constants";
 
 interface Props {
 	item: IMessage;
@@ -50,14 +50,11 @@ const MessageItem: React.FC<Props> = React.memo(
 				// return <FilePreview uri={file.url} />;
 
 				return (
-					<TouchableOpacity
+					<FilePreview
+						action={longPressAction}
+						data={file}
 						key={index}
-						onPress={() => {
-							Linking.openURL(file.url);
-						}}
-					>
-						<FilePreview data={file} />
-					</TouchableOpacity>
+					/>
 				);
 			});
 		};
@@ -72,6 +69,12 @@ const MessageItem: React.FC<Props> = React.memo(
 			);
 		};
 
+		const longPressAction = () => {
+			if (!item.isRevoked) {
+				setActionMessage(item);
+				setShowActionModal(true);
+			}
+		};
 		return (
 			<>
 				<View
@@ -92,16 +95,13 @@ const MessageItem: React.FC<Props> = React.memo(
 						</TouchableOpacity>
 					)}
 					<TouchableOpacity
-						onLongPress={() => {
-							setActionMessage(item);
-							setShowActionModal(true);
-						}}
-						// onPress={() => handleRecallMessage(item?._id ?? "", isMyMessage, setMessages, setShowActionModal)}
+						onLongPress={longPressAction}
 						delayLongPress={1000}
 						activeOpacity={0.8}
 						style={[
 							styles.messageContainer,
 							isMyMessage ? styles.myMessage : styles.otherMessage,
+							item.sticker && { backgroundColor: "#f9fafb" },
 							isDark && {
 								backgroundColor: isMyMessage ? "#2563eb" : "#374151",
 							},
@@ -152,7 +152,7 @@ const MessageItem: React.FC<Props> = React.memo(
 											flex: 1,
 											justifyContent: "flex-start",
 											alignItems: "flex-start",
-											width: "100%"
+											width: "100%",
 										}}
 									>
 										<View style={styles.userInfoDetail}>

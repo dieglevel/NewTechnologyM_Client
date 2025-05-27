@@ -1,4 +1,6 @@
-import { ErrorResponse } from "@/libs/axios/axios.config";
+import { initialDataPage } from "@/apps/navigations/handle-initital-page";
+import { api, ErrorResponse } from "@/libs/axios/axios.config";
+import { ExpoSecureStoreKeys, setSecure } from "@/libs/expo-secure-store/expo-secure-store";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { socketService } from "@/libs/socket/socket";
 import { loginApi } from "@/services/auth";
@@ -22,7 +24,12 @@ export const LoginUserScreen = () => {
 					type: "success",
 					text1: "Đăng nhập thành công",
 				})
-				socketService.connect();
+				// Lưu access token và ip-device vào header
+				await setSecure(ExpoSecureStoreKeys.AccessToken, response.data.accessToken);
+				socketService.disconnect();
+				socketService.connect()
+				api.defaults.headers.common["Authorization"] = `Bearer ${response.data.accessToken}`;
+				initialDataPage()
 				navigation.navigate("BottomTabScreenApp");
 			}
 		} catch (error) {

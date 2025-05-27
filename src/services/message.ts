@@ -96,7 +96,7 @@ export const revokeMessage = async ({ messageId }: { messageId: string }) => {
 export const deleteMessageById = async ({ messageId }: { messageId: string }) => {
 	try {
 		const response = await api.delete<BaseResponse<IMessage>>(`/message/remove-room-by-my-side/${messageId}`);
-		return response;
+		return response.data;
 	} catch (error) {
 		throw error as ErrorResponse;
 	}

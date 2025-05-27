@@ -55,6 +55,10 @@ export const ChatItem = ({ item, myUserId }: IChatItem) => {
 	};
 
 	const renderMessage = () => {
+		if (item.isDisbanded === true) {
+			return "Nhóm đã bị giải tán"
+		}
+
 		const message = () => {
 			if (item.latestMessage?.isRevoked) {
 				return "Đã thu hồi tin nhắn";

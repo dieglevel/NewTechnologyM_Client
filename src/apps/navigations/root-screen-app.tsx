@@ -20,7 +20,7 @@ import { socketService } from "@/libs/socket/socket";
 import RequestFriendScreen from "../screens/(contact)/request-friend/request-friend-screen";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 import { UpdatePasswordScreen } from "../screens/(auth)/updatePassword/updatePasswordScreen";
-import FilePreviewScreen from "../screens/file-preview/file-preview-screen";
+import { ImagePreviewScreen } from "../screens/file-preview/image-preview-screen";
 import { RoomInformationScreen } from "../screens/(chat)/room-infomation/room-information-screen";
 
 export const RootScreenApp = () => {
@@ -30,6 +30,7 @@ export const RootScreenApp = () => {
 
 			const accountResponse = await getAccountApi();
 			if (accountResponse.statusCode === 200) {
+				console.log("Account data:", accountResponse.data);
 				socketService.connect();
 			}
 		};
@@ -155,8 +156,8 @@ export const RootScreenApp = () => {
 					options={{
 						statusBarBackgroundColor: "gray",
 					}}
-					name="FilePreviewScreen"
-					component={FilePreviewScreen}
+					name="ImagePreviewScreen"
+					component={ImagePreviewScreen}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>

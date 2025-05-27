@@ -9,5 +9,5 @@ export * from "./(auth)/forgot-password-screen/forgot-password-screen";
 export * from "./(contact)/contacts/contacts-screen"
 export * from "./(profile)/update-profile/update-profile-screen";
 export * from "./qr/qr-screen";
-export * from "./file-preview/file-preview-screen"
+export * from "./file-preview/image-preview-screen"
 export * from "./(chat)/room-infomation/room-information-screen"

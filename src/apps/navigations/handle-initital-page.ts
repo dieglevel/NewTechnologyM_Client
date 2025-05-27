@@ -50,8 +50,9 @@ const initialListResponseFriend = async () => {
 const initialMyDetailInformation = async () => {
     try {
         const response = await getProfile();
+        console.log("response", response);
         if (response?.statusCode === 200) {
-            store.dispatch(initDetailInformation(response.data));
+            await store.dispatch(initDetailInformation(response.data));
         }
     } catch (error) {
         const e = error as ErrorResponse;

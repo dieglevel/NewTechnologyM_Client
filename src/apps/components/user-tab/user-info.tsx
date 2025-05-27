@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { ChangeAccount } from "@/assets/svgs";
 import { t } from "i18next";
 import { useNavigation } from "@react-navigation/native";
@@ -15,14 +15,27 @@ export const UserInfo = () => {
 
 	const { detailInformation, status } = useAppSelector((state) => state.detailInformation);
 
+	useEffect(() => {
+		console.log("UserInfo component mounted, detailInformation:", detailInformation);
+		console.log("UserInfo component mounted, status:", status);
+	}, []);
+
+	const handleUpdateProfile = () => {
+		navigation.navigate("UserDetail", { userId: detailInformation?.id || "" });
+	}
+
 	return (
 		<TouchableOpacity
 			style={styles.container}
-			onPress={() => navigation.navigate("UserDetail", { userId: detailInformation?.id ?? "" })}
+			onPress={handleUpdateProfile}
 		>
 			<View style={styles.row}>
 				<Image
-					source={detailInformation?.avatarUrl ? { uri: detailInformation?.avatarUrl } : images.avatarDefault}
+					source={
+						detailInformation?.avatarUrl
+							? { uri: detailInformation?.avatarUrl }
+							: images.avatarDefault
+					}
 					style={styles.avatar}
 				/>
 				<View style={styles.infoContainer}>
@@ -30,12 +43,6 @@ export const UserInfo = () => {
 					<Text style={styles.link}>{t("Xem trang cá nhân")}</Text>
 				</View>
 			</View>
-			<TouchableOpacity>
-				<ChangeAccount
-					color="#1d91fa"
-					size={28}
-				/>
-			</TouchableOpacity>
 		</TouchableOpacity>
 	);
 };

@@ -1,4 +1,5 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Text, TouchableOpacity, View, StyleSheet, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SearchHeader, UserInfo } from "@/apps/components/user-tab";
 import { StackScreenNavigationProp } from "@/libs/navigation";
@@ -7,86 +8,178 @@ import { colors } from "@/constants";
 import { api } from "@/libs/axios/axios.config";
 import { socketService } from "@/libs/socket/socket";
 import {
-	detailInformationStorage,
-	messageStorage,
-	myListFriendStorage,
-	requestFriendStorage,
-	roomStorage,
-	sendedFriendStorage,
+    detailInformationStorage,
+    messageStorage,
+    myListFriendStorage,
+    requestFriendStorage,
+    roomStorage,
+    sendedFriendStorage,
 } from "@/libs/mmkv/mmkv";
-import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/libs/redux/redux.config";
 import { clearDetailInformationReducer } from "@/libs/redux";
 import { MMKV } from "react-native-mmkv";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+
+const OptionRow = ({
+    icon,
+    label,
+    onPress,
+    color,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    onPress: () => void;
+    color?: string;
+}) => (
+    <TouchableOpacity style={styles.optionRow} onPress={onPress}>
+        <View style={styles.iconContainer}>{icon}</View>
+        <Text style={[styles.optionLabel, color ? { color } : null]}>{label}</Text>
+        <Ionicons name="chevron-forward" size={20} color="#bbb" />
+    </TouchableOpacity>
+);
 
 export const UserScreen = () => {
-	const navigation = useNavigation<StackScreenNavigationProp>();
-	const dispatch = useDispatch();
+    const navigation = useNavigation<StackScreenNavigationProp>();
+    const dispatch = useAppDispatch();
+    const { detailInformation } = useAppSelector((state) => state.detailInformation);
 
-	const handleLogout = async () => {
-		ExpoSecureValueService.removeAccessToken();
-		ExpoSecureValueService.removeIpDevice();
-		ExpoSecureValueService.removeUserId();
-		api.defaults.headers.common["Authorization"] = undefined;
-		api.defaults.headers.common["ip-device"] = undefined;
+    const handleLogout = async () => {
+        ExpoSecureValueService.removeAccessToken();
+        ExpoSecureValueService.removeIpDevice();
+        ExpoSecureValueService.removeUserId();
+        api.defaults.headers.common["Authorization"] = undefined;
+        api.defaults.headers.common["ip-device"] = undefined;
+        dispatch(clearDetailInformationReducer());
+        socketService.disconnect();
+        new MMKV().clearAll();
+        navigation.reset({ routes: [{ name: "Login" }] });
+    };
 
-		//reset redux state
-		dispatch(clearDetailInformationReducer());
+    const handleChangePassword = () => {
+        navigation.navigate("ForgotPasswordScreen");
+    };
 
-		socketService.disconnect();
-		new MMKV().clearAll();
+    const handleResetMMKV = async () => {
+        detailInformationStorage.clearAll();
+        sendedFriendStorage.clearAll();
+        requestFriendStorage.clearAll();
+        sendedFriendStorage.clearAll();
+        myListFriendStorage.clearAll();
+        roomStorage.clearAll();
+        messageStorage.clearAll();
+        new MMKV().clearAll();
+        alert("MMKV has been reset.");
+    };
 
-		navigation.reset({ routes: [{ name: "Login" }] });
-	};
+    const handleUpdateProfile = () => {
+        navigation.navigate("UserDetail", { userId: detailInformation?.id || "" });
+    };
 
-	const handleResetMMKV = async () => {
-		detailInformationStorage.clearAll();
-		sendedFriendStorage.clearAll();
-		requestFriendStorage.clearAll();
-		sendedFriendStorage.clearAll();
-		myListFriendStorage.clearAll();
-		roomStorage.clearAll();
-		messageStorage.clearAll();
+    // Example handlers for other options
+    const handleFavourites = () => {};
+    const handleDownloads = () => {};
+    const handleLanguages = () => {};
+    const handleLocation = () => {};
+    const handleSubscription = () => {};
+    const handleDisplay = () => {};
+    const handleClearCache = () => {};
+    const handleClearHistory = () => {};
 
-		new MMKV().clearAll();
+    return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", width: "100%" }}>
+            <ScrollView contentContainerStyle={styles.container}>
+                <View style={styles.headerRow}>
+                    <Text style={styles.headerTitle}>Thông tin cá nhân</Text>
+                    {/* <Ionicons name="settings-outline" size={24} color="black" /> */}
+                </View>
+                <View style={styles.profileSection}>
+                    <UserInfo />
+                </View>
 
-		alert("MMKV has been reset.");
-	};
+                {/* <View style={styles.divider} /> */}
 
-	return (
-		<SafeAreaView style={{ flex: 1 }}>
-			<View style={{ flex: 1, width: "100%" }}>
-				<SearchHeader />
-				<UserInfo />
-				<TouchableOpacity onPress={handleLogout}>
-					<View style={{ padding: 8, backgroundColor: colors.brand, borderRadius: 10, margin: 10 }}>
-						<Text
-							style={{
-								color: colors.background,
-								fontWeight: "bold",
-								textAlign: "center",
-								fontSize: 20,
-							}}
-						>
-							Đăng xuất
-						</Text>
-					</View>
-				</TouchableOpacity>
-				<TouchableOpacity onPress={handleResetMMKV}>
-					<View style={{ padding: 8, backgroundColor: colors.brand, borderRadius: 10, margin: 10 }}>
-						<Text
-							style={{
-								color: colors.background,
-								fontWeight: "bold",
-								textAlign: "center",
-								fontSize: 20,
-							}}
-						>
-							Reset MMKV
-						</Text>
-					</View>
-				</TouchableOpacity>
-			</View>
-		</SafeAreaView>
-	);
+                <View style={styles.optionGroup}>
+                    <OptionRow icon={<Ionicons name="key-outline" size={22} color="black" />} label="Đổi mật khẩu" onPress={handleChangePassword} />
+                    <OptionRow icon={<Ionicons name="refresh-outline" size={22} color="black" />} label="Reset MMKV" onPress={handleResetMMKV} />
+                    <OptionRow icon={<Ionicons name="log-out-outline" size={22} color="red" />} label="Đăng xuất" onPress={handleLogout} color="red" />
+                </View>
+
+                <Text style={styles.versionText}>App Version 2.3</Text>
+            </ScrollView>
+        </SafeAreaView>
+    );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        paddingHorizontal: 4,
+        paddingBottom: 40,
+        backgroundColor: "#fff",
+		  width: "100%",
+    },
+    headerRow: {
+		  paddingHorizontal: 16,	
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    headerTitle: {
+        fontSize: 22,
+        fontWeight: "bold",
+    },
+    profileSection: {
+        alignItems: "center",
+        marginBottom: 20,
+		  width: "100%",
+    },
+    editProfileBtn: {
+        marginTop: 10,
+        backgroundColor: "#3b82f6",
+        borderRadius: 8,
+        paddingHorizontal: 18,
+        paddingVertical: 6,
+    },
+    editProfileText: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    optionGroup: {
+        backgroundColor: "#fff",
+        borderRadius: 12,
+        overflow: "hidden",
+    },
+    optionRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 14,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#f0f0f0",
+    },
+    iconContainer: {
+        width: 32,
+        alignItems: "center",
+    },
+    optionLabel: {
+        flex: 1,
+        fontSize: 16,
+        marginLeft: 10,
+        color: "#222",
+    },
+    divider: {
+        height: 1,
+        backgroundColor: "#eee",
+        marginVertical: 18,
+    },
+    versionText: {
+        textAlign: "center",
+        color: "#aaa",
+        marginTop: 30,
+        fontSize: 13,
+    },
+});
+
+export default UserScreen;

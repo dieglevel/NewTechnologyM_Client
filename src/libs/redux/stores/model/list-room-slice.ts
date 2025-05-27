@@ -70,19 +70,7 @@ const roomSlice = createSlice({
 			})
 			.addCase(setRoom.fulfilled, (state, action: PayloadAction<IRoom[]>) => {
 				state.status = "succeeded";
-
-				if (state.room) {
-					action.payload.forEach((newRoom) => {
-						const index = state.room!.findIndex((r) => r.id === newRoom.id);
-						if (index >= 0) {
-							state.room![index] = newRoom;
-						} else {
-							state.room!.push(newRoom);
-						}
-					});
-				} else {
-					state.room = action.payload;
-				}
+				state.room = action.payload;
 			})
 			.addCase(setRoom.rejected, (state) => {
 				state.status = "failed";

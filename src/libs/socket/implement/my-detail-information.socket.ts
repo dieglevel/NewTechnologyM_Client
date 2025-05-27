@@ -9,5 +9,4 @@ export const DetailInformationSocket = (socket: Socket | null) => {
       console.log("Socket - MyDetailInformation:", data);
       store.dispatch(initDetailInformation(data));
    });
-
 }

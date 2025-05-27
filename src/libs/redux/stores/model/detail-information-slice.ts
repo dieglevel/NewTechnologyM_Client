@@ -22,7 +22,6 @@ export const fetchDetailInformation = createAsyncThunk(
   `${thunkDB}${thunkAction.fetch}${thunkName}`,
   async (): Promise<IDetailInformation | null> => {
     const detailInformations = detailInformationStorage.getAll();
-    // console.log("detailInformations", detailInformations);
     return detailInformations[0] || null;
   }
 );
@@ -51,7 +50,7 @@ export const initDetailInformation = createAsyncThunk(
   async (detailInformation: IDetailInformation) => {
     detailInformationStorage.clearAll();
     detailInformationStorage.initData([detailInformation]);
-    return detailInformationStorage.getAll();
+    return detailInformation;
   }
 )
 
@@ -114,6 +113,16 @@ const detailInformationSlice = createSlice({
         }
       })
       .addCase(deleteDetailInformation.rejected, (state) => {
+        state.status = "failed";
+      })
+      .addCase(initDetailInformation.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(initDetailInformation.fulfilled, (state, action: PayloadAction<IDetailInformation>) => {
+        state.status = "succeeded";
+        state.detailInformation = action.payload;
+      })
+      .addCase(initDetailInformation.rejected, (state) => {
         state.status = "failed";
       });
   },

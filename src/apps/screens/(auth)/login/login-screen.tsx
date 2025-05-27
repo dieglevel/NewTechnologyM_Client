@@ -17,9 +17,10 @@ import {
 	Text,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
-	View
+	View,
 } from "react-native";
 import { texts } from "./handle";
+import { colors } from "@/constants";
 
 export const LoginScreen = () => {
 	const navigation = useNavigation<StackScreenNavigationProp>();
@@ -34,7 +35,7 @@ export const LoginScreen = () => {
 		const checkToken = async () => {
 			const token = await getSecure(ExpoSecureStoreKeys.AccessToken);
 
-			try{
+			try {
 				const accountResponse = await getAccountApi();
 				if (accountResponse.statusCode === 200) {
 					socketService.connect();
@@ -46,7 +47,6 @@ export const LoginScreen = () => {
 			}
 		};
 		checkToken();
-
 	}, []);
 
 	const handleImagePress = () => {
@@ -92,24 +92,25 @@ export const LoginScreen = () => {
 	};
 
 	return (
-		<SafeAreaView style={{ flex: 1 }}>
-			<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+		<SafeAreaView style={{ flex: 1, backgroundColor: "#fff", width: "100%" }}>
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center", width: "75%" }}>
 				{isLoading ? (
-					<ActivityIndicator size={"large"} />
+					<ActivityIndicator
+						size={"large"}
+						color={colors.brand}
+					/>
 				) : (
 					<>
-						<TouchableOpacity
+						{/* <TouchableOpacity
 							onPress={() => setIsModalVisible(true)}
 							style={styles.languageButton}
 						>
 							<Text style={styles.languageText}>
 								{language === "vi" ? "Tiếng Việt" : "English"}
 							</Text>
-						</TouchableOpacity>
+						</TouchableOpacity> */}
 
-						<Text style={styles.title}>Zalo</Text>
-
-						{isModalVisible && (
+						{/* {isModalVisible && (
 							<Modal
 								visible={isModalVisible}
 								transparent={true}
@@ -133,34 +134,48 @@ export const LoginScreen = () => {
 									</View>
 								</TouchableWithoutFeedback>
 							</Modal>
-						)}
+						)} */}
 
-						<View>
-							<Pressable onPress={handleImagePress}>
+						<View
+							style={{
+								flex: 1,
+								justifyContent: "center",
+								alignContent: "center",
+								gap: 16,
+								width: "100%",
+							}}
+						>
+							<Text style={styles.title}>Zalo</Text>
+
 								<Image
 									{...panResponder.panHandlers}
 									source={imageSource}
 									style={styles.image}
 									resizeMode="contain"
 								/>
+
+							<Pressable
+								onPress={handleImagePress}
+								style={{ alignItems: "center", justifyContent: "center", width: "100%" }}
+							>
+
+								{/* <Text style={styles.pageTitle}>{texts[language].pages[currentPage].title}</Text>
+								<Text style={styles.pageDescription}>
+									{texts[language].pages[currentPage].description}
+								</Text>
+
+								<View style={[styles.pagination]}>
+									{texts[language].pages.map((_, index) => (
+										<View
+											key={index}
+											style={[
+												styles.paginationDot,
+												currentPage === index && styles.paginationDotActive,
+											]}
+										/>
+									))}
+								</View> */}
 							</Pressable>
-
-							<Text style={styles.pageTitle}>{texts[language].pages[currentPage].title}</Text>
-							<Text style={styles.pageDescription}>
-								{texts[language].pages[currentPage].description}
-							</Text>
-
-							<View style={[styles.pagination]}>
-								{texts[language].pages.map((_, index) => (
-									<View
-										key={index}
-										style={[
-											styles.paginationDot,
-											currentPage === index && styles.paginationDotActive,
-										]}
-									/>
-								))}
-							</View>
 
 							<View style={styles.buttonContainer}>
 								<TouchableOpacity
@@ -198,7 +213,7 @@ const styles = StyleSheet.create({
 		color: "#374151", // text-gray-800
 	},
 	title: {
-		fontSize: 24, // text-2xl
+		fontSize: 80, // text-2xl
 		fontWeight: "bold", // font-bold
 		textAlign: "center",
 		marginTop: 96, // mt-24
@@ -224,8 +239,8 @@ const styles = StyleSheet.create({
 		padding: 8, // p-2
 	},
 	image: {
-		width: 240, // w-60
-		height: 240, // h-60
+		width: 120, // w-60
+		height: 120, // h-60
 		alignSelf: "center",
 	},
 	pageTitle: {
@@ -241,8 +256,8 @@ const styles = StyleSheet.create({
 	},
 	pagination: {
 		flexDirection: "row", // flex-row
-		marginTop: 16, // mt-4
 		justifyContent: "center", // justify-center
+		marginTop: 16,
 	},
 	paginationDot: {
 		width: 8, // w-2
@@ -256,12 +271,11 @@ const styles = StyleSheet.create({
 	},
 	buttonContainer: {
 		alignItems: "center", // items-center
-		marginBottom: 24, // mb-6
 	},
 	loginButton: {
 		backgroundColor: "#3b82f6", // bg-blue-500
 		padding: 16, // p-4
-		borderRadius: 9999, // rounded-full
+		borderRadius: 8, // rounded-full
 		width: "100%", // w-4/5
 		alignItems: "center", // items-center
 	},
@@ -272,10 +286,10 @@ const styles = StyleSheet.create({
 	registerButton: {
 		backgroundColor: "#e5e7eb", // bg-gray-200
 		padding: 16, // p-4
-		borderRadius: 9999, // rounded-full
+		borderRadius: 8, // rounded-full
 		width: "100%", // w-4/5
 		alignItems: "center", // items-center
-		marginTop: 16, // mt-4
+		marginTop: 12, // mt-4
 	},
 	registerButtonText: {
 		color: "#374151", // text-gray-800

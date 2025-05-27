@@ -11,7 +11,7 @@ export type RootStackParamList = {
   Register: undefined;
   Login: undefined;
   OTP: { identifier: string; type: "phone" | "email" };
-  UserDetail: undefined
+  UserDetail: {userId: string}
   Chat: undefined;
   ChatScreen: { room: IRoom };
   LoginUser: undefined;
@@ -23,7 +23,7 @@ export type RootStackParamList = {
   RequestFriendScreen: undefined;
   RoomInformationScreen: undefined;
   ListRoomScreen: undefined;
-  FilePreviewScreen: { uri: string, fileName: string }
+  ImagePreviewScreen: { url: string }
 
 };
 
@@ -42,4 +42,4 @@ export type OTPRouteProp = RouteProp<RootStackParamList, "OTP">;
 export type UserDetailRouteProp = RouteProp<RootStackParamList, "UserDetail">;
 export type UpdatePasswordRouteProp = RouteProp<RootStackParamList, "UpdatePasswordScreen">;
 export type ChatScreenRouteProp = RouteProp<RootStackParamList, "ChatScreen">;
-export type FilePrewviewRouteProp = RouteProp<RootStackParamList, "FilePreviewScreen">;
+export type ImagePreviewScreenRouteProp = RouteProp<RootStackParamList, "ImagePreviewScreen">;

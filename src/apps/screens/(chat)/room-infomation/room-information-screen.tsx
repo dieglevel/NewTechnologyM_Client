@@ -5,15 +5,7 @@ import { useAppSelector } from "@/libs/redux/redux.config";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import {
-	Image,
-	ScrollView,
-	StyleSheet,
-	Switch,
-	Text,
-	TouchableOpacity,
-	View
-} from "react-native";
+import { Image, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const RoomInformationScreen = () => {
@@ -240,9 +232,7 @@ export const RoomInformationScreen = () => {
 								thumbColor={isHidden ? "#ffffff" : "#f4f4f5"}
 							/>
 						</View>
-						<TouchableOpacity
-							style={styles.securityItem}
-						>
+						<TouchableOpacity style={styles.securityItem}>
 							<View style={styles.securityRow}>
 								<Feather
 									name="alert-triangle"
