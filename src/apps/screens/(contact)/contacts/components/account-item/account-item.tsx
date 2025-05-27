@@ -1,18 +1,21 @@
-import { RootState } from "@/libs/redux/redux.config";
+import { RootState, useAppSelector } from "@/libs/redux/redux.config";
 import { ISearchAccount } from "@/types/implement/response";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { checkSendedFriend, handleSubmit } from "./handle";
+import { images } from "@/assets/images";
 
 interface AccountItemProps {
 	data: ISearchAccount;
 	onPress: (contact: ISearchAccount) => void;
+
 }
 
 export const AccountItem = ({ data, onPress }: AccountItemProps) => {
 	const { sendedFriends } = useSelector((state: RootState) => state.sendedFriend);
 	const { myListFriend } = useSelector((state: RootState) => state.myListFriend);
+	const myId = useAppSelector((state: RootState) => state.detailInformation.detailInformation?.id);
 
 
 
@@ -21,23 +24,19 @@ export const AccountItem = ({ data, onPress }: AccountItemProps) => {
 			style={styles.contactItem}
 			onPress={() => onPress(data)}
 		>
-			{data.detailInformation.avatarUrl ? (
 				<Image
-					source={{ uri: data.detailInformation.avatarUrl }}
+					source={data.detailInformation?.avatarUrl ? { uri: data.detailInformation?.avatarUrl } : images.avatarDefault}
 					style={styles.avatar}
 					resizeMode="cover"
 				/>
-			) : (
-				<Text style={styles.avatarText}>{(data.detailInformation?.fullName ?? "-").charAt(0)}</Text>
-			)}
 			<View style={styles.contactInfo}>
-				<Text style={styles.contactName}>{data.detailInformation?.fullName}</Text>
+				<Text style={styles.contactName}>{data.detailInformation?.fullName ?? "-"}</Text>
 			</View>
 			<View style={{ flex: 1, gap: 8, justifyContent: "flex-end", flexDirection: "row" }}>
-				{!checkSendedFriend(sendedFriends, data, myListFriend) && (
+				{myId !== data.detailInformation?.id && !checkSendedFriend(sendedFriends, data, myListFriend) && (
 					<TouchableOpacity onPress={() => handleSubmit(data)}>
 						<Ionicons
-							name="person-add"
+							name="person-add-outline"
 							size={20}
 							color="gray"
 							style={styles.icon}
@@ -76,9 +75,6 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: "#e5e7eb",
 		backgroundColor: "#fff",
-		borderRadius: 12,
-		marginHorizontal: 8,
-		marginVertical: 4,
 		shadowColor: "#000",
 		shadowOpacity: 0.1,
 		shadowOffset: { width: 0, height: 2 },

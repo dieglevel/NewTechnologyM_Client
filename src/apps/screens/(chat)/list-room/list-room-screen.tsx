@@ -181,7 +181,7 @@ export const ListRoomScreen = () => {
 					/>
 					<Ionicons
 						name="add"
-						size={24}
+						size={20}
 						color="white"
 						style={styles.icon}
 						onPress={() => {
@@ -250,6 +250,7 @@ const styles = StyleSheet.create({
 	searchInput: {
 		flex: 1,
 		color: "white",
+		marginHorizontal: 8,
 		fontSize: 16,
 	},
 	chatList: {

@@ -66,3 +66,12 @@ export const unFriend = async (friendId: string) => {
       throw error as ErrorResponse
    }
 }
+
+export const recallRequestFriend = async (requestId: string) => {
+   try {
+      const response = await api.delete<BaseResponse<IFriend>>(`/request-friend/recall-request/${requestId}`)
+      return response.data;
+   } catch (error) {
+      throw error as ErrorResponse
+   }
+}

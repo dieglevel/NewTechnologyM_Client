@@ -24,6 +24,7 @@ export type RootStackParamList = {
   RoomInformationScreen: undefined;
   ListRoomScreen: undefined;
   ImagePreviewScreen: { url: string }
+  SendedFriendScreen: undefined
 
 };
 

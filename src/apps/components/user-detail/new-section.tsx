@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 		justifyContent: "center", // justify-center
 		flexDirection: "row", // flex-row
 		gap: 8, // gap-2
-		marginBottom: 12, // mb-3
+		marginBottom: 8, // mb-3
 	},
 	title: {
 		minWidth: 100, // w-24

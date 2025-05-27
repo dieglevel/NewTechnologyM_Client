@@ -11,6 +11,8 @@ import { useNavigation } from "@react-navigation/native";
 import { useEffect } from "react";
 import { Text } from "react-native";
 import { initialDataPage } from "./handle-initital-page";
+import AntDesign from "@expo/vector-icons/AntDesign";
+
 
 export const BottomTabScreenApp = () => {
 	const navigator = useNavigation<StackScreenNavigationProp>();
@@ -44,50 +46,51 @@ export const BottomTabScreenApp = () => {
 						UserScreen: "Cá nhân",
 						ContactScreen: "Liên lạc",
 					};
-					return <Text style={{ color: focused ? "#1d91fa" : "black" }}>{labels[route.name]}</Text>;
+					return <Text style={{ color: focused ? "#1d91fa" : "black", fontWeight: "400" }}>{labels[route.name]}</Text>;
 				},
 				tabBarIcon: ({ focused, color, size }) => {
 					let iconName;
 					if (route.name === "ListRoomScreen")
 						return focused ? (
-							<Message
-								outline="white"
+							<AntDesign
+								name="message1"
+								size={24}
 								color="#1d91fa"
-								size={25}
 							/>
 						) : (
-							<Message
-								outline="gray"
-								color="white"
-								size={25}
+							<AntDesign
+								name="message1"
+								size={24}
+								color="gray"
 							/>
 						);
 					else if (route.name === "UserScreen")
 						return focused ? (
-							<Profile
+							<AntDesign
+								name="user"
+								size={24}
 								color="#1d91fa"
-								size={25}
-								outline="#1d91fa"
+								
 							/>
 						) : (
-							<Profile
-								outline="gray"
-								color="white"
-								size={25}
+							<AntDesign
+								name="user"
+								size={24}
+								color="gray"
 							/>
 						);
 					else if (route.name === "ContactScreen")
 						return focused ? (
-							<Profile
+							<AntDesign
+								name="contacts"
+								size={24}
 								color="#1d91fa"
-								size={25}
-								outline="#1d91fa"
 							/>
 						) : (
-							<Profile
-								outline="gray"
-								color="white"
-								size={25}
+							<AntDesign
+								name="contacts"
+								size={24}
+								color="gray"
 							/>
 						);
 				},

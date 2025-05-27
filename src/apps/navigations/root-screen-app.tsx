@@ -22,6 +22,7 @@ import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 import { UpdatePasswordScreen } from "../screens/(auth)/updatePassword/updatePasswordScreen";
 import { ImagePreviewScreen } from "../screens/file-preview/image-preview-screen";
 import { RoomInformationScreen } from "../screens/(chat)/room-infomation/room-information-screen";
+import SendedFriendScreen from "../screens/(contact)/sended-friend/sended-friend-screen";
 
 export const RootScreenApp = () => {
 	useEffect(() => {
@@ -52,14 +53,14 @@ export const RootScreenApp = () => {
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="Login"
 					component={LoginScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 						headerShown: true,
 						headerTitle: "Đăng nhập",
 					}}
@@ -68,7 +69,7 @@ export const RootScreenApp = () => {
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 						headerShown: true,
 						headerTitle: "Đăng ký",
 					}}
@@ -77,7 +78,7 @@ export const RootScreenApp = () => {
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 						headerShown: true,
 						headerTitle: "Xác thực tài khoản",
 					}}
@@ -87,35 +88,35 @@ export const RootScreenApp = () => {
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="UserDetail"
 					component={UserDetailScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="ChatScreen"
 					component={ChatScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="ForgotPasswordScreen"
 					component={ForgotPasswordScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="UpdatePasswordScreen"
 					component={UpdatePasswordScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 						headerShown: true,
 						headerTitle: "Cập nhật thông tin",
 					}}
@@ -124,14 +125,14 @@ export const RootScreenApp = () => {
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="Qr"
 					component={QrScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 						headerShown: true,
 						headerTitle: "Yêu cầu kết bạn",
 					}}
@@ -140,21 +141,30 @@ export const RootScreenApp = () => {
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
+						headerShown: true,
+						headerTitle: "Đã gửi lời mời kết bạn",
+					}}
+					name="SendedFriendScreen"
+					component={SendedFriendScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "white",
 					}}
 					name="RoomInformationScreen"
 					component={RoomInformationScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="ListRoomScreen"
 					component={ListRoomScreen}
 				/>
 				<Stack.Screen
 					options={{
-						statusBarBackgroundColor: "gray",
+						statusBarBackgroundColor: "white",
 					}}
 					name="ImagePreviewScreen"
 					component={ImagePreviewScreen}

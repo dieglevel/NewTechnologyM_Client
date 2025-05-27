@@ -3,27 +3,13 @@ import RequestFriendItem from "@/apps/screens/(contact)/request-friend/request-f
 import Add from "@/assets/svgs/add";
 import Delete from "@/assets/svgs/delete";
 import { colors } from "@/constants";
-import { ExpoSecureStoreKeys, getSecure } from "@/libs/expo-secure-store/expo-secure-store";
-import { RootState, useAppSelector } from "@/libs/redux/redux.config";
-import { use } from "i18next";
-import { useEffect, useState } from "react";
+import { RootState } from "@/libs/redux/redux.config";
 import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
+import SendedFriendItem from "./sended-friend-item/sended-friend-item";
 
-const RequestFriendScreen = () => {
-	const { requestFriends } = useSelector((state: RootState) => state.requestFriend);
-	const [myId, setMyId] = useState<string>("");
-
-	useEffect(() => {
-		const fetchMyId = async () => {
-			const userId = await getSecure(ExpoSecureStoreKeys.UserId);
-			if (userId) {
-				setMyId(userId);
-			}
-		};
-		fetchMyId();
-	},[])
-
+const SendedFriendScreen = () => {
+	const { sendedFriends } = useSelector((state: RootState) => state.sendedFriend);
 	return (
 		<SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
 			<View
@@ -41,8 +27,8 @@ const RequestFriendScreen = () => {
 				}}
 			>
 			<FlatList
-				data={requestFriends}
-				renderItem={({ item }) => <RequestFriendItem data={item} myId={myId} />}
+				data={sendedFriends}
+				renderItem={({ item }) => <SendedFriendItem data={item} />}
 				keyExtractor={(item) => item.requestId?.toString() ?? ""}
 				showsVerticalScrollIndicator={false}
 				style={{ flex: 1, width: "100%" }}
@@ -58,4 +44,4 @@ const RequestFriendScreen = () => {
 	);
 };
 
-export default RequestFriendScreen;
+export default SendedFriendScreen;

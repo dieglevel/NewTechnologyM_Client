@@ -3,8 +3,9 @@ import Add from "@/assets/svgs/add";
 import Delete from "@/assets/svgs/delete";
 import { colors } from "@/constants";
 import { ErrorResponse } from "@/libs/axios/axios.config";
-import { useAppSelector } from "@/libs/redux/redux.config";
-import { acceptRequestFriend, rejectRequestFriend } from "@/services/friend";
+import { deleteSendedFriend } from "@/libs/redux";
+import { store } from "@/libs/redux/redux.config";
+import { acceptRequestFriend, recallRequestFriend, rejectRequestFriend } from "@/services/friend";
 import { IRequestFriend } from "@/types/implement/response";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
@@ -12,45 +13,25 @@ import Toast from "react-native-toast-message";
 
 interface Props {
 	data: IRequestFriend;
-	myId: string;
 }
 
-const RequestFriendItem = ({ data, myId }: Props) => {
+const SendedFriendItem = ({ data }: Props) => {
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-	const handleAcceptFriend = async () => {
+	const handleRecallFriend = async () => {
 		setIsSubmitting(true);
 		try {
-			const response = await acceptRequestFriend(data.requestId ?? "");
+			const response = await recallRequestFriend(data.requestId ?? "");
 			if (response.statusCode === 200) {
 				Toast.show({
 					type: "success",
-					text1: "Chấp nhận lời mời kết bạn thành công",
+					text1: "Đã hủy lời mời kết bạn",
 					visibilityTime: 2000,
 				});
-			}
-		} catch (error) {
-			const err = error as ErrorResponse;
-			Toast.show({
-				type: "error",
-				text1: err.message,
-				visibilityTime: 2000,
-			});
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
+				console.log("data Props", data)
+				store.dispatch(deleteSendedFriend(data.receiver_id ?? ""));
+				               
 
-	const handleRejectFriend = async () => {
-		setIsSubmitting(true);
-		try {
-			const response = await rejectRequestFriend(data.requestId ?? "");
-			if (response.statusCode === 200) {
-				Toast.show({
-					type: "success",
-					text1: "Từ chối lời mời kết bạn thành công",
-					visibilityTime: 2000,
-				});
 			}
 		} catch (error) {
 			const err = error as ErrorResponse;
@@ -76,7 +57,7 @@ const RequestFriendItem = ({ data, myId }: Props) => {
 				flexDirection: "row",
 				gap: 10,
 				padding: 10,
-				backgroundColor: "white",
+				backgroundColor: colors.mainBackground,
 			}}
 		>
 			<Image
@@ -96,11 +77,12 @@ const RequestFriendItem = ({ data, myId }: Props) => {
 						flex: 1,
 						justifyContent: "flex-end",
 						flexDirection: "row",
+						gap: 10,
 					}}
 				>
 					<TouchableOpacity
 						style={{ padding: 10, borderRadius: 9999 }}
-						onPress={handleRejectFriend}
+						onPress={handleRecallFriend}
 						disabled={isSubmitting}
 					>
 						<Delete
@@ -109,23 +91,10 @@ const RequestFriendItem = ({ data, myId }: Props) => {
 							outline="black"
 						/>
 					</TouchableOpacity>
-					{myId !== data.detail?.id && (
-						<TouchableOpacity
-							style={{ padding: 10, borderRadius: 9999 }}
-							onPress={handleAcceptFriend}
-							disabled={isSubmitting}
-						>
-							<Add
-								size={23}
-								color="green"
-								outline="black"
-							/>
-						</TouchableOpacity>
-					)}
 				</View>
 			</View>
 		</View>
 	);
 };
 
-export default RequestFriendItem;
+export default SendedFriendItem;

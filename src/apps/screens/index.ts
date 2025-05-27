@@ -11,3 +11,5 @@ export * from "./(profile)/update-profile/update-profile-screen";
 export * from "./qr/qr-screen";
 export * from "./file-preview/image-preview-screen"
 export * from "./(chat)/room-infomation/room-information-screen"
+export * from "./(contact)/request-friend/request-friend-screen";
+export * from "./(contact)/sended-friend/sended-friend-screen";

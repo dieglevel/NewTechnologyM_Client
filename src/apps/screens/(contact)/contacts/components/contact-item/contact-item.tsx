@@ -13,10 +13,7 @@ interface ContactItemProps {
 
 export const ContactItem = ({ item, onPress }: ContactItemProps) => {
 	return (
-		<TouchableOpacity
-			style={styles.contactItem}
-			onPress={() => onPress(item)}
-		>
+		<View style={styles.contactItem}>
 			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
 			{item.detail?.avatarUrl ? (
 				<Image
@@ -34,27 +31,34 @@ export const ContactItem = ({ item, onPress }: ContactItemProps) => {
 			<View style={{ flex: 1, gap: 8, justifyContent: "flex-end", flexDirection: "row" }}>
 				<TouchableOpacity onPress={() => handleUnFriend(item)}>
 					<Ionicons
-						name="person-remove"
-						size={20}
+						name="person-remove-outline"
+						size={17}
 						color="gray"
 						style={styles.icon}
 					/>
 				</TouchableOpacity>
-
-				<Ionicons
-					name="call"
-					size={20}
-					color="gray"
-					style={styles.icon}
-				/>
-				<Ionicons
-					name="videocam"
-					size={20}
-					color="gray"
-					style={styles.icon}
-				/>
+				<TouchableOpacity
+				//  onPress={() => handleUnFriend(item)}
+				>
+					<Ionicons
+						name="call-outline"
+						size={17}
+						color="gray"
+						style={styles.icon}
+					/>
+				</TouchableOpacity>
+				<TouchableOpacity
+				// onPress={() => handleUnFriend(item)}
+				>
+					<Ionicons
+						name="videocam-outline"
+						size={17}
+						color="gray"
+						style={styles.icon}
+					/>
+				</TouchableOpacity>
 			</View>
-		</TouchableOpacity>
+		</View>
 	);
 };
 
@@ -85,9 +89,6 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: "#e5e7eb",
 		backgroundColor: "#fff",
-		borderRadius: 12,
-		marginHorizontal: 8,
-		marginVertical: 4,
 		shadowColor: "#000",
 		shadowOpacity: 0.1,
 		shadowOffset: { width: 0, height: 2 },

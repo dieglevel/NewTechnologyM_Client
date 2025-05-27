@@ -13,9 +13,9 @@ export const HeaderDetailUser = ({ onPress }: HeaderDetailUserProps) => {
             <TouchableOpacity style={styles.button} onPress={onPress}>
                 <ArrowBack size={25} color="white" outline="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
+            {/* <TouchableOpacity style={styles.button}>
                 <More size={45} color="white" outline="white" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </View>
     );
 };
