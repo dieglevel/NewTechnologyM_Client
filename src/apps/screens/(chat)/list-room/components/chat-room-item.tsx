@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { images } from "@/assets/images";
+import { caculateDuration } from "@/utils/caculate-duration";
 
 interface IChatItem {
 	item: IRoom;
@@ -56,7 +57,7 @@ export const ChatItem = ({ item, myUserId }: IChatItem) => {
 
 	const renderMessage = () => {
 		if (item.isDisbanded === true) {
-			return "Nhóm đã bị giải tán"
+			return "Nhóm đã bị giải tán";
 		}
 
 		const message = () => {
@@ -95,7 +96,10 @@ export const ChatItem = ({ item, myUserId }: IChatItem) => {
 		>
 			<View style={styles.avatarContainer}>{renderAvatar()}</View>
 			<View style={styles.chatContent}>
-				<Text style={styles.chatName}>{renderName()}</Text>
+				<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+					<Text style={styles.chatName}>{renderName()}</Text>
+					<Text style={styles.chatTime}>{caculateDuration(item.updatedAt || null)}</Text>
+				</View>
 				<Text style={styles.chatMessage}>{renderMessage()}</Text>
 			</View>
 		</TouchableOpacity>
@@ -130,6 +134,7 @@ const styles = StyleSheet.create({
 	chatName: {
 		fontWeight: "600",
 		color: "black",
+		fontSize: 16,
 	},
 	chatMessage: {
 		color: "#6b7280",
@@ -142,5 +147,9 @@ const styles = StyleSheet.create({
 		borderRadius: 999,
 		borderWidth: 2,
 		borderColor: "#3b82f6",
+	},
+	chatTime: {
+		color: "#9ca3af",
+		fontSize: 12,
 	},
 });

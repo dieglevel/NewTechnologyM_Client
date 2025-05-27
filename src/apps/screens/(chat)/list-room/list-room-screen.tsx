@@ -30,6 +30,18 @@ export const ListRoomScreen = () => {
 
 	const myUserId = ExpoSecureValueService.getUserId();
 
+	const sortRoom = () => {
+		if (room && room.length > 0) {
+			const sortedRoom = [...room].sort((a, b) => {
+				const aTime = new Date(a.updatedAt ? a.updatedAt : "").getTime();
+				const bTime = new Date(b.updatedAt ? b.updatedAt : "").getTime();
+				return bTime - aTime; // Sort in descending order
+			});
+			return sortedRoom;
+		}
+		return room
+	}
+
 	const handleChecked = (id: string) => {
 		if (checked.includes(id)) {
 			setChecked(checked.filter((item) => item !== id));
@@ -194,7 +206,7 @@ export const ListRoomScreen = () => {
 					<ActivityIndicator size={"large"} />
 				) : (
 					<FlatList
-						data={room}
+						data={sortRoom()}
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
 							<ChatItem
