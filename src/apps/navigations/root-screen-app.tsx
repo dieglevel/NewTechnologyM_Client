@@ -25,6 +25,7 @@ import { RoomInformationScreen } from "../screens/(chat)/room-infomation/room-in
 import SendedFriendScreen from "../screens/(contact)/sended-friend/sended-friend-screen";
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from "@/libs/firebase-push-notification/firebase-push-notification";
+import { CreateRoomScreen } from "../screens/(chat)/create-room/create-room-screen";
 
 
 
@@ -176,6 +177,15 @@ export const RootScreenApp = () => {
 					}}
 					name="ImagePreviewScreen"
 					component={ImagePreviewScreen}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "white",
+						headerShown: true,
+						headerTitle: "Tạo nhóm trò chuyện",
+					}}
+					name="CreateRoomScreen"
+					component={CreateRoomScreen}
 				/>
 			</Stack.Navigator>
 		</NavigationContainer>

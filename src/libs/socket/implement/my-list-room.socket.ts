@@ -1,5 +1,5 @@
 import { SocketEmit, SocketOn } from "@/constants/socket";
-import { deleteRoom, setRoom } from "@/libs/redux";
+import { deleteRoom, setRoom, updateRoom } from "@/libs/redux";
 import { store } from "@/libs/redux/redux.config";
 import { IRoom } from "@/types/implement";
 import { Socket } from "socket.io-client";
@@ -14,7 +14,7 @@ export const MyListRoomSocket = (socket: Socket | null) => {
             break;
          }
          case "update": {
-            store.dispatch(setRoom([data.room]))
+            store.dispatch(updateRoom([data.room]))
             break;
          }
          // case "delete": {

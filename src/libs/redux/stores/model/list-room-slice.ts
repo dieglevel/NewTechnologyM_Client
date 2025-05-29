@@ -8,7 +8,7 @@ const storeName = "room";
 const thunkDB = "mmkv/";
 const thunkName = "Room";
 
-const thunkAction = { fetch: "fetch", set: "set", delete: "delete", init: "init" };
+const thunkAction = { fetch: "fetch", set: "set", delete: "delete", init: "init", update: "update" };
 
 // IDB instance
 
@@ -23,6 +23,17 @@ export const setRoom = createAsyncThunk(`${thunkDB}${thunkAction.set}${thunkName
 	const updatedRooms = roomStorage.setMany(rooms);
 	const room = roomStorage.getAll();
 	// console.log("room", room);
+	return room;
+});
+
+
+export const updateRoom = createAsyncThunk(`${thunkDB}${thunkAction.update}${thunkName}`, async (rooms: IRoom[]) => {
+	roomStorage.updateMany((item) => {
+		const updated = rooms.find(r => r.id === item.id);
+		return updated ? { ...updated } : {};
+	});
+	const room = roomStorage.getAll();
+	// console.log("Updated rooms", room);
 	return room;
 });
 
@@ -98,6 +109,17 @@ const roomSlice = createSlice({
 			.addCase(initRoom.rejected, (state) => {
 				state.status = "failed";
 			})
+			.addCase(updateRoom.pending, (state) => {
+				state.status = "loading";
+			})
+			.addCase(updateRoom.fulfilled, (state, action: PayloadAction<IRoom[]>) => {
+				state.status = "succeeded";
+				state.room = action.payload;
+			})
+			.addCase(updateRoom.rejected, (state) => {
+				state.status = "failed";
+			});
+
 
 	},
 });

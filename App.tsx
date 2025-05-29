@@ -20,17 +20,6 @@ Notifications.setNotificationHandler({
 	}),
 });
 
-Notifications.scheduleNotificationAsync({
-  content: {
-    title: "🔔 Thông báo mới",
-    body: "Nội dung thông báo",
-  },
-  trigger: {
-	type:  Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-	seconds: 2,
-	repeats: false,
-  }
-});
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);

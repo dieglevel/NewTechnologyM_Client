@@ -43,6 +43,20 @@ class SocketService {
 			},
 		});
 		this.registerCoreEvents();
+
+		console.log("Socket connected:", this.socket.id);
+
+		setInterval(async () => {
+			const netState = await NetInfo.fetch();
+			const isConnected = netState.isConnected && netState.isInternetReachable;
+			if (!isConnected && this.socket) {
+				this.disconnect();
+				console.warn("Network disconnected. Socket closed.");
+			} else if (isConnected && !this.socket) {
+				console.warn("Network reconnected. Reconnecting socket...");
+				this.connect();
+			}
+		}, 5000);
 	}
 
 	private registerCoreEvents() {
@@ -66,6 +80,7 @@ class SocketService {
 	public disconnect() {
 		this.socket?.disconnect();
 		this.socket = null;
+		console.log("Socket disconnected.");
 	}
 
 	public getSocket(): Socket | null {

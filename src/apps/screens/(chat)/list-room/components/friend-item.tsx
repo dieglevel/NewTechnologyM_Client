@@ -33,11 +33,11 @@ export const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
 			<TouchableOpacity style={{ marginLeft: 10 }}>
 				<View
 					style={{
-						width: 20,
-						height: 20,
+						width: 15,
+						height: 15,
 						borderRadius: 10,
-						borderWidth: 1,
-						borderColor: "black",
+						borderWidth: 0.5,
+						borderColor: checked.includes(item.accountId ?? "") ? colors.brand : "#9ca3af",
 						backgroundColor: checked.includes(item.accountId ?? "") ? colors.brand : "white",
 					}}
 				/>

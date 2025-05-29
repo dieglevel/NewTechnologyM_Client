@@ -30,6 +30,8 @@ export const ListRoomScreen = () => {
 
 	const myUserId = ExpoSecureValueService.getUserId();
 
+	const isFocused = useIsFocused();
+
 	const sortRoom = () => {
 		if (room && room.length > 0) {
 			const sortedRoom = [...room].sort((a, b) => {
@@ -39,9 +41,34 @@ export const ListRoomScreen = () => {
 			});
 			return sortedRoom;
 		}
-		return room
-	}
+		return room;
+	};
 
+	const filteredRooms = () => {
+		const sortedRoom = sortRoom();
+		if (sortedRoom === null) {
+			return [];
+		}
+		if (searchText.trim() === "") {
+			return sortedRoom;
+		} else {
+			return sortedRoom.filter((item) => {
+				if (item.type === "group") {
+					return item.name?.toLowerCase().includes(searchText.toLowerCase());
+				} else {
+					if (item.detailRoom && item.detailRoom.length > 0) {
+						return item.detailRoom.some((detail) => {
+							return detail.fullName?.toLowerCase().includes(searchText.toLowerCase());
+						});
+					}
+				}
+			});
+		}
+	};
+
+	useEffect(() => {
+		setSearchText("");
+	}, [isFocused]);
 	const handleChecked = (id: string) => {
 		if (checked.includes(id)) {
 			setChecked(checked.filter((item) => item !== id));
@@ -50,126 +77,12 @@ export const ListRoomScreen = () => {
 		}
 	};
 
-	const handlePressCreateGroup = () => {
-		createGroup(nameGroup, checked, setShowCreateGroupModal, setChecked, setNameGroup);
-	};
-
 	// useEffect(() => {
 	// 	fetchedFriend();
 	// }, [isFocused]);
 	return (
 		<SafeAreaView>
 			<View style={styles.container}>
-				<Modal
-					visible={showCreateGroupModal}
-					transparent={true}
-					animationType="fade"
-					presentationStyle="overFullScreen"
-				>
-					<View style={[{ width: "100%", height: "100%", padding: 30 }]}>
-						<View
-							style={{
-								padding: 10,
-								flex: 1,
-								justifyContent: "center",
-								alignItems: "center",
-								width: "100%",
-								borderRadius: 10,
-								backgroundColor: "white",
-							}}
-						>
-							<View
-								style={{
-									flexDirection: "row",
-									width: "100%",
-									alignItems: "center",
-									marginBottom: 10,
-								}}
-							>
-								<Feather
-									name="x"
-									size={24}
-									color={"black"}
-									style={{ position: "absolute", top: 0, right: 0 }}
-									onPress={() => {
-										setShowCreateGroupModal(false);
-										setChecked([]);
-									}}
-								/>
-								<Text
-									style={[
-										{
-											color: "black",
-											fontSize: 18,
-											fontWeight: "bold",
-										},
-										{ marginBottom: 10 },
-									]}
-								>
-									Tạo nhóm trò chuyện
-								</Text>
-							</View>
-							<TextInput
-								style={{
-									width: "100%",
-									height: 50,
-									borderWidth: 1,
-									borderColor: "#e5e7eb",
-									borderRadius: 10,
-									paddingHorizontal: 10,
-									marginBottom: 10,
-								}}
-								placeholder="Nhập tên nhóm"
-								value={nameGroup}
-								onChangeText={(text) => setNameGroup(text)}
-							/>
-							<FlatList
-								data={myListFriend}
-								keyExtractor={(item) => item.accountId?.toString() || ""}
-								style={{ width: "100%" }}
-								renderItem={({ item }) => (
-									<FriendItem
-										item={item}
-										checked={checked}
-										onChecked={(contact) => {
-											handleChecked(contact.accountId ?? "");
-										}}
-									/>
-								)}
-							/>
-							<TouchableOpacity
-								style={{
-									width: "100%",
-									height: 50,
-									backgroundColor: colors.brand,
-									borderRadius: 10,
-									justifyContent: "center",
-									alignItems: "center",
-								}}
-								onPress={handlePressCreateGroup}
-							>
-								<Text
-									style={{
-										color: "white",
-										fontSize: 16,
-										fontWeight: "bold",
-									}}
-								>
-									Tạo nhóm
-								</Text>
-							</TouchableOpacity>
-							<View
-								style={{
-									flexDirection: "row",
-									width: "100%",
-									alignItems: "center",
-									marginBottom: 10,
-								}}
-							></View>
-						</View>
-					</View>
-				</Modal>
-
 				<View style={styles.searchBar}>
 					<Ionicons
 						name="search"
@@ -197,7 +110,7 @@ export const ListRoomScreen = () => {
 						color="white"
 						style={styles.icon}
 						onPress={() => {
-							setShowCreateGroupModal(true);
+							navigation.push("CreateRoomScreen");
 						}}
 					/>
 				</View>
@@ -206,7 +119,7 @@ export const ListRoomScreen = () => {
 					<ActivityIndicator size={"large"} />
 				) : (
 					<FlatList
-						data={sortRoom()}
+						data={filteredRooms()}
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
 							<ChatItem
@@ -224,7 +137,7 @@ export const ListRoomScreen = () => {
 								}}
 							>
 								<Text style={{ color: "#6b7280", textAlign: "center" }}>
-									Không có cuộc trò chuyện nào
+									{searchText ? "Không tìm thấy phòng nào" : "Không có cuộc trò chuyện nào"}
 								</Text>
 							</View>
 						)}
