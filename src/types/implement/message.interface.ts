@@ -15,5 +15,6 @@ export interface IMessage {
 	createdAt?: Date;
 	updatedAt?: Date;
 	hiddenWith?: string[];
+    isPinned?: boolean;
 	type: "mixed" | "sticker" | "call",
 }

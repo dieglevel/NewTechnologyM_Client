@@ -101,3 +101,39 @@ export const deleteMessageById = async ({ messageId }: { messageId: string }) =>
 		throw error as ErrorResponse;
 	}
 };
+
+export const createPinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
+  try {
+    const response = await api.post<BaseResponse<IMessage>>("/pinned-message/create-pinned-message", {
+      messageId,
+      chatRoomId,
+    });
+    return response.data;
+  } catch (error) {
+    throw error as ErrorResponse;
+  }
+};
+
+export const getPinnedMessages = async (chatRoomId?: string) => {
+  try {
+    if (!chatRoomId) {
+      throw new Error("chatRoomId is required");
+    }
+    const response = await api.get<BaseResponse<IMessage[]>>("/pinned-message/get-pinned-messages", {
+      params: { chatRoomId }, 
+    });
+    return response.data;
+  } catch (error) {
+    throw error as ErrorResponse;
+  }
+};
+export const removePinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
+  try {
+    const response = await api.delete<BaseResponse<IMessage>>("/pinned-message/remove-pinned-message", {
+      params: { messageId, chatRoomId },
+    });
+    return response.data;
+  } catch (error) {
+    throw error as ErrorResponse;
+  }
+};

@@ -18,7 +18,6 @@ class SocketService {
 	public static getInstance(): SocketService {
 		if (!SocketService.instance) {
 			SocketService.instance = new SocketService();
-
 			SocketService.instance.connect();
 		}
 		return SocketService.instance;
@@ -44,23 +43,30 @@ class SocketService {
 		});
 		this.registerCoreEvents();
 	}
+	
 
 	private registerCoreEvents() {
 		if (!this.socket) return;
 
 		ConnectServerSocket(this.socket);
+		DetailInformationSocket(this.socket);
+		MyListRoomSocket(this.socket);
+		FriendSocket(this.socket);
 
-		// ---------------------------------------------------------------------------------------------------------------------------------------------
+		// 👇 Thêm xử lý pinMessage và unpinMessage tại đây
+		this.socket.on("pinMessage", ({ chatRoomId, message }) => {
+			console.log("📌 Tin nhắn được ghim:", chatRoomId, message);
 
-		DetailInformationSocket(this.socket)
+			// Nếu dùng Redux:
+			// store.dispatch(setPinnedMessage({ chatRoomId, message }));
+		});
 
-		// ---------------------------------------------------------------------------------------------------------------------------------------------
+		this.socket.on("unpinMessage", ({ chatRoomId }) => {
+			console.log("❌ Gỡ ghim tin nhắn:", chatRoomId);
 
-		MyListRoomSocket(this.socket)
-
-		// ---------------------------------------------------------------------------------------------------------------------------------------------
-
-		FriendSocket(this.socket)
+			// Nếu dùng Redux:
+			// store.dispatch(clearPinnedMessage({ chatRoomId }));
+		});
 	}
 
 	public disconnect() {

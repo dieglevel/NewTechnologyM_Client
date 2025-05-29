@@ -1,184 +1,213 @@
-import { FlatList, Modal, TouchableOpacity, View } from "react-native";
+import { FlatList, Modal, TouchableOpacity, View, Text } from "react-native";
 import styles from "../styles";
 import RenderActionItem from "./render-action-item";
 import { IMessage, IRoom } from "@/types/implement";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
-import { copyMessage, handleRemoveMessageByMyself, handleRevokeMessage } from "./handle";
+import { copyMessage, handlePinMessage, handleRemoveMessageByMyself, handleRevokeMessage, handleUnpinMessage } from "./handle";
 import { store, useAppSelector } from "@/libs/redux/redux.config";
 import Toast from "react-native-toast-message";
 import { ForwardMessageModal } from "./forward-message/forward-message-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { setRoom } from "@/libs/redux";
 
 interface Props {
-	data: IMessage[];
-	setData: React.Dispatch<React.SetStateAction<IMessage[]>>;
-
-	showActionModal: boolean;
-	setShowActionModalAction: React.Dispatch<React.SetStateAction<boolean>>;
-
-	actionMessage: IMessage | null;
-	setActionMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
+  data: IMessage[];
+  setData: React.Dispatch<React.SetStateAction<IMessage[]>>;
+  showActionModal: boolean;
+  setShowActionModalAction: React.Dispatch<React.SetStateAction<boolean>>;
+  actionMessage: IMessage | null;
+  setActionMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
+  pinnedMessage: IMessage | null;
+  setPinnedMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
+  chatRoomId: string; 
 }
 
 export const ActionModalMessage = ({
-	data,
-	setData,
-	showActionModal,
-	setShowActionModalAction,
-	actionMessage,
-	setActionMessage,
+  data,
+  setData,
+  showActionModal,
+  setShowActionModalAction,
+  actionMessage,
+  setActionMessage,
+  pinnedMessage,
+  setPinnedMessage,
+  chatRoomId,
 }: Props) => {
-	const myUserId = ExpoSecureValueService.getUserId();
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+  const { room } = useAppSelector((state) => state.room);
+  const [showForwardModal, setShowForwardModal] = useState<boolean>(false);
 
-	const { room } = useAppSelector((state) => state.room);
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const id = await ExpoSecureValueService.getUserId();
+      setMyUserId(id);
+    };
+    fetchUserId();
+  }, []);
 
-	const [showForwardModal, setShowForwardModal] = useState<boolean>(false);
+  const handlePinToggle = async () => {
+  if (!actionMessage) return;
 
-	const getActionItems = () => {
-		if (!actionMessage) return [];
+  try {
+    if (pinnedMessage && pinnedMessage._id === actionMessage._id) {
+      await handleUnpinMessage(actionMessage, chatRoomId);
+      setPinnedMessage(null);
+      setData((prevData) =>
+        prevData.map((msg) =>
+          msg._id === actionMessage._id ? { ...msg, isPinned: false } : msg
+        )
+      );
 
-		const isMyMessage = actionMessage.accountId === myUserId;
-		const items: { icon: string; label: string; onPress: () => void }[] = [];
+      Toast.show({
+        text1: "Đã bỏ ghim tin nhắn",
+        type: "info",
+      });
+    } else {
+      await handlePinMessage(actionMessage, chatRoomId);
+      setPinnedMessage(actionMessage);
+      setData((prevData) =>
+        prevData.map((msg) =>
+          msg._id === actionMessage._id ? { ...msg, isPinned: true } : msg
+        )
+      );
 
-		!actionMessage.isRevoked &&
-			!actionMessage.sticker &&
-			items.push({
-				icon: "copy-outline",
-				label: "Sao chép",
-				onPress: () => {
-					copyMessage(actionMessage);
-					setShowActionModalAction(false);
-				},
-			});
+      Toast.show({
+        text1: "Đã ghim tin nhắn",
+        type: "success",
+      });
+    }
 
-		!actionMessage.isRevoked &&
-			items.push({
-				icon: "share-outline",
-				label: "Chuyển tiếp",
-				onPress: () => {
-					if (room?.length === 0) {
-						Toast.show({
-							text1: "Không có phòng nào để chọn",
-							type: "info",
-						});
-					} else {
-						setShowForwardModal(true);
-						setShowActionModalAction(false);
-					}
-				},
-			});
+    setShowActionModalAction(false);
+  } catch (error) {
+    console.log("Error toggling pin:", error);
+    Toast.show({
+      type: "error",
+      text1: "Không thể ghim/bỏ ghim tin nhắn",
+      text2: "Vui lòng thử lại",
+    });
+  }
+};
 
-		!actionMessage.isRevoked &&
-			isMyMessage &&
-			items.push({
-				icon: "trash-outline",
-				label: "Thu hồi",
-				onPress: () => {
-					try {
-						handleRevokeMessage(actionMessage);
-						setShowActionModalAction(false);
-					} catch (e) {}
-				},
-			});
+  const getActionItems = () => {
+    if (!actionMessage || !myUserId) return [];
 
-		!actionMessage.isRevoked &&
-			isMyMessage &&
-			items.push({
-				icon: "trash-outline",
-				label: "Thu hồi chỉ mình tôi",
-				onPress: () => {
-					try {
-						handleRemoveMessageByMyself(actionMessage._id);
-						// remove that message from the list
-						setData((prev) => prev.filter((item) => item._id !== actionMessage._id));
-						setShowActionModalAction(false);
+    const isMyMessage = actionMessage.accountId === myUserId;
+    const items: { icon: string; label: string; onPress: () => void }[] = [];
 
-						let newRoom: IRoom | null =
-							room?.find((item) => item.id === actionMessage.roomId) || null;
+    !actionMessage.isRevoked &&
+      !actionMessage.sticker &&
+      items.push({
+        icon: "copy-outline",
+        label: "Sao chép",
+        onPress: () => {
+          copyMessage(actionMessage);
+          setShowActionModalAction(false);
+        },
+      });
 
-						console.log("newRoom", newRoom);
+    !actionMessage.isRevoked &&
+      isMyMessage &&
+      items.push({
+        icon: "pin-outline",
+        label: pinnedMessage?._id === actionMessage._id ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn",
+        onPress: handlePinToggle,
+      });
 
-						if (newRoom) {
-							newRoom.latestMessage = {
-								...newRoom.latestMessage,
-								_id: actionMessage._id,
-								type: newRoom.latestMessage?.type || "mixed", // Ensure type is defined
-								isRevoked: true,
-							};
-						}
+    !actionMessage.isRevoked &&
+      items.push({
+        icon: "share-outline",
+        label: "Chuyển tiếp",
+        onPress: () => {
+          if (!room || room.length === 0) {
+            Toast.show({
+              text1: "Không có phòng nào để chọn",
+              type: "info",
+            });
+          } else {
+            setShowForwardModal(true);
+            setShowActionModalAction(false);
+          }
+        },
+      });
 
-						if (newRoom !== null) {
-						console.log("newRoom2", newRoom);
+    !actionMessage.isRevoked &&
+      isMyMessage &&
+      items.push({
+        icon: "trash-outline",
+        label: "Thu hồi",
+        onPress: () => {
+          try {
+            handleRevokeMessage(actionMessage);
+            setShowActionModalAction(false);
+          } catch (e) {
+            console.log("Error revoking message", e);
+          }
+        },
+      });
 
-							store.dispatch(setRoom([newRoom]));
-						}
+    !actionMessage.isRevoked &&
+      isMyMessage &&
+      items.push({
+        icon: "trash-outline",
+        label: "Thu hồi chỉ mình tôi",
+        onPress: () => {
+          try {
+            handleRemoveMessageByMyself(actionMessage._id);
+            setData((prev) => prev.filter((item) => item._id !== actionMessage._id));
+            setShowActionModalAction(false);
 
-						// store.dispatch(setRoom({}))
-					} catch (e) {}
-				},
-			});
+            let newRoom: IRoom | null = room?.find((item) => item.id === actionMessage.roomId) || null;
 
-		// if (isMyMessage && actionMessage.content !== "Tin nhắn đã được thu hồi") {
-		// 	items.push(
-		// 		{
-		// 			icon: "pencil-outline",
-		// 			label: "Chỉnh sửa",
-		// 			onPress: () =>
-		// 				handleEditMessage(
-		// 					actionMessage._id || "",
-		// 					actionMessage.content || "",
-		// 					setEditingMessageId,
-		// 					setShowActionModal,
-		// 				),
-		// 		},
-		// 		{
-		// 			icon: "trash-outline",
-		// 			label: "Thu hồi",
-		// 			onPress: () =>
-		// 				handleRecallMessage(
-		// 					actionMessage._id || "",
-		// 					isMyMessage,
-		// 					setMessages,
-		// 					setShowActionModal,
-		// 				),
-		// 		},
-		// 	);
-		// }
+            if (newRoom) {
+              newRoom.latestMessage = {
+                ...newRoom.latestMessage,
+                _id: actionMessage._id,
+                type: newRoom.latestMessage?.type || "mixed",
+                isRevoked: true,
+              };
 
-		return items;
-	};
+              store.dispatch(setRoom([newRoom]));
+            }
+          } catch (e) {
+            console.log("Error removing message for myself", e);
+          }
+        },
+      });
 
-	const isDark = false;
-	return (
-		<>
-			<Modal
-				visible={showActionModal}
-				transparent
-				animationType="fade"
-			>
-				<TouchableOpacity
-					style={styles.actionModalContainer}
-					onPress={() => setShowActionModalAction(false)}
-				>
-					<View style={[styles.actionModalContent, isDark && styles.darkActionModalContent]}>
-						<FlatList
-							data={getActionItems()}
-							renderItem={({ item }) => <RenderActionItem item={item} />}
-							keyExtractor={(item, index) => index.toString()}
-							contentContainerStyle={styles.actionListContent}
-						/>
-					</View>
-				</TouchableOpacity>
-				<Toast />
-			</Modal>
+    return items;
+  };
 
-			<ForwardMessageModal
-				actionMessage={actionMessage}
-				setActionMessageAction={setActionMessage}
-				setShowForwardModalAction={setShowForwardModal}
-				showForwardModal={showForwardModal}
-			/>
-		</>
-	);
+  const isDark = false;
+
+  return (
+    <>
+      <Modal
+        visible={showActionModal}
+        transparent
+        animationType="fade"
+      >
+        <TouchableOpacity
+          style={styles.actionModalContainer}
+          onPress={() => setShowActionModalAction(false)}
+        >
+          <View style={[styles.actionModalContent, isDark && styles.darkActionModalContent]}>
+            <FlatList
+              data={getActionItems()}
+              renderItem={({ item }) => <RenderActionItem item={item} />}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={styles.actionListContent}
+            />
+          </View>
+        </TouchableOpacity>
+        <Toast />
+      </Modal>
+
+      <ForwardMessageModal
+        actionMessage={actionMessage}
+        setActionMessageAction={setActionMessage}
+        setShowForwardModalAction={setShowForwardModal}
+        showForwardModal={showForwardModal}
+      />
+    </>
+  );
 };

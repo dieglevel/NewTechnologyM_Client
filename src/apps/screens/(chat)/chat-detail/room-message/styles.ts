@@ -62,6 +62,18 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     marginLeft: 50,
   },
+  pinnedContainer: {
+	backgroundColor: "#f2f2f2",
+	marginHorizontal: 12,
+	marginBottom: 8,
+	padding: 10,
+	borderRadius: 8,
+},
+pinnedLabel: {
+	fontWeight: "bold",
+	color: "red",
+	marginBottom: 4,
+},
   otherMessage: {
     backgroundColor: "#e5e7eb",
     alignSelf: "flex-start",
