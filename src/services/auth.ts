@@ -1,8 +1,12 @@
 import { api, ErrorResponse } from "@/libs/axios/axios.config";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
+import { registerForPushNotificationsAsync } from "@/libs/firebase-push-notification/firebase-push-notification";
 import { BaseResponse } from "@/types";
 import { IAuth, IDetailInformation } from "@/types/implement";
+import { CreateNotificationTokenDto } from "@/types/implement/notification.interface";
 import { ISearchAccount } from "@/types/implement/response";
+import * as Notifications from 'expo-notifications';
+
 
 export const loginApi = async (identifier: string, password: string) => {
 	try {
@@ -20,7 +24,19 @@ export const loginApi = async (identifier: string, password: string) => {
 			return response.data;
 		}
 		const response = await api.post<BaseResponse<IAuth>>("/auth/login", { identifier, password });
-		
+
+
+		const fcmToken = (await Notifications.getDevicePushTokenAsync()).data;
+			console.log("FCM Token:", fcmToken);
+			
+			 await api.post<BaseResponse<void>>("/notification", {
+				fcm_token:fcmToken ,
+				accountId: response.data.data.userId,
+				platform: "android",
+				jwt_token: response.data.data.accessToken,
+			} as CreateNotificationTokenDto);
+
+
 		await ExpoSecureValueService.setAccessToken(response.data.data?.accessToken || null)
 		await ExpoSecureValueService.setUserId(response.data.data?.userId || null)
 		return response.data;
@@ -227,3 +243,13 @@ export const verifyLoginQrApi = async (qrCode: {
 		throw e as ErrorResponse;
 	}
 };
+
+export const logoutApi = async () => {
+	try {
+		const response = await api.post<BaseResponse<void>>("/auth/logout");
+
+		return response.data;
+	} catch (e) {
+		throw e as ErrorResponse;
+	}
+}

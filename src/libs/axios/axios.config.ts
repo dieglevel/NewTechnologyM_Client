@@ -7,7 +7,7 @@ import { getIpDeviceApi } from "@/services/ip-device";
 import { ExpoSecureValueService } from "../expo-secure-store/implement";
 
 export interface ErrorResponse {
-	error: string;
+	error: string; 
 	message: string;
 	statusCode: number;
 	timestamp: Date;
@@ -17,6 +17,7 @@ export interface ErrorResponse {
 export const api = axios.create({
 	baseURL: process.env.EXPO_PUBLIC_BACKEND_URL,
 	headers: { "Content-Type": "application/json" },
+	timeout: 10000, // Thời gian timeout 10 giây
 });
 
 // Interceptor trước khi gửi request
@@ -49,7 +50,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		// console.error("⛔ Axios: ", error.toJSON());
+		console.error("⛔ Axios: ", error.toJSON());
 		const errorResponse: ErrorResponse = error.response.data;
 
 		if (errorResponse.statusCode === 401) {

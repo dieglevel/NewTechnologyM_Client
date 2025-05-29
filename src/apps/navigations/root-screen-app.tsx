@@ -14,7 +14,7 @@ import { Stack } from "@/libs/navigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { BottomTabScreenApp } from "./bottom-tab-screen-app";
 import { LoginUserScreen } from "../screens/(auth)/login-user/login-user-screen";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getAccountApi } from "@/services/auth";
 import { socketService } from "@/libs/socket/socket";
 import RequestFriendScreen from "../screens/(contact)/request-friend/request-friend-screen";
@@ -23,8 +23,16 @@ import { UpdatePasswordScreen } from "../screens/(auth)/updatePassword/updatePas
 import { ImagePreviewScreen } from "../screens/file-preview/image-preview-screen";
 import { RoomInformationScreen } from "../screens/(chat)/room-infomation/room-information-screen";
 import SendedFriendScreen from "../screens/(contact)/sended-friend/sended-friend-screen";
+import * as Notifications from 'expo-notifications';
+import { registerForPushNotificationsAsync } from "@/libs/firebase-push-notification/firebase-push-notification";
+
+
 
 export const RootScreenApp = () => {
+  const notificationListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<Notifications.Subscription>();
+
+ 
 	useEffect(() => {
 		const checkToken = async () => {
 			const token = ExpoSecureValueService.getAccessToken();

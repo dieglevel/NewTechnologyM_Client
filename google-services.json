@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1016001936576",
+    "project_id": "webzalo-d3df7",
+    "storage_bucket": "webzalo-d3df7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016001936576:android:636a4581150c3c9c000125",
+        "android_client_info": {
+          "package_name": "com.dieglevel.Zalo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiwzjKd9JKdenqQEStUDoCHARhGakABu4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
