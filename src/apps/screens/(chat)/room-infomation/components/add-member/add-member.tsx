@@ -58,7 +58,7 @@ export const AddMember = () => {
 							id: item.accountId || "",
 							fullName: item.detail?.fullName || "",
 							avatar: item.detail?.avatarUrl || "",
-							role: "member", // Assuming new members are added as 'member'
+							role: "noob", // Assuming new members are added as 'noob'
 						}));
 
 					const updatedRoom: IRoom = {
