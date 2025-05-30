@@ -2,7 +2,7 @@ import { images } from "@/assets/images";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 import { StackScreenNavigationProp } from "@/libs/navigation";
 import { useAppSelector } from "@/libs/redux/redux.config";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
@@ -39,18 +39,28 @@ export const RoomInformationScreen = () => {
 
 			return (
 				<Image
-					source={{
-						uri: account?.avatar,
-					}}
+					source={account?.avatar ? { uri: account?.avatar } : images.avatarDefault}
 					style={styles.avatar}
 				/>
 			);
 		} else {
 			return (
-				<Image
-					source={selectedRoom?.avatar ? { uri: selectedRoom.avatar } : images.avatarDefault}
-					style={styles.avatar}
-				/>
+				<>
+					{selectedRoom?.avatar ? (
+						<Image
+							source={{ uri: selectedRoom?.avatar }}
+							style={styles.avatar}
+						/>
+					) : (
+						<View style={styles.avatarContainer}>
+							<MaterialIcons
+								name="group"
+								size={24}
+								color="#6b7280"
+							/>
+						</View>
+					)}
+				</>
 			);
 		}
 	};
@@ -186,7 +196,10 @@ export const RoomInformationScreen = () => {
 				</View> */}
 
 					{selectedRoom?.type === "group" && (
-						<Pressable style={styles.section} onPress={() => navigation.navigate("FriendAction")}>
+						<Pressable
+							style={styles.section}
+							onPress={() => navigation.navigate("FriendAction")}
+						>
 							<View style={styles.sectionHeader}>
 								<Text style={[styles.sectionTitle, isDark && styles.darkSectionTitle]}>
 									Thành viên
@@ -195,7 +208,7 @@ export const RoomInformationScreen = () => {
 
 							<View style={{ flexDirection: "column", alignItems: "flex-start", width: "100%" }}>
 								<>
-									{selectedRoom.detailRoom && selectedRoom.detailRoom?.length > 2 ? (
+									{selectedRoom.detailRoom && selectedRoom.detailRoom?.length > 0 ? (
 										<>
 											{selectedRoom.detailRoom.slice(0, 4).map((member) => (
 												<View
@@ -345,12 +358,15 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	avatar: {
-		width: 80,
-		height: 80,
-		borderRadius: 40,
-		marginBottom: 8,
-		borderWidth: 2,
-		borderColor: "#3b82f6",
+		width: 48,
+		height: 48,
+		objectFit: "cover",
+		borderRadius: 999,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
 	},
 	nameRow: {
 		flexDirection: "row",
@@ -469,5 +485,19 @@ const styles = StyleSheet.create({
 	},
 	darkSecurityText: {
 		color: "#e5e7eb",
+	},
+	avatarContainer: {
+		backgroundColor: "#f4f4f4",
+		width: 48,
+		height: 48,
+		objectFit: "cover",
+		borderRadius: 9999,
+		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
 	},
 });

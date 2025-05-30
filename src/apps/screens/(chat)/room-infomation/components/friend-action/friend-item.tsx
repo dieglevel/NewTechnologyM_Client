@@ -1,10 +1,13 @@
 import { images } from "@/assets/images";
 import { colors } from "@/constants";
-import { useAppSelector } from "@/libs/redux/redux.config";
+import { useAppDispatch, useAppSelector } from "@/libs/redux/redux.config";
 import { IDetailAccountRoom, IFriend } from "@/types/implement";
 import { Image, Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useState } from "react";
+import { assignSubAdmin, removeMemberFromRoom } from "@/services";
+import { ErrorResponse } from "@/libs/axios/axios.config";
+import { setSelectedRoom } from "@/libs/redux";
 
 interface ContactItemProps {
 	item: IDetailAccountRoom;
@@ -16,6 +19,8 @@ export const FriendItem = ({ item, myUserId }: ContactItemProps) => {
 
 	const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+	const dispatch = useAppDispatch()
 
 	const handlePressCloseModal = () => {
 		setIsModalVisible(false);
@@ -56,6 +61,64 @@ export const FriendItem = ({ item, myUserId }: ContactItemProps) => {
 		}
 		return true; // Action available
 	};
+
+	const actionPressAssign = async ({ payload }: { payload: "admin" | "subadmin" | "noob" }) => {
+		try {
+			const response = await assignSubAdmin({
+				accountId: item.id || "",
+				chatRoomId: selectedRoom?.id || "",
+				role: payload,
+			});
+			if (response.statusCode === 200) {
+				if (selectedRoom) {
+					const updatedRoom = {
+						...selectedRoom,
+						detailRoom: selectedRoom.detailRoom?.map((member: IDetailAccountRoom) => {
+							if (member.id === item.id) {
+								return { ...member, role: payload };
+							}
+							return member;
+						}),
+					};
+					// Dispatch the updated room to the store
+					dispatch(setSelectedRoom(updatedRoom));
+				}
+			} else {
+				// Handle error response
+				console.error("Error assigning role:", response.data);
+			}
+		} catch (error) {
+			const err = error as ErrorResponse;
+		}
+	};
+
+	const actionPressRemove = async () => {
+		try {
+			if (selectedRoom) {
+				const response = await removeMemberFromRoom({
+					accountId: item.id || "",
+					roomId: selectedRoom.id || "",
+				})
+				if (response.statusCode === 200) {
+					// Update the selectedRoom in the store
+					const updatedRoom = {
+						...selectedRoom,
+						detailRoom: selectedRoom.detailRoom?.filter(
+							(member: IDetailAccountRoom) => member.id !== item.id,
+						),
+					};
+					dispatch(setSelectedRoom(updatedRoom));
+				} else {
+					console.error("Error removing member:", response.data);
+				}
+			}
+		} catch (error) {
+			const err = error as ErrorResponse;
+			console.error("Error removing member:", err);
+		}
+
+	}
+
 	return (
 		<>
 			<View style={styles.contactItem}>
@@ -86,6 +149,21 @@ export const FriendItem = ({ item, myUserId }: ContactItemProps) => {
 						/>
 					</TouchableOpacity>
 				)}
+				{renderActionAssign() && (
+					<TouchableOpacity
+						style={{
+							padding: 8,
+							borderRadius: 4,
+						}}
+						onPress={() => {
+							actionPressRemove()
+						}}
+					>
+					<FontAwesome name="user-times" size={16} color="black" />
+					</TouchableOpacity>
+				)}
+
+				
 			</View>
 
 			<Modal
@@ -103,20 +181,44 @@ export const FriendItem = ({ item, myUserId }: ContactItemProps) => {
 									onPress={handlePressCloseModal}
 									hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
 								>
-									<FontAwesome name="close" size={22} color="#888" />
+									<FontAwesome
+										name="close"
+										size={22}
+										color="#888"
+									/>
 								</TouchableOpacity>
 								<Text style={styles.title}>Chọn quyền</Text>
 								<Text style={styles.subtitle}>
 									Bạn muốn chuyển quyền cho{" "}
-									<Text style={{ color: "#2563eb", fontWeight: "bold" }}>{item.fullName}</Text>
+									<Text style={{ color: "#2563eb", fontWeight: "bold" }}>
+										{item.fullName}
+									</Text>
 								</Text>
-								<TouchableOpacity style={styles.modalOption} onPress={handlePressCloseModal}>
+								<TouchableOpacity
+									style={styles.modalOption}
+									onPress={() => {
+										actionPressAssign({ payload: "admin" });
+										handlePressCloseModal();
+									}}
+								>
 									<Text style={styles.modalOptionText}>Trưởng nhóm</Text>
 								</TouchableOpacity>
-								<TouchableOpacity style={styles.modalOption} onPress={handlePressCloseModal}>
+								<TouchableOpacity
+									style={styles.modalOption}
+									onPress={() => {
+										actionPressAssign({ payload: "subadmin" });
+										handlePressCloseModal();
+									}}
+								>
 									<Text style={styles.modalOptionText}>Phó nhóm</Text>
 								</TouchableOpacity>
-								<TouchableOpacity style={styles.modalOption} onPress={handlePressCloseModal}>
+								<TouchableOpacity
+									style={styles.modalOption}
+									onPress={() => {
+										actionPressAssign({ payload: "noob" });
+										handlePressCloseModal();
+									}}
+								>
 									<Text style={styles.modalOptionText}>Thành viên</Text>
 								</TouchableOpacity>
 							</View>
@@ -256,5 +358,4 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		color: "#374151", // text-gray-800
 	},
-	
 });
