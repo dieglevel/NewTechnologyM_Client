@@ -7,6 +7,7 @@ const initialListRoom = async () => {
     try {
         const response = await getRoom();
         if (response?.statusCode === 200) {
+            console.log("response", response);
             store.dispatch(initRoom(response.data.listRoomResponse));
         }
     } catch (error) {

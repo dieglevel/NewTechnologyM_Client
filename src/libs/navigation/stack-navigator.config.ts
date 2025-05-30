@@ -11,7 +11,7 @@ export type RootStackParamList = {
   Register: undefined;
   Login: undefined;
   OTP: { identifier: string; type: "phone" | "email" };
-  UserDetail: {userId: string}
+  UserDetail: { userId: string }
   Chat: undefined;
   ChatScreen: { room: IRoom };
   LoginUser: undefined;
@@ -25,7 +25,9 @@ export type RootStackParamList = {
   ListRoomScreen: undefined;
   ImagePreviewScreen: { url: string }
   SendedFriendScreen: undefined
-
+  CreateRoomScreen: undefined;
+  AddMember: undefined
+  FriendAction: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

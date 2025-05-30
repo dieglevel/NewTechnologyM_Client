@@ -89,3 +89,17 @@ export const assignSubAdmin = async (data: IAssignSubAdmin) => {
 		throw error as ErrorResponse;
 	}
 };
+
+export const addMemberToRoom = async ({ roomId, accountIds }: {
+	roomId: string;
+	accountIds: string[];
+}) => {
+	try {
+		const response = await api.post<BaseResponse<IRoom>>(`/chat-room/add-member?chatRoomID=${roomId}`, {
+			userAddIDs: accountIds,
+		});
+		return response.data;
+	} catch (error) {
+		throw error as ErrorResponse;
+	}
+};

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, Linking, Modal } from "react-native";
+import { View, Text, TouchableOpacity, Image, Linking, Modal, StyleSheet } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { IDetailInformation, IMessage } from "@/types/implement";
 import { useAppSelector } from "@/libs/redux/redux.config";
@@ -77,6 +77,85 @@ const MessageItem: React.FC<Props> = React.memo(
 		};
 		return (
 			<>
+				<Modal
+					visible={showUserInfoModal}
+					transparent
+					animationType="fade"
+				>
+					<TouchableOpacity
+						style={styless.profileSection}
+						onPress={() => setShowUserInfoModal(false)}
+					>
+						{userInfoarmtion && (
+							<>
+								<View style={styless.container}>
+									<View style={styless.rowDetail}>
+										<Image
+											source={
+												userInfoarmtion?.thumbnailUrl
+													? { uri: userInfoarmtion?.thumbnailUrl }
+													: images.background
+											}
+											style={styless.thumbnail}
+										/>
+										<Image
+											source={
+												userInfoarmtion?.avatarUrl
+													? { uri: userInfoarmtion?.avatarUrl }
+													: images.avatarDefault
+											}
+											style={styless.avatar}
+										/>
+									</View>
+
+									
+									<View style={styless.row}>
+										<View style={styless.infoContainer}>
+											<Text style={styless.name}>
+												{userInfoarmtion?.fullName ?? "-"}
+											</Text>
+										</View>
+									</View>
+										
+
+									<View style={stylesss.container}>
+										<View style={stylesss.row}>
+											<Text style={stylesss.title}>Họ và tên:</Text>
+											<Text style={stylesss.description}>
+												{detailInformation?.fullName ?? "Chưa có "}
+											</Text>
+										</View>
+										<View style={stylesss.row}>
+											<Text style={stylesss.title}>Giới tính:</Text>
+											<Text style={stylesss.description}>
+												{detailInformation?.gender === null
+													? "Chưa chọn giới tính"
+													: detailInformation?.gender
+													? "Nam"
+													: "Nữ"}
+											</Text>
+										</View>
+										<View style={stylesss.row}>
+											<Text style={stylesss.title}>Ngày sinh:</Text>
+											<Text style={stylesss.description}>
+												{detailInformation?.dateOfBirth
+													? changeDateToString(detailInformation?.dateOfBirth)
+													: "Chưa chọn ngày sinh"}
+											</Text>
+										</View>
+									</View>
+									<TouchableOpacity
+										style={styless.closeUserInfoButton}
+										onPress={() => setShowUserInfoModal(false)}
+									>
+										<Text style={styless.closeUserInfoText}>Đóng</Text>
+									</TouchableOpacity>
+								</View>
+							</>
+						)}
+					</TouchableOpacity>
+				</Modal>
+
 				<View
 					style={[
 						styles.messageRow,
@@ -127,105 +206,128 @@ const MessageItem: React.FC<Props> = React.memo(
 						)}
 					</TouchableOpacity>
 				</View>
-
-				<Modal
-					visible={showUserInfoModal}
-					transparent
-					animationType="fade"
-				>
-					<TouchableOpacity
-						style={styles.userInfoModalContainer}
-						onPress={() => setShowUserInfoModal(false)}
-					>
-						<View style={[styles.userInfoModalContent, isDark && styles.darkUserInfoModalContent]}>
-							{userInfoarmtion && (
-								<>
-									<Image
-										source={{ uri: userInfoarmtion.avatarUrl }}
-										style={styles.userInfoAvatar}
-									/>
-									<Text style={[styles.userInfoName, isDark && styles.darkUserInfoName]}>
-										{userInfoarmtion.fullName}
-									</Text>
-									<View
-										style={{
-											flex: 1,
-											justifyContent: "flex-start",
-											alignItems: "flex-start",
-											width: "100%",
-										}}
-									>
-										<View style={styles.userInfoDetail}>
-											<Text
-												style={[
-													styles.userInfoTextHeader,
-													isDark && styles.darkUserInfoText,
-												]}
-											>
-												Họ và tên:
-											</Text>
-											<Text
-												style={[
-													styles.userInfoText,
-													isDark && styles.darkUserInfoText,
-												]}
-											>
-												{userInfoarmtion.fullName}
-											</Text>
-										</View>
-
-										<View style={styles.userInfoDetail}>
-											<Text
-												style={[
-													styles.userInfoTextHeader,
-													isDark && styles.darkUserInfoText,
-												]}
-											>
-												Giới tính:
-											</Text>
-											<Text
-												style={[
-													styles.userInfoText,
-													isDark && styles.darkUserInfoText,
-												]}
-											>
-												{userInfoarmtion.gender ? "Nam" : "Nữ"}
-											</Text>
-										</View>
-
-										<View style={styles.userInfoDetail}>
-											<Text
-												style={[
-													styles.userInfoTextHeader,
-													isDark && styles.darkUserInfoText,
-												]}
-											>
-												Ngày sinh:
-											</Text>
-											<Text
-												style={[
-													styles.userInfoText,
-													isDark && styles.darkUserInfoText,
-												]}
-											>
-												{changeDateToString(userInfoarmtion.dateOfBirth || null)}
-											</Text>
-										</View>
-									</View>
-									<TouchableOpacity
-										style={styles.closeUserInfoButton}
-										onPress={() => setShowUserInfoModal(false)}
-									>
-										<Text style={styles.closeUserInfoText}>Đóng</Text>
-									</TouchableOpacity>
-								</>
-							)}
-						</View>
-					</TouchableOpacity>
-				</Modal>
 			</>
 		);
 	},
 );
 
 export default MessageItem;
+
+const styless = StyleSheet.create({
+	profileSection: {
+		width: "100%", // w-full
+		borderRadius: 12, // rounded-lg
+		flex: 1,
+		justifyContent: "center", // justify-center
+		alignItems: "center", // items-center
+		backgroundColor: "#00000066",
+	},
+	container: {
+		backgroundColor: "white",
+		flexDirection: "column", // flex-row
+		alignItems: "center", // items-center
+		alignContent: "center", // content-center
+		justifyContent: "flex-start", // justify-between
+		paddingHorizontal: 16, // px-4
+		paddingVertical: 16, // py-4
+		borderRadius: 12, // rounded-lg
+	},
+	row: {
+		flexDirection: "row", // flex-row
+		alignItems: "center", // items-center
+		alignContent: "center", // content-center
+		justifyContent: "center", // justify-between
+	},
+	rowDetail: {
+		flexDirection: "row", // flex-row
+		alignItems: "center", // items-center
+		justifyContent: "center", // justify-center
+		marginBottom: 40, // mb-3
+		position: "relative", // relative
+	},
+	avatar: {
+		position: "absolute", // absolute
+		bottom: -40, // -mt-8
+		width: 100, // w-14
+		height: 100, // h-14
+		borderRadius: 20, // rounded-full
+		borderWidth: 4, // border-2
+		borderColor: "white", // border-gray-200
+		alignItems: "center", // items-center
+		justifyContent: "center", // justify-center
+	},
+	infoContainer: {
+		flex: 1,
+	},
+	name: {
+		fontSize: 30, // text-lg
+		fontWeight: "600", // font-semibold
+		textAlign: "center", // text-center
+	},
+	link: {
+		color: "#6B7280", // text-gray-500
+	},
+	thumbnail: {
+		width: "100%",
+		height: 200, // h-24
+		borderRadius: 12, // rounded-lg
+		backgroundColor: "#E5E7EB", // bg-gray-200
+		alignSelf: "center", // self-center
+		resizeMode: "cover", // object-cover
+	},
+	closeUserInfoButton: {
+		backgroundColor: colors.brand, // bg-blue-500
+		paddingVertical: 10, // py-2
+		paddingHorizontal: 20, // px-4
+		borderRadius: 8, // rounded-md
+		marginTop: 20, // mt-4
+		width: "100%", // w-full
+	},
+	closeUserInfoText: {
+		color: "white", // text-white
+		fontSize: 16, // text-base
+		fontWeight: "500", // font-medium
+		textAlign: "center", // text-center
+	},
+});
+
+const stylesss = StyleSheet.create({
+	container: {
+		gap: 8,
+		flexDirection: "column", // flex-row
+		alignItems: "flex-start", // items-center
+		justifyContent: "flex-start", // justify-between
+		minWidth: "100%",
+		paddingHorizontal: 32, // px-4
+		marginTop: 16, // mt-4
+	},
+	row: {
+		alignItems: "flex-end", // items-end
+		justifyContent: "flex-start", // justify-center
+		flexDirection: "row", // flex-row
+		gap: 8, // gap-2
+		width: "100%", // w-full
+	},
+	title: {
+		minWidth: 100, // w-24
+		fontSize: 20, // text-xl
+		fontWeight: "600", // font-semibold
+	},
+	description: {
+		color: "#6B7280", // text-gray-500
+		textAlign: "center",
+		fontSize: 18, // text-base
+	},
+	button: {
+		backgroundColor: "#007AFF", // bg-[#007AFF]
+		borderRadius: 9999, // rounded-full
+		paddingVertical: 12, // py-3
+		marginTop: 24, // mt-6
+		width: "50%", // w-1/2
+	},
+	buttonText: {
+		color: "white", // text-white
+		textAlign: "center",
+		fontWeight: "600", // font-semibold
+	},
+});

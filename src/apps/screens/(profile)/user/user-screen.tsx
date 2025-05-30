@@ -20,6 +20,7 @@ import { clearDetailInformationReducer } from "@/libs/redux";
 import { MMKV } from "react-native-mmkv";
 import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { logoutApi } from "@/services";
 
 const OptionRow = ({
 	icon,
@@ -52,15 +53,22 @@ export const UserScreen = () => {
 	const { detailInformation } = useAppSelector((state) => state.detailInformation);
 
 	const handleLogout = async () => {
-		ExpoSecureValueService.removeAccessToken();
-		ExpoSecureValueService.removeIpDevice();
-		ExpoSecureValueService.removeUserId();
-		api.defaults.headers.common["Authorization"] = undefined;
-		api.defaults.headers.common["ip-device"] = undefined;
-		dispatch(clearDetailInformationReducer());
-		socketService.disconnect();
-		new MMKV().clearAll();
-		navigation.reset({ routes: [{ name: "Login" }] });
+		try {
+			const response = await logoutApi();
+			if (response.statusCode === 200) {
+				ExpoSecureValueService.removeAccessToken();
+				ExpoSecureValueService.removeIpDevice();
+				ExpoSecureValueService.removeUserId();
+				api.defaults.headers.common["Authorization"] = undefined;
+				api.defaults.headers.common["ip-device"] = undefined;
+				dispatch(clearDetailInformationReducer());
+				socketService.disconnect();
+				new MMKV().clearAll();
+				navigation.reset({ routes: [{ name: "Login" }] });
+			}
+		} catch (e) {
+			console.error("Logout error:", e);
+		}
 	};
 
 	const handleChangePassword = () => {

@@ -7,9 +7,10 @@ interface ContactItemProps {
 	item: IFriend;
 	checked: string[];
 	onChecked?: (contact: IFriend) => void;
+	isDisabled?: boolean;
 }
 
-export const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
+export const FriendItem = ({ item, checked, onChecked, isDisabled }: ContactItemProps) => {
 	return (
 		<TouchableOpacity
 			style={styles.contactItem}
@@ -18,6 +19,7 @@ export const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
 					onChecked(item);
 				}
 			}}
+			disabled={isDisabled}
 		>
 			{/* <View style={[styles.avatar, { backgroundColor: getRandomColor(item.detail?.fullName ?? "-") }]}> */}
 
@@ -30,7 +32,7 @@ export const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
 			<View style={styles.contactInfo}>
 				<Text style={styles.contactName}>{item.detail?.fullName}</Text>
 			</View>
-			<TouchableOpacity style={{ marginLeft: 10 }}>
+			<View style={{ marginLeft: 10 }}>
 				<View
 					style={{
 						width: 15,
@@ -38,10 +40,10 @@ export const FriendItem = ({ item, checked, onChecked }: ContactItemProps) => {
 						borderRadius: 10,
 						borderWidth: 0.5,
 						borderColor: checked.includes(item.accountId ?? "") ? colors.brand : "#9ca3af",
-						backgroundColor: checked.includes(item.accountId ?? "") ? colors.brand : "white",
+						backgroundColor: isDisabled ? "gray" : checked.includes(item.accountId ?? "") ? colors.brand : "white",
 					}}
 				/>
-			</TouchableOpacity>
+			</View>
 		</TouchableOpacity>
 	);
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Dimensions, TouchableOpacity, Linking, Image } from "react-native";
+import { View, Text, Dimensions, TouchableOpacity, Linking, Image, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 import { ResizeMode, Video } from "expo-av";
 import { IMessageFile } from "@/types/implement";
@@ -8,12 +8,16 @@ import * as FileSystem from "expo-file-system";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import { StackScreenNavigationProp } from "@/libs/navigation";
+import * as Sharing from 'expo-sharing';
+import FileViewer from 'react-native-file-viewer';
+
+import * as IntentLauncher from 'expo-intent-launcher';
 
 type FileType = "image" | "pdf" | "video" | "doc" | "unknown";
 
 interface FilePreviewProps {
 	data: IMessageFile;
-	action: () => void
+	action: () => void;
 }
 
 const screenHeight = Dimensions.get("window").height;
@@ -34,56 +38,53 @@ const FilePreview: React.FC<FilePreviewProps> = ({ data, action }) => {
 	const [aspectRatio, setAspectRatio] = useState<number>(1);
 	useEffect(() => {
 		if (type === "image") {
-			Image.getSize(data.url, (width, height) => {
-				setAspectRatio(width / height);
-			}, (error) => {
-				console.log("❌ Lấy kích thước hình ảnh thất bại:", error);
-				console.log("❌ URL hình ảnh:", data.url);
-				setAspectRatio(1); // Đặt tỉ lệ mặc định nếu không lấy được kích thước
-			});
+			Image.getSize(
+				data.url,
+				(width, height) => {
+					setAspectRatio(width / height);
+				},
+				(error) => {
+					console.log("❌ Lấy kích thước hình ảnh thất bại:", error);
+					console.log("❌ URL hình ảnh:", data.url);
+					setAspectRatio(1); // Đặt tỉ lệ mặc định nếu không lấy được kích thước
+				},
+			);
 		} else {
 			setAspectRatio(1); // Đặt tỉ lệ mặc định cho các loại file khác
 		}
 	}, []);
 
-	const downloadFile = async () => {
-		Toast.show({
-			text1: "File đang được tải xuống",
-			type: "info",
-		});
-		try {
-			const fileUrl = data.url;
-			const fileName = fileUrl.split("/").pop(); // Tách tên file từ URL
+const downloadAndShareFile = async () => {
+   try {
+    const fileUrl = data.url;
+    const fileName = fileUrl.split('/').pop() || 'file.docx';
+    const fileUri = FileSystem.documentDirectory + fileName;
 
-			const documentDir = FileSystem.documentDirectory;
-			if (!documentDir) {
-				throw new Error("Không thể truy cập thư mục documentDirectory");
-			}
-			const fileUri = documentDir + fileName;
+    const downloadResult = await FileSystem.downloadAsync(fileUrl, fileUri);
+    console.log("✅ File tải tại:", downloadResult.uri);
 
-			const result = await FileSystem.downloadAsync(fileUrl, fileUri);
-			Toast.show({
-				text1: "File đã tả thành công",
-				type: "success",
-			});
-		} catch (error) {
-			console.error("❌ Tải file thất bại:", error);
-			Toast.show({
-				text1: "File đã tả thành công",
-				type: "error",
-			});
-		}
-	};
+    // Mở file bằng FileViewer
+    await FileViewer.open(downloadResult.uri, {
+      showOpenWithDialog: true,
+      showAppsSuggestions: true,
+    });
+  } catch (error: any) {
+    console.error("❌ Lỗi khi mở file:", error);
+    Toast.show({
+      text1: "Lỗi khi mở file",
+      text2: error.message,
+      type: "error",
+    });
+  }
+};
 	switch (type) {
 		case "image":
-
 			return (
 				<TouchableOpacity
 					onPress={() => {
 						navigate.navigate("ImagePreviewScreen", { url: data.url });
 					}}
 					onLongPress={action}
-					
 				>
 					<Image
 						source={{ uri: data.url }}
@@ -163,7 +164,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ data, action }) => {
 						<Text>{data.data.size && (Number.parseInt(data.data.size) / 8000000).toFixed(1)} MB</Text>
 						<TouchableOpacity
 							style={{}}
-							onPress={() => downloadFile()}
+							onPress={() => downloadAndShareFile()}
 						>
 							<Text style={{ color: "black", fontWeight: "bold" }}>Nhấn để tải xuống</Text>
 						</TouchableOpacity>

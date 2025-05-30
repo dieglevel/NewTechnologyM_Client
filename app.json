@@ -10,7 +10,8 @@
     "splash": {
       "image": "./src/assets/images/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "imageWidth": 200
     },
     "ios": {
       "supportsTablet": true,
@@ -21,6 +22,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/logo.png",
@@ -43,12 +45,30 @@
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends.",
           "cameraPermission": "The app needs access to your camera to take photos and videos."
+        },
+        "expo-notifications",
+        {
+          "icon": "./src/assets/images/icon.png",
+          "color": "#ffffff"
         }
       ]
     ],
     "plugins": [
       "expo-barcode-scanner",
       "react-native-video"
-    ]
+    ],
+    "extra": {
+      "firebase": {
+        "projectId": "webzalo-d3df7"
+      },
+      "eas": {
+        "projectId": "1e18cb39-ced0-4c88-b74f-6980260521a2"
+      }
+    },
+    "owner": "dieglevel",
+    "notification": {
+     "icon": "./src/assets/images/icon.png",
+      "color": "#fff"
+    }
   }
 }

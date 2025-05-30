@@ -239,8 +239,8 @@ const styles = StyleSheet.create({
 		padding: 8, // p-2
 	},
 	image: {
-		width: 120, // w-60
-		height: 120, // h-60
+		width: 300, // w-60
+		height: 300, // h-60
 		alignSelf: "center",
 	},
 	pageTitle: {

@@ -24,7 +24,7 @@ export const fetchedRoom = async () => {
 };
 
 
-export const createGroup = async (nameGroup: string, checked: string[], setShowCreateGroupModal: React.Dispatch<React.SetStateAction<boolean>>, setChecked: React.Dispatch<React.SetStateAction<string[]>>, setNameGroup: React.Dispatch<React.SetStateAction<string>>) => {
+export const createGroup = async (nameGroup: string, checked: string[]) => {
    if (nameGroup.trim() === "") {
       Toast.show({
          type: "error",
@@ -53,9 +53,6 @@ export const createGroup = async (nameGroup: string, checked: string[], setShowC
                text1: "Tạo nhóm thành công",
                position: "top",
             });
-            setShowCreateGroupModal(false);
-            setChecked([]);
-            setNameGroup("");
             return;
          }
       }

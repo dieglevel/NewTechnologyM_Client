@@ -14,8 +14,10 @@ export const LoginUserScreen = () => {
 	const [identifier, setIdentifier] = useState<string>("dieglevel@yopmail.com");
 	const [password, setPassword] = useState<string>("admin");
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	const handleLogin = async () => {
+		setIsLoading(true);
 		try {
 			const response = await loginApi(identifier, password);
 
@@ -39,6 +41,8 @@ export const LoginUserScreen = () => {
 				text1: "Đăng nhập thất bại",
 				text2: err.message,
 			});
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -69,7 +73,7 @@ export const LoginUserScreen = () => {
 						<Text style={styles.togglePasswordText}>{isPasswordVisible ? "ẨN" : "HIỆN"}</Text>
 					</TouchableOpacity>
 				</View>
-				<Button title="Đăng nhập" onPress={handleLogin}/>
+				<Button title="Đăng nhập" onPress={handleLogin} disabled={isLoading}  /> 
 				<TouchableOpacity onPress={() => navigation.navigate("ForgotPasswordScreen")}>
 					<Text style={styles.forgotPasswordText}>Lấy lại mật khẩu</Text>
 				</TouchableOpacity>

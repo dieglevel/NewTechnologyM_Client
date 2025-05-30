@@ -7,31 +7,52 @@ import * as Linking from "expo-linking";
 import { Ionicons } from "@expo/vector-icons";
 import { ImagePreviewScreenRouteProp, StackScreenNavigationProp } from "@/libs/navigation";
 import Toast from "react-native-toast-message";
+import * as MediaLibrary from 'expo-media-library';
 
 export const ImagePreviewScreen = () => {
 	const navigate = useNavigation<StackScreenNavigationProp>();
 	const route = useRoute<ImagePreviewScreenRouteProp>();
 	const { url } = route.params;
 
-	const handleDownload = async () => {
-		try {
-			const fileName = url.split("/").pop() || "image.jpg";
-			const fileUri = FileSystem.documentDirectory + fileName;
-			await FileSystem.downloadAsync(url, fileUri);
-			Toast.show({
-				type: "success",
-				text1: "Tải ảnh thành công",
-                text2: `Ảnh đã được lưu tại: ${fileUri}`,
-			});
-		} catch (error) {
-			console.error("Error downloading image:", error);
-			Toast.show({
-				type: "error",
-				text1: "Lỗi tải ảnh",
-				text2: "Không thể tải ảnh xuống. Vui lòng thử lại sau.",
-			});
-		}
-	};
+const handleDownload = async () => {
+  const fileName = url.split('/').pop() || 'image.jpg';
+  const fileUri = FileSystem.documentDirectory + fileName;
+
+  try {
+    // Xin quyền truy cập Media Library
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Toast.show({
+        type: 'error',
+        text1: 'Permission denied',
+        text2: 'Không có quyền truy cập thư viện.',
+      });
+      return;
+    }
+
+    // Tải ảnh về thư mục tạm trước
+    const downloadedFile = await FileSystem.downloadAsync(url, fileUri);
+
+    // Tạo Asset trong MediaLibrary
+    const asset = await MediaLibrary.createAssetAsync(downloadedFile.uri);
+
+    // Thêm vào album "Download" (hoặc album riêng của app bạn nếu muốn)
+    await MediaLibrary.createAlbumAsync('Download', asset, false);
+
+    Toast.show({
+      type: 'success',
+      text1: 'Tải ảnh thành công',
+      text2: 'Ảnh đã được lưu vào thư viện (Download)',
+    });
+  } catch (error) {
+    console.error('Download error:', error);
+    Toast.show({
+      type: 'error',
+      text1: 'Lỗi tải ảnh',
+      text2: 'Không thể tải ảnh xuống. Vui lòng thử lại.',
+    });
+  }
+};
 
 	const handleOpenInBrowser = () => {
 		Linking.openURL(url);

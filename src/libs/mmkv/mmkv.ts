@@ -84,6 +84,17 @@ export class GenericMMKVStorage<T> {
       this.set(updated);
    }
 
+   public updateMany(updater: (item: T) => Partial<T>): void {
+      const keys = this.getKeyList();
+      for (const key of keys) {
+         const item = this.get(key);
+         if (item) {
+            const updated = { ...item, ...updater(item) };
+            this.set(updated);
+         }
+      }
+   }
+
    public delete(primaryValue: string): void {
       this.storage.delete(this.getKey(primaryValue));
       const keys = this.getKeyList().filter(k => k !== primaryValue);
