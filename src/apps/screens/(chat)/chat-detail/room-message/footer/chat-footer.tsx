@@ -14,7 +14,6 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import * as ImagePickerExpo from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useEffect, useState } from "react";
-import { sendMessage } from "../message-utils";
 import { useAppSelector } from "@/libs/redux/redux.config";
 import { startRecording, stopRecording } from "../audio-utils";
 import { IMessage } from "@/types/implement";
@@ -96,6 +95,23 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 						color="#3b82f6"
 					/>
 				</TouchableOpacity>
+<TouchableOpacity
+	style={styles.inputIcon}
+	onPress={async () => {
+		if (isRecording) {
+			await stopRecording(recording, setRecording, setIsRecording, selectedRoom?.id || "");
+		} else {
+			await startRecording(setRecording, setIsRecording);
+		}
+	}}
+>
+	<Ionicons
+		name={isRecording ? "stop-circle-outline" : "mic-outline"}
+		size={26}
+		color={isRecording ? "#ef4444" : "#3b82f6"}
+	/>
+</TouchableOpacity>
+
 				<TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
 					<Ionicons
 						name={editingMessageId ? "save" : "send"}

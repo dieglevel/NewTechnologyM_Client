@@ -1,7 +1,9 @@
 import { Audio } from "expo-av";
-import { uploadAudioToMessageApi } from "@/services/upload";
 import { Alert } from "react-native";
+import { sendMessage } from "@/services";
+import { ExpoSecureValueService } from "@/libs/expo-secure-store/implement";
 
+// Hàm kiểm tra quyền ghi âm
 const checkAudioPermissions = async () => {
 	const { status } = await Audio.requestPermissionsAsync();
 	if (status !== "granted") {
@@ -11,9 +13,10 @@ const checkAudioPermissions = async () => {
 	return true;
 };
 
+// Hàm bắt đầu ghi âm
 const startRecording = async (
 	setRecording: (recording: Audio.Recording | null) => void,
-	setIsRecording: (isRecording: boolean) => void,
+	setIsRecording: (isRecording: boolean) => void
 ) => {
 	const hasPermission = await checkAudioPermissions();
 	if (!hasPermission) return;
@@ -24,19 +27,23 @@ const startRecording = async (
 			playsInSilentModeIOS: true,
 		});
 
-		const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+		const { recording } = await Audio.Recording.createAsync(
+			Audio.RecordingOptionsPresets.HIGH_QUALITY
+		);
 		setRecording(recording);
 		setIsRecording(true);
 	} catch (error) {
+		console.error("❌ Error in startRecording:", error);
 		Alert.alert("Lỗi", "Không thể bắt đầu ghi âm. Vui lòng thử lại.");
-		console.error("Error in startRecording:", error);
 	}
 };
 
+// Hàm dừng ghi âm và gửi file
 const stopRecording = async (
 	recording: Audio.Recording | null,
 	setRecording: (recording: Audio.Recording | null) => void,
 	setIsRecording: (isRecording: boolean) => void,
+	roomId: string
 ) => {
 	if (!recording) return;
 
@@ -52,40 +59,42 @@ const stopRecording = async (
 				name: `recording_${Date.now()}.m4a`,
 				type: "audio/m4a",
 			};
-			uploadAudio(file);
+			await uploadAudio(file, roomId);
 		}
 	} catch (error) {
+		console.error("❌ Error in stopRecording:", error);
 		Alert.alert("Lỗi", "Không thể dừng ghi âm. Vui lòng thử lại.");
-		console.error("Error in stopRecording:", error);
 	}
 };
 
-const uploadAudio = async (file: { uri: string; name: string; type: string }) => {
+// Hàm upload và gửi tin nhắn âm thanh
+const uploadAudio = async (
+	file: { uri: string; name: string; type: string },
+	roomId: string
+) => {
 	try {
-		const formData = new FormData();
-		formData.append("file", {
-			uri: file.uri,
-			name: file.name,
-			type: file.type,
-		} as any);
+		const accountId = await ExpoSecureValueService.getUserId();
 
-		formData.append("chatId", "default_chat_id");
-		formData.append("senderId", "me");
-		formData.append("timestamp", new Date().toISOString());
-
-		const response = await uploadAudioToMessageApi(formData);
-
-		if (response && (response.data as any)?.audioUrl) {
-			sendAudioMessage((response.data as any).audioUrl);
-		} else {
-			Alert.alert("Lỗi", "Không thể tải file âm thanh lên server.");
+		if (!accountId || !roomId) {
+			Alert.alert("Lỗi", "Thiếu thông tin người dùng hoặc phòng chat.");
+			return;
 		}
+
+		const response = await sendMessage({
+			roomId,
+			type: "voice",
+			accountId,
+			files: [file],
+		});
+
+		console.log("✅ Tin nhắn ghi âm đã gửi thành công:", response);
 	} catch (error) {
-		Alert.alert("Lỗi", "Đã xảy ra lỗi khi tải file âm thanh. Vui lòng thử lại.");
-		console.error("Error in uploadAudio:", error);
+		console.error("❌ Lỗi khi gửi tin nhắn âm thanh:", error);
+		Alert.alert("Lỗi", "Không thể gửi tin nhắn âm thanh. Vui lòng thử lại.");
 	}
 };
 
+// Hàm tạo tin nhắn ghi âm ảo (local UI preview)
 const sendAudioMessage = async (audioUrl: string) => {
 	try {
 		const currentTime = new Date().toLocaleTimeString([], {
@@ -107,20 +116,22 @@ const sendAudioMessage = async (audioUrl: string) => {
 
 		return message;
 	} catch (error) {
+		console.error("❌ Error in sendAudioMessage:", error);
 		Alert.alert("Lỗi", "Không thể gửi tin nhắn thoại. Vui lòng thử lại.");
-		console.error("Error in sendAudioMessage:", error);
 	}
 };
 
+// Hàm phát âm thanh từ URL
 const playAudio = async (
 	audioUrl: string,
 	messageId: string,
 	sound: any,
 	setSound: (sound: any) => void,
 	playingAudioId: string | null,
-	setPlayingAudioId: (id: string | null) => void,
+	setPlayingAudioId: (id: string | null) => void
 ) => {
 	try {
+		// Nếu đang phát và bấm lại => dừng
 		if (sound && playingAudioId === messageId) {
 			await sound.stopAsync();
 			await sound.unloadAsync();
@@ -142,9 +153,16 @@ const playAudio = async (
 			}
 		});
 	} catch (error) {
+		console.error("❌ Error in playAudio:", error);
 		Alert.alert("Lỗi", "Không thể phát âm thanh. Vui lòng thử lại.");
-		console.error("Error in playAudio:", error);
 	}
 };
 
-export { checkAudioPermissions, startRecording, stopRecording, uploadAudio, sendAudioMessage, playAudio };
+export {
+	checkAudioPermissions,
+	startRecording,
+	stopRecording,
+	uploadAudio,
+	sendAudioMessage,
+	playAudio,
+};
