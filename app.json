@@ -14,7 +14,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "jsEngine": "jsc"
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Ứng dụng cần truy cập camera để chụp ảnh và quay video.",
+        "NSPhotoLibraryUsageDescription": "Ứng dụng cần truy cập thư viện ảnh để bạn chia sẻ ảnh với bạn bè."
+      }
     },
     "android": {
       "usesCleartextTraffic": true,
@@ -22,7 +26,12 @@
         "foregroundImage": "./src/assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dieglevel.Zalo"
+      "package": "com.dieglevel.Zalo",
+      "permissions": [
+        "android.permission.CAMERA", 
+        "android.permission.READ_EXTERNAL_STORAGE", 
+        "android.permission.WRITE_EXTERNAL_STORAGE" 
+      ]
     },
     "web": {
       "favicon": "./src/assets/images/logo.png"
@@ -32,7 +41,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
+          "photosPermission": "The app accesses your photos to let you share them with your friends.",
+          "cameraPermission": "The app needs access to your camera to take photos and videos."
         }
       ]
     ],
