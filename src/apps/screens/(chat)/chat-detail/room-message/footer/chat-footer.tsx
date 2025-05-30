@@ -41,10 +41,12 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 
 	const [showEmoji, setShowEmoji] = useState<boolean>(false);
 
+	const [isFocused, setIsFocused] = useState<boolean>(false);
+
 	const handleSendMessage = () => {
 		sendMessages(inputText, selectedRoom?.id || "");
 		setInputText("");
-	}
+	};
 
 	return (
 		<KeyboardAvoidingView
@@ -70,9 +72,13 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 					</TouchableOpacity>
 				)}
 
-				<ImagePicker />
+				{!isFocused && (
+					<>
+						<ImagePicker />
 
-				<FilePicker />
+						<FilePicker />
+					</>
+				)}
 
 				<TextInput
 					style={[styles.textInput, isDark && styles.darkTextInput]}
@@ -84,6 +90,8 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 					}}
 					onSubmitEditing={handleSendMessage}
 					returnKeyType="send"
+					onFocus={() => setIsFocused(true)}
+					onBlur={() => setIsFocused(false)}
 				/>
 				<TouchableOpacity
 					style={styles.inputIcon}
@@ -95,24 +103,27 @@ const Footer = ({ isDark, editingMessageId, setEditingMessageId, setMessages }: 
 						color="#3b82f6"
 					/>
 				</TouchableOpacity>
-<TouchableOpacity
-	style={styles.inputIcon}
-	onPress={async () => {
-		if (isRecording) {
-			await stopRecording(recording, setRecording, setIsRecording, selectedRoom?.id || "");
-		} else {
-			await startRecording(setRecording, setIsRecording);
-		}
-	}}
->
-	<Ionicons
-		name={isRecording ? "stop-circle-outline" : "mic-outline"}
-		size={26}
-		color={isRecording ? "#ef4444" : "#3b82f6"}
-	/>
-</TouchableOpacity>
+				<TouchableOpacity
+					style={styles.inputIcon}
+					onPress={async () => {
+						if (isRecording) {
+							await stopRecording(recording, setRecording, setIsRecording, selectedRoom?.id || "");
+						} else {
+							await startRecording(setRecording, setIsRecording);
+						}
+					}}
+				>
+					<Ionicons
+						name={isRecording ? "stop-circle-outline" : "mic-outline"}
+						size={26}
+						color={isRecording ? "#ef4444" : "#3b82f6"}
+					/>
+				</TouchableOpacity>
 
-				<TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+				<TouchableOpacity
+					style={styles.sendButton}
+					onPress={handleSendMessage}
+				>
 					<Ionicons
 						name={editingMessageId ? "save" : "send"}
 						size={20}

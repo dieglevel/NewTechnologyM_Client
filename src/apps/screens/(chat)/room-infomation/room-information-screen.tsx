@@ -55,7 +55,7 @@ export const RoomInformationScreen = () => {
 						<View style={styles.avatarContainer}>
 							<MaterialIcons
 								name="group"
-								size={24}
+								size={40}
 								color="#6b7280"
 							/>
 						</View>
@@ -358,8 +358,8 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	avatar: {
-		width: 48,
-		height: 48,
+		width: 100,
+		height: 100,
 		objectFit: "cover",
 		borderRadius: 999,
 		shadowColor: "#000",
@@ -488,8 +488,8 @@ const styles = StyleSheet.create({
 	},
 	avatarContainer: {
 		backgroundColor: "#f4f4f4",
-		width: 48,
-		height: 48,
+		width: 100,
+		height: 100,
 		objectFit: "cover",
 		borderRadius: 9999,
 		alignItems: "center",
