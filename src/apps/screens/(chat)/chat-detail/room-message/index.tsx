@@ -200,14 +200,7 @@ const ChatDetail = () => {
                   }
                 }}
               >
-                <RenderMessageItem
-                  item={pinnedMessage}
-                  myUserId={myUserId}
-                  detailInformation={detailInformation}
-                  setActionMessage={setActionMessage}
-                  setShowActionModal={setShowActionModal}
-                  isDark={isDark}
-                />
+                <Text style={styles.pinnedMessageText}>{pinnedMessage.content}</Text>
               </TouchableOpacity>
             </View>
           )}

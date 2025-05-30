@@ -1,3 +1,4 @@
+import { handlePinMessage } from './../apps/screens/(chat)/chat-detail/room-message/modal/handle';
 import { api, ErrorResponse } from "@/libs/axios/axios.config";
 import { BaseResponse } from "@/types";
 import { BaseFile } from "@/types/base-file";
@@ -102,17 +103,17 @@ export const deleteMessageById = async ({ messageId }: { messageId: string }) =>
 	}
 };
 
-export const createPinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
-  try {
-    const response = await api.post<BaseResponse<IMessage>>("/pinned-message/create-pinned-message", {
-      messageId,
-      chatRoomId,
-    });
-    return response.data;
-  } catch (error) {
-    throw error as ErrorResponse;
-  }
-};
+// export const createPinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
+//   try {
+//     const response = await api.post<BaseResponse<IMessage>>("/pinned-message/create-pinned-message", {
+//       messageId,
+//       chatRoomId,
+//     });
+//     return response.data;
+//   } catch (error) {
+//     throw error as ErrorResponse;
+//   }
+// };
 
 export const getPinnedMessages = async (chatRoomId?: string) => {
   try {
@@ -127,11 +128,44 @@ export const getPinnedMessages = async (chatRoomId?: string) => {
     throw error as ErrorResponse;
   }
 };
+// export const removePinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
+//   try {
+//     const response = await api.delete<BaseResponse<IMessage>>("/pinned-message/remove-pinned-message", {
+//       params: { messageId, chatRoomId },
+//     });
+//     return response.data;
+//   } catch (error) {
+//     throw error as ErrorResponse;
+//   }
+// };
+export const createPinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
+  try {
+    const pinnedMessages = await getPinnedMessages(chatRoomId);
+    if (pinnedMessages.data && pinnedMessages.data.length >= 5) {
+      throw new Error("Đã đạt giới hạn số tin nhắn ghim (5)");
+    }
+    const response = await api.post<BaseResponse<IMessage>>("/pinned-message/create-pinned-message", {
+      messageId,
+      chatRoomId,
+    });
+    if (response.data) {
+      response.data.isPinned = true;
+    }
+    return response.data;
+  } catch (error) {
+    throw error as ErrorResponse;
+  }
+};
+
 export const removePinnedMessage = async ({ messageId, chatRoomId }: { messageId: string; chatRoomId: string }) => {
   try {
     const response = await api.delete<BaseResponse<IMessage>>("/pinned-message/remove-pinned-message", {
       params: { messageId, chatRoomId },
     });
+    // Cập nhật isPinned trong response
+    if (response.data) {
+      response.data.isPinned = false;
+    }
     return response.data;
   } catch (error) {
     throw error as ErrorResponse;

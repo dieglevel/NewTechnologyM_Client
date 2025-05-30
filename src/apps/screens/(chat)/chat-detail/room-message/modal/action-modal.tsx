@@ -164,6 +164,7 @@ export const ActionModalMessage = ({
                 _id: actionMessage._id,
                 type: newRoom.latestMessage?.type || "mixed",
                 isRevoked: true,
+                chatRoomId: newRoom.latestMessage?.chatRoomId ?? chatRoomId, // Ensure chatRoomId is always a string
               };
 
               store.dispatch(setRoom([newRoom]));

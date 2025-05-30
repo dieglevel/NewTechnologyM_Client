@@ -7,6 +7,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { ExpoSecureStoreKeys, getSecure } from "../expo-secure-store/expo-secure-store";
 import { store } from "../redux/redux.config";
 import { fetchDetailInformation } from "../redux";
+import { setPinnedMessage, clearPinnedMessage } from "../redux/stores/model/pinnedMessage-slice"
 
 class SocketService {
 	private static instance: SocketService;
@@ -41,9 +42,9 @@ class SocketService {
 				token: `${token}`,
 			},
 		});
+
 		this.registerCoreEvents();
 	}
-	
 
 	private registerCoreEvents() {
 		if (!this.socket) return;
@@ -52,21 +53,22 @@ class SocketService {
 		DetailInformationSocket(this.socket);
 		MyListRoomSocket(this.socket);
 		FriendSocket(this.socket);
-
-		// 👇 Thêm xử lý pinMessage và unpinMessage tại đây
 		this.socket.on("pinMessage", ({ chatRoomId, message }) => {
-			console.log("📌 Tin nhắn được ghim:", chatRoomId, message);
+  console.log("📌 Tin nhắn được ghim:", chatRoomId, message);
+  store.dispatch(setPinnedMessage({ chatRoomId, message: { ...message, isPinned: true } }));
+});
 
-			// Nếu dùng Redux:
-			// store.dispatch(setPinnedMessage({ chatRoomId, message }));
-		});
-
-		this.socket.on("unpinMessage", ({ chatRoomId }) => {
-			console.log("❌ Gỡ ghim tin nhắn:", chatRoomId);
-
-			// Nếu dùng Redux:
-			// store.dispatch(clearPinnedMessage({ chatRoomId }));
-		});
+this.socket.on("unpinMessage", ({ chatRoomId, messageId }) => {
+  console.log("❌ Gỡ ghim tin nhắn:", chatRoomId);
+  store.dispatch(clearPinnedMessage({ chatRoomId }));
+  // Cập nhật trạng thái isPinned trong danh sách tin nhắn
+  store.dispatch(
+    setPinnedMessage({
+      chatRoomId,
+      message: { _id: messageId, isPinned: false },
+    })
+  );
+});
 	}
 
 	public disconnect() {

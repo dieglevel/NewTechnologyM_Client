@@ -1,11 +1,11 @@
 import { ErrorResponse } from "@/libs/axios/axios.config";
-import { useAppSelector } from "@/libs/redux/redux.config";
 import { socketService } from "@/libs/socket/socket";
 import {
   deleteMessageById,
   revokeMessage,
   createPinnedMessage,
   removePinnedMessage,
+  getPinnedMessages,
 } from "@/services";
 import { IMessage } from "@/types/implement";
 import { Clipboard } from "react-native";
@@ -45,7 +45,8 @@ export const handleRemoveMessageByMyself = async (messageId: string) => {
 
 export const handlePinMessage = async (message: IMessage, chatRoomId: string) => {
   try {
-    if (!message._id || !chatRoomId) throw new Error("Thiếu dữ liệu");
+    if (!message._id) throw new Error("Thiếu ID tin nhắn");
+    if (!chatRoomId || chatRoomId.trim() === "") throw new Error("Không tìm thấy ID phòng chat");
 
     const response = await createPinnedMessage({
       messageId: message._id,
@@ -58,11 +59,17 @@ export const handlePinMessage = async (message: IMessage, chatRoomId: string) =>
         text1: "Tin nhắn đã được ghim",
       });
 
-      // ✅ Gửi sự kiện socket để những thành viên khác nhận được
+      // Gửi sự kiện socket đến các thành viên trong phòng
       socketService.emit("pinMessage", {
-        message,
+        message: { ...message, isPinned: true },
         chatRoomId,
       });
+
+      // Cập nhật danh sách tin nhắn ghim trên client
+      const pinnedResponse = await getPinnedMessages(chatRoomId);
+      if (pinnedResponse.statusCode === 200 && pinnedResponse.data) {
+        // Cập nhật danh sách tin nhắn ghim (sẽ xử lý ở ChatDetail)
+      }
     }
   } catch (error) {
     const err = error as ErrorResponse;
@@ -70,13 +77,16 @@ export const handlePinMessage = async (message: IMessage, chatRoomId: string) =>
     Toast.show({
       type: "error",
       text1: "Ghim tin nhắn thất bại",
-      text2: err?.response?.data?.message || "Lỗi máy chủ",
+      text2: err?.response?.data?.message || err.message || "Lỗi máy chủ",
     });
   }
 };
 
 export const handleUnpinMessage = async (message: IMessage, chatRoomId: string) => {
   try {
+    if (!message._id) throw new Error("Thiếu ID tin nhắn");
+    if (!chatRoomId || chatRoomId.trim() === "") throw new Error("Không tìm thấy ID phòng chat");
+
     const response = await removePinnedMessage({
       messageId: message._id,
       chatRoomId,
@@ -88,10 +98,13 @@ export const handleUnpinMessage = async (message: IMessage, chatRoomId: string) 
         text1: "Đã bỏ ghim tin nhắn",
       });
 
-      // ✅ Gửi sự kiện socket để cập nhật phía người khác
+      // Gửi sự kiện socket đến các thành viên trong phòng
       socketService.emit("unpinMessage", {
         chatRoomId,
       });
+
+      // Nếu dùng Redux hoặc store local
+      // store.dispatch(clearPinnedMessage({ chatRoomId }));
     }
   } catch (error) {
     const err = error as ErrorResponse;
@@ -99,7 +112,7 @@ export const handleUnpinMessage = async (message: IMessage, chatRoomId: string) 
     Toast.show({
       type: "error",
       text1: "Bỏ ghim thất bại",
-      text2: err?.response?.data?.message || "Đã xảy ra lỗi",
+      text2: err?.response?.data?.message || err.message || "Đã xảy ra lỗi",
     });
   }
 };

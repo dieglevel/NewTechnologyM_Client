@@ -3,6 +3,7 @@ import { IMessageFile } from "./file.interface";
 
 
 export interface IMessage {
+  chatRoomId: string;
 	_id: string;
 	message_id?: string;
 	accountId?: string;

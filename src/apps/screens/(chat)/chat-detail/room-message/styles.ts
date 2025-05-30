@@ -74,6 +74,15 @@ pinnedLabel: {
 	color: "red",
 	marginBottom: 4,
 },
+pinnedMessageText:{
+  color: "#111827",
+  fontSize: 16,
+  fontWeight: "bold",
+},
+pinnedListContent:{
+  paddingBottom: 10,
+  paddingTop: 6,
+},
   otherMessage: {
     backgroundColor: "#e5e7eb",
     alignSelf: "flex-start",
