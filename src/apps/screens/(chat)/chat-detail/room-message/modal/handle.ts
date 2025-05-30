@@ -1,5 +1,6 @@
 import { ErrorResponse } from "@/libs/axios/axios.config";
 import { socketService } from "@/libs/socket/socket";
+import * as Sharing from "expo-sharing";
 import {
   deleteMessageById,
   revokeMessage,
@@ -8,8 +9,9 @@ import {
   getPinnedMessages,
 } from "@/services";
 import { IMessage } from "@/types/implement";
-import { Clipboard } from "react-native";
+import { Clipboard, Share } from "react-native";
 import Toast from "react-native-toast-message";
+import * as FileSystem from "expo-file-system";
 
 export const copyMessage = (data: IMessage) => {
   Clipboard.setString(data.content || "");
@@ -113,6 +115,65 @@ export const handleUnpinMessage = async (message: IMessage, chatRoomId: string) 
       type: "error",
       text1: "Bỏ ghim thất bại",
       text2: err?.response?.data?.message || err.message || "Đã xảy ra lỗi",
+    });
+  }
+};
+
+export const handleShareMessage = async (message: IMessage) => {
+  try {
+    // Nếu là tin nhắn chứa file
+    if (message.files && message.files.length > 0) {
+      const fileUrl = message.files[0].url;
+
+      if (!FileSystem.documentDirectory) {
+        throw new Error("Không thể xác định thư mục lưu trữ tệp.");
+      }
+      const fileUri = FileSystem.documentDirectory + (message.files[0].name || "shared-file");
+
+      const downloadResumable = FileSystem.createDownloadResumable(
+        fileUrl,
+        fileUri
+      );
+
+      const downloadResult = await downloadResumable.downloadAsync();
+
+      if (!downloadResult) {
+        throw new Error("Tải file thất bại.");
+      }
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(downloadResult.uri, {
+          dialogTitle: "Chia sẻ file từ ứng dụng chat",
+        });
+
+        Toast.show({
+          type: "success",
+          text1: "Đã chia sẻ file thành công",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Thiết bị không hỗ trợ chia sẻ file",
+        });
+      }
+    } else {
+      // Nếu chỉ là tin nhắn văn bản
+      await Share.share({
+        message: message.content || "",
+        title: "Chia sẻ từ ứng dụng chat",
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Tin nhắn đã được chia sẻ",
+      });
+    }
+  } catch (error) {
+    console.log("Error sharing message:", error);
+    Toast.show({
+      type: "error",
+      text1: "Chia sẻ tin nhắn thất bại",
+      text2: "Vui lòng thử lại sau",
     });
   }
 };

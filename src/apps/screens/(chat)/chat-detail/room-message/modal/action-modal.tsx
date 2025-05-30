@@ -1,4 +1,4 @@
-import { FlatList, Modal, TouchableOpacity, View, Text } from "react-native";
+import { FlatList, Modal, TouchableOpacity, View, Text, Share } from "react-native";
 import styles from "../styles";
 import RenderActionItem from "./render-action-item";
 import { IMessage, IRoom } from "@/types/implement";
@@ -19,7 +19,7 @@ interface Props {
   setActionMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
   pinnedMessage: IMessage | null;
   setPinnedMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
-  chatRoomId: string; 
+  chatRoomId: string;
 }
 
 export const ActionModalMessage = ({
@@ -46,47 +46,74 @@ export const ActionModalMessage = ({
   }, []);
 
   const handlePinToggle = async () => {
-  if (!actionMessage) return;
+    if (!actionMessage) return;
 
-  try {
-    if (pinnedMessage && pinnedMessage._id === actionMessage._id) {
-      await handleUnpinMessage(actionMessage, chatRoomId);
-      setPinnedMessage(null);
-      setData((prevData) =>
-        prevData.map((msg) =>
-          msg._id === actionMessage._id ? { ...msg, isPinned: false } : msg
-        )
-      );
+    try {
+      if (pinnedMessage && pinnedMessage._id === actionMessage._id) {
+        await handleUnpinMessage(actionMessage, chatRoomId);
+        setPinnedMessage(null);
+        setData((prevData) =>
+          prevData.map((msg) =>
+            msg._id === actionMessage._id ? { ...msg, isPinned: false } : msg
+          )
+        );
 
+        Toast.show({
+          text1: "Đã bỏ ghim tin nhắn",
+          type: "info",
+        });
+      } else {
+        await handlePinMessage(actionMessage, chatRoomId);
+        setPinnedMessage(actionMessage);
+        setData((prevData) =>
+          prevData.map((msg) =>
+            msg._id === actionMessage._id ? { ...msg, isPinned: true } : msg
+          )
+        );
+
+        Toast.show({
+          text1: "Đã ghim tin nhắn",
+          type: "success",
+        });
+      }
+
+      setShowActionModalAction(false);
+    } catch (error) {
+      console.log("Error toggling pin:", error);
       Toast.show({
-        text1: "Đã bỏ ghim tin nhắn",
-        type: "info",
-      });
-    } else {
-      await handlePinMessage(actionMessage, chatRoomId);
-      setPinnedMessage(actionMessage);
-      setData((prevData) =>
-        prevData.map((msg) =>
-          msg._id === actionMessage._id ? { ...msg, isPinned: true } : msg
-        )
-      );
-
-      Toast.show({
-        text1: "Đã ghim tin nhắn",
-        type: "success",
+        type: "error",
+        text1: "Không thể ghim/bỏ ghim tin nhắn",
+        text2: "Vui lòng thử lại",
       });
     }
+  };
 
-    setShowActionModalAction(false);
-  } catch (error) {
-    console.log("Error toggling pin:", error);
-    Toast.show({
-      type: "error",
-      text1: "Không thể ghim/bỏ ghim tin nhắn",
-      text2: "Vui lòng thử lại",
-    });
-  }
-};
+  const handleShareMessage = async () => {
+    if (!actionMessage) return;
+
+    try {
+      const shareOptions = {
+        message: actionMessage.content || "", // Nội dung tin nhắn
+        // Nếu có file (hình ảnh, video, v.v.), bạn có thể thêm vào
+        url: actionMessage.files?.[0]?.url || "", // Chia sẻ URL của file đầu tiên nếu có
+        title: "Chia sẻ từ ứng dụng chat",
+      };
+
+      await Share.share(shareOptions);
+      setShowActionModalAction(false);
+      Toast.show({
+        type: "success",
+        text1: "Đã mở chia sẻ",
+      });
+    } catch (error) {
+      console.log("Error sharing message:", error);
+      Toast.show({
+        type: "error",
+        text1: "Không thể chia sẻ tin nhắn",
+        text2: "Vui lòng thử lại",
+      });
+    }
+  };
 
   const getActionItems = () => {
     if (!actionMessage || !myUserId) return [];
@@ -130,6 +157,14 @@ export const ActionModalMessage = ({
         },
       });
 
+    // Thêm mục chia sẻ lên các nền tảng khác
+    !actionMessage.isRevoked &&
+      items.push({
+        icon: "share-social-outline",
+        label: "Chia sẻ lên nền tảng khác",
+        onPress: handleShareMessage,
+      });
+
     !actionMessage.isRevoked &&
       isMyMessage &&
       items.push({
@@ -164,7 +199,7 @@ export const ActionModalMessage = ({
                 _id: actionMessage._id,
                 type: newRoom.latestMessage?.type || "mixed",
                 isRevoked: true,
-                chatRoomId: newRoom.latestMessage?.chatRoomId ?? chatRoomId, // Ensure chatRoomId is always a string
+                chatRoomId: newRoom.latestMessage?.chatRoomId ?? chatRoomId,
               };
 
               store.dispatch(setRoom([newRoom]));
