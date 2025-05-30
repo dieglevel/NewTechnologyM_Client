@@ -56,8 +56,8 @@ const stopRecording = async (
 		if (uri) {
 			const file = {
 				uri,
-				name: `recording_${Date.now()}.m4a`,
-				type: "audio/m4a",
+				name: `recording_${Date.now()}.mp4`,
+				type: "audio/mp4",
 			};
 			await uploadAudio(file, roomId);
 		}
