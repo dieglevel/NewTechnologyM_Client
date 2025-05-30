@@ -7,6 +7,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { ExpoSecureStoreKeys, getSecure } from "../expo-secure-store/expo-secure-store";
 import { store } from "../redux/redux.config";
 import { fetchDetailInformation } from "../redux";
+import { setPinnedMessage, clearPinnedMessage } from "../redux/stores/model/pinnedMessage-slice"
 
 class SocketService {
 	private static instance: SocketService;
@@ -18,7 +19,6 @@ class SocketService {
 	public static getInstance(): SocketService {
 		if (!SocketService.instance) {
 			SocketService.instance = new SocketService();
-
 			SocketService.instance.connect();
 		}
 		return SocketService.instance;
@@ -42,6 +42,7 @@ class SocketService {
 				token: `${token}`,
 			},
 		});
+
 		this.registerCoreEvents();
 
 		console.log("Socket connected:", this.socket.id);
@@ -63,18 +64,25 @@ class SocketService {
 		if (!this.socket) return;
 
 		ConnectServerSocket(this.socket);
+		DetailInformationSocket(this.socket);
+		MyListRoomSocket(this.socket);
+		FriendSocket(this.socket);
+		this.socket.on("pinMessage", ({ chatRoomId, message }) => {
+  console.log("📌 Tin nhắn được ghim:", chatRoomId, message);
+  store.dispatch(setPinnedMessage({ chatRoomId, message: { ...message, isPinned: true } }));
+});
 
-		// ---------------------------------------------------------------------------------------------------------------------------------------------
-
-		DetailInformationSocket(this.socket)
-
-		// ---------------------------------------------------------------------------------------------------------------------------------------------
-
-		MyListRoomSocket(this.socket)
-
-		// ---------------------------------------------------------------------------------------------------------------------------------------------
-
-		FriendSocket(this.socket)
+this.socket.on("unpinMessage", ({ chatRoomId, messageId }) => {
+  console.log("❌ Gỡ ghim tin nhắn:", chatRoomId);
+  store.dispatch(clearPinnedMessage({ chatRoomId }));
+  // Cập nhật trạng thái isPinned trong danh sách tin nhắn
+  store.dispatch(
+    setPinnedMessage({
+      chatRoomId,
+      message: { _id: messageId, isPinned: false },
+    })
+  );
+});
 	}
 
 	public disconnect() {

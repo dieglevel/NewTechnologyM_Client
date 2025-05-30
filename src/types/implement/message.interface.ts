@@ -3,6 +3,7 @@ import { IMessageFile } from "./file.interface";
 
 
 export interface IMessage {
+  chatRoomId: string;
 	_id: string;
 	message_id?: string;
 	accountId?: string;
@@ -15,5 +16,6 @@ export interface IMessage {
 	createdAt?: Date;
 	updatedAt?: Date;
 	hiddenWith?: string[];
+    isPinned?: boolean;
 	type: "mixed" | "sticker" | "call",
 }

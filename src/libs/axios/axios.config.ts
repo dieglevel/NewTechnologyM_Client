@@ -7,7 +7,8 @@ import { getIpDeviceApi } from "@/services/ip-device";
 import { ExpoSecureValueService } from "../expo-secure-store/implement";
 
 export interface ErrorResponse {
-	error: string; 
+  response: any;
+	error: string;
 	message: string;
 	statusCode: number;
 	timestamp: Date;
