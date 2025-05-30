@@ -23,17 +23,13 @@ import { UpdatePasswordScreen } from "../screens/(auth)/updatePassword/updatePas
 import { ImagePreviewScreen } from "../screens/file-preview/image-preview-screen";
 import { RoomInformationScreen } from "../screens/(chat)/room-infomation/room-information-screen";
 import SendedFriendScreen from "../screens/(contact)/sended-friend/sended-friend-screen";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 import { registerForPushNotificationsAsync } from "@/libs/firebase-push-notification/firebase-push-notification";
 import { CreateRoomScreen } from "../screens/(chat)/create-room/create-room-screen";
-
-
+import { AddMember } from "../screens/(chat)/room-infomation/components/add-member/add-member";
+import { FriendAction } from "../screens/(chat)/room-infomation/components/friend-action/friend-action";
 
 export const RootScreenApp = () => {
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
-
- 
 	useEffect(() => {
 		const checkToken = async () => {
 			const token = ExpoSecureValueService.getAccessToken();
@@ -187,6 +183,24 @@ export const RootScreenApp = () => {
 					name="CreateRoomScreen"
 					component={CreateRoomScreen}
 				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "white",
+						headerShown: true,
+						headerTitle: "Thêm thành viên",
+					}}
+					name="AddMember"
+					component={AddMember}
+				/>
+				<Stack.Screen
+					options={{
+						statusBarBackgroundColor: "white",
+						headerShown: true,
+						headerTitle: "Danh sách thành viên nhóm",
+					}}
+					name="FriendAction"
+					component={FriendAction}
+					/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);

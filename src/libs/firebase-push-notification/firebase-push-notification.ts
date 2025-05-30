@@ -29,6 +29,7 @@ export async function registerForPushNotificationsAsync() {
     Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
+      
     });
   }
 

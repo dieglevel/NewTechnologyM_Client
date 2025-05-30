@@ -83,49 +83,51 @@ export const ListRoomScreen = () => {
 	return (
 		<SafeAreaView>
 			<View style={styles.container}>
-				<View style={styles.searchBar}>
-					<Ionicons
-						name="search"
-						size={20}
-						color="white"
-						style={styles.icon}
-					/>
-					<TextInput
-						style={styles.searchInput}
-						placeholder="Tìm kiếm"
-						placeholderTextColor="white"
-						value={searchText}
-						onChangeText={setSearchText}
-					/>
-					<Ionicons
-						name="qr-code"
-						size={20}
-						color="white"
-						style={styles.icon}
-						onPress={() => navigation.push("Qr")}
-					/>
-					<Ionicons
-						name="add"
-						size={20}
-						color="white"
-						style={styles.icon}
-						onPress={() => {
-							navigation.push("CreateRoomScreen");
-						}}
-					/>
-				</View>
-
+					<View style={styles.searchBar}>
+								<Ionicons
+									name="search"
+									size={20}
+									color="white"
+									style={styles.icon}
+								/>
+								<TextInput
+									style={styles.searchInput}
+									placeholder="Tìm kiếm"
+									placeholderTextColor="white"
+									value={searchText}
+									onChangeText={setSearchText}
+								/>
+								<Ionicons
+									name="qr-code"
+									size={20}
+									color="white"
+									style={styles.icon}
+									onPress={() => navigation.push("Qr")}
+								/>
+								<Ionicons
+									name="add"
+									size={20}
+									color="white"
+									style={styles.icon}
+									onPress={() => {
+										navigation.push("CreateRoomScreen");
+									}}
+								/>
+							</View>
 				{status === "loading" ? (
 					<ActivityIndicator size={"large"} />
 				) : (
 					<FlatList
+					
 						data={filteredRooms()}
 						keyExtractor={(item) => item.id}
 						renderItem={({ item }) => (
-							<ChatItem
-								item={item}
-								myUserId={myUserId}
-							/>
+							<>
+								<ChatItem
+									item={item}
+									myUserId={myUserId}
+								/>
+							</>
 						)}
 						ListEmptyComponent={() => (
 							<View
@@ -145,9 +147,10 @@ export const ListRoomScreen = () => {
 						contentContainerStyle={{
 							justifyContent: "flex-start",
 							alignItems: "flex-start",
-							flex: 1,
-							width: "100%",
 						}}
+						scrollEnabled={true}
+						showsVerticalScrollIndicator={false}
+						showsHorizontalScrollIndicator={false}
 					/>
 				)}
 			</View>
@@ -163,6 +166,7 @@ const styles = StyleSheet.create({
 	searchBar: {
 		flex: 1,
 		maxHeight: 50,
+		minHeight: 50,
 		flexDirection: "row",
 		alignItems: "center",
 		backgroundColor: "#3b82f6",
@@ -179,7 +183,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 	},
 	chatList: {
-		flex: 1,
+
 		backgroundColor: "#f3f4f6",
 		width: "100%",
 	},

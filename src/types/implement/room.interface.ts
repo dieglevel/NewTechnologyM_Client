@@ -7,7 +7,7 @@ export interface IRoom {
 	isSeen?: string[];
 	leader_account_id?: string;
 	latestMessage?: IMessage;
-	type?: "group" | "single" | "channel" | "cloud"; 
+	type?: "group" | "single" | "channel" | "cloud";
 	isDelete?: boolean;
 	isLoad?: boolean;
 	detailRoom?: IDetailAccountRoom[];
@@ -15,11 +15,13 @@ export interface IRoom {
 	isDisbanded?: boolean;
 	avatarUrl?: string;
 	updatedAt?: Date;
-	
+
 }
 
-export interface IDetailAccountRoom  {
+export interface IDetailAccountRoom {
 	id?: string;
 	fullName?: string;
 	avatar?: string;
+	role?: "admin" | "subadmin" | "noob";
+
 }

@@ -26,7 +26,8 @@ export type RootStackParamList = {
   ImagePreviewScreen: { url: string }
   SendedFriendScreen: undefined
   CreateRoomScreen: undefined;
-  
+  AddMember: undefined
+  FriendAction: undefined;
 };
 
 export const Stack = createNativeStackNavigator<RootStackParamList>();

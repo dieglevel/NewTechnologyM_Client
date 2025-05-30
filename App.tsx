@@ -12,27 +12,59 @@ import { store } from "@/libs/redux/redux.config";
 import * as Notifications from "expo-notifications";
 import { registerForPushNotificationsAsync } from "@/libs/firebase-push-notification/firebase-push-notification";
 
+import { AppState, AppStateStatus } from "react-native";
+import { useState } from "react";
+import { init } from "i18next";
+import { initialDataPage } from "@/apps/navigations/handle-initital-page";
+import { socketService } from "@/libs/socket/socket";
+
 Notifications.setNotificationHandler({
 	handleNotification: async () => ({
 		shouldShowAlert: true,
 		shouldPlaySound: true,
 		shouldSetBadge: true,
+		priority: Notifications.AndroidNotificationPriority.HIGH,
 	}),
 });
-
 
 export default function App() {
 	const [fontsLoaded] = useFonts(fonts);
 
-	const notificationListener = useRef<Notifications.Subscription>();
-	const responseListener = useRef<Notifications.Subscription>();
+	const appState = useRef<AppStateStatus>(AppState.currentState);
+
+	const fetch = async () => {
+		await initialDataPage();
+		await socketService.disconnect();
+		await socketService.connect();
+	};
+
+	useEffect(() => {
+		const subscription = AppState.addEventListener("change", async (nextAppState) => {
+			if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+				console.log("🔄 App quay trở lại → làm mới app ở đây");
+
+				fetch();
+				// ⚠️ Đừng dùng Updates.reloadAsync() trừ khi bắt buộc
+				// await Updates.reloadAsync();
+
+				// Gợi ý: Dispatch Redux action để refetch, hoặc reset screen
+				// store.dispatch(fetchDataAgain());
+
+				// Hoặc reload theo nhu cầu
+			}
+			appState.current = nextAppState;
+		});
+
+		return () => {
+			subscription.remove();
+		};
+	}, []);
 
 	useEffect(() => {
 		i18n.changeLanguage("vi");
 	}, []);
 
 	useEffect(() => {
-		// Lấy push token
 		const getToken = async () => {
 			try {
 				const token = await registerForPushNotificationsAsync();
@@ -43,31 +75,25 @@ export default function App() {
 		};
 		getToken();
 
-		// Nhận thông báo khi app đang mở
-		notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
-			console.log("📩 Notification received in foreground:", notification);
+		// const foregroundSubscription = Notifications.addNotificationReceivedListener((notification) => {
+		// 	console.log("📩 Gốc từ server:", notification.request.content.data);
+		// 	notification.request.content.body && console.log("📩 Nội dung thông báo:", notification.request.content.body);
+		// 	notification.request.content.title && console.log("📩 Tiêu đề thông báo:", notification.request.content.title)
+		// 	notification.request.content.data && console.log("📩 Dữ liệu thông báo:", notification.request.content.data);
+		// });
+
+		const backgroundSubscription = Notifications.addNotificationResponseReceivedListener((notification) => {
+			console.log("📩 Notification received in background or closed:", notification);
 		});
 
-		//  // Nhận thông báo khi app ở background hoặc đã tắt
-		notificationListener.current = Notifications.addNotificationResponseReceivedListener((notification) => {
-			console.log("📩 Notification received in background:", notification);
-		});
-		//  Nhận thông báo khi app đã tắt
-		notificationListener.current = Notifications.addNotificationResponseReceivedListener((notification) => {
-			console.log("📩 Notification received when app is closed:", notification);
-		});
-
-		// Nhận khi user nhấn vào thông báo
-		responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-			console.log("👆 User clicked notification:", response);
-			// Ví dụ: điều hướng đến màn hình cụ thể
-			// navigation.navigate('Chat', { id: response.notification.request.content.data.chatId });
+		const terminalSubscription = Notifications.addNotificationResponseReceivedListener((notification) => {
+			console.log("📩 Notification clicked:", notification);
 		});
 
 		return () => {
-			if (notificationListener.current)
-				Notifications.removeNotificationSubscription(notificationListener.current);
-			if (responseListener.current) Notifications.removeNotificationSubscription(responseListener.current);
+			// Notifications.removeNotificationSubscription(foregroundSubscription);
+			Notifications.removeNotificationSubscription(backgroundSubscription);
+			Notifications.removeNotificationSubscription(terminalSubscription);
 		};
 	}, []);
 

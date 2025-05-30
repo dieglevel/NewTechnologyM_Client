@@ -6,6 +6,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { images } from "@/assets/images";
 import { caculateDuration } from "@/utils/caculate-duration";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 interface IChatItem {
 	item: IRoom;
@@ -36,10 +37,18 @@ export const ChatItem = ({ item, myUserId }: IChatItem) => {
 			);
 		} else {
 			return (
-				<Image
-					source={item.avatar ? { uri: item?.avatar } : images.group}
-					style={[, { width: 30, height: 30 }, item.avatar && styles.avatar]}
-				/>
+				<>
+					{item.avatar ? (
+						<Image
+							source={{ uri: item.avatar }}
+							style={styles.avatar}
+						/>
+					) : (
+						<View style={{}}>
+							<MaterialIcons name="group" size={24} color="#6b7280" />
+						</View>
+					)}
+				</>
 			);
 		}
 	};
@@ -118,14 +127,18 @@ const styles = StyleSheet.create({
 		backgroundColor: "white",
 	},
 	avatarContainer: {
+		backgroundColor: "#f4f4f4",
 		width: 48,
 		height: 48,
 		objectFit: "cover",
-		borderRadius: 999,
+		borderRadius: 9999,
 		alignItems: "center",
 		justifyContent: "center",
-		borderWidth: 2,
-		borderColor: "#3b82f6",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
 	},
 	chatContent: {
 		marginLeft: 12,
@@ -145,8 +158,11 @@ const styles = StyleSheet.create({
 		height: 48,
 		objectFit: "cover",
 		borderRadius: 999,
-		borderWidth: 2,
-		borderColor: "#3b82f6",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
 	},
 	chatTime: {
 		color: "#9ca3af",

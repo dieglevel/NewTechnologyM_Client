@@ -15,7 +15,8 @@ import Footer from "./footer/chat-footer";
 import Header from "./header/chat-header";
 import { ActionModalMessage } from "./modal/action-modal";
 import styles from "./styles";
-
+import { initialDataPage } from "@/apps/navigations/handle-initital-page";
+import { AppState, AppStateStatus } from "react-native";
 const ChatDetail = () => {
 	const isDark = false;
 
@@ -33,6 +34,35 @@ const ChatDetail = () => {
 
 	const flatListRef = useRef<FlatList>(null);
 	const isFocused = useIsFocused();
+
+	const fetch = async () => {
+			await initialDataPage();
+			await socketService.disconnect();
+			await socketService.connect();
+		};
+	const appState = useRef<AppStateStatus>(AppState.currentState);
+		useEffect(() => {
+			const subscription = AppState.addEventListener("change", async (nextAppState) => {
+				if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+					console.log("🔄 App quay trở lại → làm mới app ở đây");
+	
+					fetch();
+					// ⚠️ Đừng dùng Updates.reloadAsync() trừ khi bắt buộc
+					// await Updates.reloadAsync();
+	
+					// Gợi ý: Dispatch Redux action để refetch, hoặc reset screen
+					// store.dispatch(fetchDataAgain());
+	
+					// Hoặc reload theo nhu cầu
+				}
+				appState.current = nextAppState;
+			});
+	
+			return () => {
+				subscription.remove();
+			};
+		}, []);
+	
 
 	useEffect(() => {
 		const fetchMessages = async () => {
@@ -118,6 +148,7 @@ const ChatDetail = () => {
 			socketService.off(SocketOn.forwardMessage);
 		};
 	}, [isFocused]);
+
 	const filteredMessages = messages?.filter((msg) => {
 		if (!msg.isRevoked) {
 			return msg.content?.toLowerCase().includes(searchQuery.toLowerCase());

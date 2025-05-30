@@ -51,7 +51,7 @@ export const CreateRoomScreen = () => {
 				onChangeText={setNameGroup}
 			/>
 			<Text style={{ alignSelf: "flex-start", marginBottom: 5, fontWeight: "bold", fontSize: 16 }}>
-				Thêm thành viên
+				Tạo nhóm
 			</Text>
 			<TextInput
 				style={styles.input}

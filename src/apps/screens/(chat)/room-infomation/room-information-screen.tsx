@@ -5,7 +5,7 @@ import { useAppSelector } from "@/libs/redux/redux.config";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const RoomInformationScreen = () => {
@@ -56,6 +56,7 @@ export const RoomInformationScreen = () => {
 	};
 
 	const renderName = () => {
+		console.log("selectedRoom", selectedRoom);
 		if (selectedRoom?.type === "single") {
 			const account = selectedRoom.detailRoom?.find((detail) => {
 				return detail.id !== myUserId;
@@ -128,19 +129,39 @@ export const RoomInformationScreen = () => {
 							</View>
 							<Text style={styles.featureText}>Ghim hội thoại</Text>
 						</TouchableOpacity>
-						<TouchableOpacity
-							style={styles.featureItem}
-							onPress={() => alert("Tạo nhóm trò chuyện")}
-						>
-							<View style={styles.iconCircle}>
-								<Feather
-									name="user-plus"
-									size={20}
-									color="#1e3a8a"
-								/>
-							</View>
-							<Text style={styles.featureText}>Tạo nhóm trò chuyện</Text>
-						</TouchableOpacity>
+						{selectedRoom?.type === "group" ? (
+							<TouchableOpacity
+								style={styles.featureItem}
+								onPress={() => {
+									navigation.navigate("AddMember");
+								}}
+							>
+								<View style={styles.iconCircle}>
+									<Feather
+										name="user-plus"
+										size={20}
+										color="#1e3a8a"
+									/>
+								</View>
+								<Text style={styles.featureText}>Thêm thành viên</Text>
+							</TouchableOpacity>
+						) : (
+							<TouchableOpacity
+								style={styles.featureItem}
+								onPress={() => {
+									navigation.navigate("CreateRoomScreen");
+								}}
+							>
+								<View style={styles.iconCircle}>
+									<Feather
+										name="user-plus"
+										size={20}
+										color="#1e3a8a"
+									/>
+								</View>
+								<Text style={styles.featureText}>Tạo cuộc trò chuyện</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</View>
 
@@ -164,25 +185,62 @@ export const RoomInformationScreen = () => {
 					</View>
 				</View> */}
 
-					<View style={styles.section}>
+					{selectedRoom?.type === "group" && (
+						<Pressable style={styles.section} onPress={() => navigation.navigate("FriendAction")}>
+							<View style={styles.sectionHeader}>
+								<Text style={[styles.sectionTitle, isDark && styles.darkSectionTitle]}>
+									Thành viên
+								</Text>
+							</View>
+
+							<View style={{ flexDirection: "column", alignItems: "flex-start", width: "100%" }}>
+								<>
+									{selectedRoom.detailRoom && selectedRoom.detailRoom?.length > 2 ? (
+										<>
+											{selectedRoom.detailRoom.slice(0, 4).map((member) => (
+												<View
+													key={member.id}
+													style={styles.memberItem}
+												>
+													<Image
+														source={{ uri: member.avatar }}
+														style={styles.avatarMember}
+													/>
+													<Text
+														style={[
+															styles.memberText,
+															isDark && styles.darkMemberText,
+														]}
+													>
+														{member.fullName}
+													</Text>
+												</View>
+											))}
+										</>
+									) : null}
+								</>
+							</View>
+						</Pressable>
+					)}
+					{/* <View style={styles.section}>
 						<View style={styles.sectionHeader}>
 							<Text style={[styles.sectionTitle, isDark && styles.darkSectionTitle]}>
 								Ảnh/Video
 							</Text>
 						</View>
-					</View>
+					</View> */}
 
-					<View style={styles.section}>
+					{/* <View style={styles.section}>
 						<View style={styles.sectionHeader}>
 							<Text style={[styles.sectionTitle, isDark && styles.darkSectionTitle]}>File</Text>
 						</View>
-					</View>
+					</View> */}
 
-					<View style={styles.section}>
+					{/* <View style={styles.section}>
 						<View style={styles.sectionHeader}>
 							<Text style={[styles.sectionTitle, isDark && styles.darkSectionTitle]}>Link</Text>
 						</View>
-					</View>
+					</View> */}
 
 					{/* Security Settings Section */}
 					<View style={styles.section}>
@@ -251,6 +309,14 @@ export const RoomInformationScreen = () => {
 };
 
 const styles = StyleSheet.create({
+	avatarMember: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		marginRight: 8,
+		borderWidth: 1,
+		borderColor: "#3b82f6",
+	},
 	container: {
 		flex: 1,
 		backgroundColor: "#f5f5f5",
@@ -327,13 +393,17 @@ const styles = StyleSheet.create({
 		padding: 16,
 	},
 	section: {
+		flexDirection: "column",
+		width: "100%",
+		justifyContent: "flex-start",
+		alignItems: "flex-start",
 		backgroundColor: "#fff",
 		borderRadius: 8,
 		padding: 16,
 		marginBottom: 16,
 	},
 	sectionHeader: {
-		flexDirection: "row",
+		flexDirection: "column",
 		justifyContent: "space-between",
 		alignItems: "center",
 		marginBottom: 12,
@@ -350,6 +420,10 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		paddingVertical: 8,
+		gap: 8,
+		borderTopColor: "#eee",
+		borderTopWidth: 1,
+		width: "100%",
 	},
 	sectionIcon: {
 		color: "#3b82f6",
@@ -360,7 +434,8 @@ const styles = StyleSheet.create({
 		color: "#60a5fa",
 	},
 	memberText: {
-		fontSize: 14,
+		fontSize: 16,
+		fontWeight: "600",
 		color: "#333",
 	},
 	darkMemberText: {
